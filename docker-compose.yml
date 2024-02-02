@@ -1,0 +1,31 @@
+version: "3.5"
+
+services:
+  store-db:
+    image: mysql:8.3.0
+    # image: mariadb:10.4.17
+    container_name: store-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=store
+    volumes:
+      - ./tearup/store:/docker-entrypoint-initdb.d/
+    ports:
+      - "3306:3306"
+    restart: always
+
+  point-db:
+    image: mysql:8.3.0
+    container_name: point-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=point
+    volumes:
+      - ./tearup/point:/docker-entrypoint-initdb.d/
+    ports:
+      - "3307:3306"
+    restart: always
