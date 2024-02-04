@@ -3,7 +3,6 @@ version: "3.5"
 services:
   store-db:
     image: mysql:8.3.0
-    # image: mariadb:10.4.17
     container_name: store-db
     environment:
       - MYSQL_ROOT_PASSWORD=root
@@ -29,3 +28,21 @@ services:
     ports:
       - "3307:3306"
     restart: always
+
+  bank-gateway:
+    image: store-bank-gateway:0.0.1
+    build:
+      context: thirdparty/bank-gateway
+    container_name: bank-gateway
+    restart: always
+    ports:
+      - "8882:8882"
+
+  shipping-gateway:
+    image: store-shipping-gateway:0.0.1
+    build:
+      context: thirdparty/shipping-gateway
+    container_name: shipping-gateway
+    restart: always
+    ports:
+      - "8883:8882"
