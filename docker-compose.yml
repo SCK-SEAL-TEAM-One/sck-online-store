@@ -1,6 +1,17 @@
 version: "3.5"
 
 services:
+  store-service:
+    image: store-service
+    container_name: store-service
+    build:
+      context: store-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - store-db
+    restart: always
+
   store-db:
     image: mysql:8.3.0
     container_name: store-db
