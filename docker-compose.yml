@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   store-service:
-    image: store-service
+    image: store-service:0.0.1
     container_name: store-service
     build:
       context: store-service
@@ -10,6 +10,22 @@ services:
       - "8000:8000"
     depends_on:
       - store-db
+    restart: always
+
+  point-service:
+    image: point-service:0.0.1
+    container_name: point-service
+    build:
+      context: point-service
+    ports:
+      - "8001:8001"
+    depends_on:
+      - point-db
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3307
+      - DB_USERNAME=user
+      - DB_PASSWORD=password
     restart: always
 
   store-db:
