@@ -13,8 +13,8 @@ backend_integration_test:
 store_db:
 	docker compose up -d store-db 
 
-point_db:
-	docker compose up -d point-db 
+point_service:
+	docker compose up -d point-service 
 
 down:
 	docker compose down
