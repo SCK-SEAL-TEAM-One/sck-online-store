@@ -6,8 +6,8 @@ import (
 )
 
 type PointGatewayInterface interface {
-	GetPoints(uid int) ([]PointGatewayResponseItem, error)
-	CreatePoint(uid int, body Point) (PointGatewayResponseItem, error)
+	GetPoints(uid int) ([]Point, error)
+	CreatePoint(uid int, body Point) (Point, error)
 }
 
 type PointService struct {

@@ -6,16 +6,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type mockPointRepository struct {
+type mockPointGateway struct {
 	mock.Mock
 }
 
-func (repo *mockPointRepository) GetPoints(userID int) ([]point.Point, error) {
-	argument := repo.Called(userID)
+func (gateway *mockPointGateway) GetPoints(userID int) ([]point.Point, error) {
+	argument := gateway.Called(userID)
 	return argument.Get(0).([]point.Point), argument.Error(1)
 }
 
-func (repo *mockPointRepository) CreatePoint(userID int, amount int) (int, error) {
-	argument := repo.Called(userID, amount)
-	return argument.Int(0), argument.Error(1)
+func (gateway *mockPointGateway) CreatePoint(userID int, pointItem point.Point) (point.Point, error) {
+	argument := gateway.Called(userID, pointItem)
+	return argument.Get(0).(point.Point), argument.Error(1)
 }
