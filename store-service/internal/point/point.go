@@ -30,14 +30,9 @@ func (pointService PointService) TotalPoint(uid int) (TotalPoint, error) {
 }
 
 func (pointService PointService) DeductPoint(uid int, submitedPoint SubmitedPoint) (TotalPoint, error) {
-	total, err := pointService.TotalPoint(uid)
+	_, err := pointService.CheckBurnPoint(uid, submitedPoint.Amount)
 	if err != nil {
-		log.Printf("pointService.TotalPoint internal error %s", err.Error())
 		return TotalPoint{}, err
-	}
-
-	if submitedPoint.Amount+total.Point < 0 {
-		return TotalPoint{}, fmt.Errorf("points are not enough, please try again")
 	}
 
 	point := Point{
@@ -51,4 +46,16 @@ func (pointService PointService) DeductPoint(uid int, submitedPoint SubmitedPoin
 		return TotalPoint{}, err_
 	}
 	return pointService.TotalPoint(uid)
+}
+
+func (pointService PointService) CheckBurnPoint(uid int, amount int) (bool, error) {
+	total, err := pointService.TotalPoint(uid)
+	if err != nil {
+		log.Printf("pointService.TotalPoint internal error %s", err.Error())
+		return false, err
+	}
+	if amount+total.Point < 0 {
+		return false, fmt.Errorf("points are not enough, please try again")
+	}
+	return true, nil
 }

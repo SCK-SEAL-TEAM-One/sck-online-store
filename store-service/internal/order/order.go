@@ -12,7 +12,7 @@ import (
 type OrderService struct {
 	CartRepository    cart.CartRepository
 	OrderRepository   OrderRepository
-	PointGateway      point.PointGateway
+	PointService      point.PointService
 	ProductRepository product.ProductRepository
 }
 
@@ -21,23 +21,27 @@ type CartRepository interface {
 }
 
 type OrderInterface interface {
-	CreateOrder(submitedOrder SubmitedOrder) Order
+	CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error)
 }
 
-type PointGateway interface {
-	CreatePoint(uid int, body point.Point) point.Point
+type PointService interface {
+	DeductPoint(uid int, submitedPoint point.SubmitedPoint) (point.TotalPoint, error)
 }
 
 type ProductRepository interface {
 	GetProductByID(id int) product.ProductDetail
 }
 
-func (orderService OrderService) CreateOrder(submitedOrder SubmitedOrder) Order {
-	uid := 1
+func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error) {
+	_, err := orderService.PointService.CheckBurnPoint(uid, -(submitedOrder.BurnPoint))
+	if err != nil {
+		return Order{}, err
+	}
+
 	orderID, err := orderService.OrderRepository.CreateOrder(uid, submitedOrder)
 	if err != nil {
 		log.Printf("OrderRepository.CreateOrder internal error %s", err.Error())
-		return Order{}
+		return Order{}, err
 	}
 
 	shippingInfo := ShippingInfo{
@@ -54,7 +58,7 @@ func (orderService OrderService) CreateOrder(submitedOrder SubmitedOrder) Order 
 	_, err = orderService.OrderRepository.CreateShipping(uid, orderID, shippingInfo)
 	if err != nil {
 		log.Printf("OrderRepository.CreateShipping internal error %s", err.Error())
-		return Order{}
+		return Order{}, err
 	}
 
 	for _, selectedProduct := range submitedOrder.Cart {
@@ -62,7 +66,7 @@ func (orderService OrderService) CreateOrder(submitedOrder SubmitedOrder) Order 
 		err = orderService.OrderRepository.CreateOrderProduct(orderID, selectedProduct.ProductID, selectedProduct.Quantity, product.Price)
 		if err != nil {
 			log.Printf("OrderRepository.CreateOrderProduct internal error %s", err.Error())
-			return Order{}
+			return Order{}, err
 		}
 
 		orderService.CartRepository.DeleteCart(uid, selectedProduct.ProductID)
@@ -74,22 +78,19 @@ func (orderService OrderService) CreateOrder(submitedOrder SubmitedOrder) Order 
 
 	return Order{
 		OrderID: orderID,
-	}
+	}, nil
 }
 
-func (orderService OrderService) OrderBurnPoint(uid int, burn int) point.Point {
-	submit := point.Point{
-		OrgID:  1,
-		UserID: uid,
+func (orderService OrderService) OrderBurnPoint(uid int, burn int) (point.TotalPoint, error) {
+	submit := point.SubmitedPoint{
 		Amount: -(burn),
 	}
 
-	totalPoint, err := orderService.PointGateway.CreatePoint(uid, submit)
+	totalPoint, err := orderService.PointService.DeductPoint(uid, submit)
 	if err != nil {
-		log.Printf("orderService.PointService.DeductPoint internal error %s", err.Error())
-		return point.Point{}
+		return point.TotalPoint{}, err
 	}
-	return totalPoint
+	return totalPoint, nil
 }
 
 func SendNotification(orderID int, trackingNumber string, dateTime time.Time) string {

@@ -18,6 +18,7 @@ type OrderConfirmation struct {
 }
 
 func (api StoreAPI) SubmitOrderHandler(context *gin.Context) {
+	uid := 1
 	var request order.SubmitedOrder
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
@@ -25,7 +26,13 @@ func (api StoreAPI) SubmitOrderHandler(context *gin.Context) {
 		return
 	}
 
-	order := api.OrderService.CreateOrder(request)
+	order, err := api.OrderService.CreateOrder(uid, request)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	context.JSON(http.StatusOK, OrderConfirmation{
 		OrderID: order.OrderID,

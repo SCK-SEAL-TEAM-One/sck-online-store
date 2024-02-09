@@ -100,12 +100,6 @@ func main() {
 		PointEndpoint: "http://" + pointGatewayEndpoint,
 	}
 
-	orderService := order.OrderService{
-		CartRepository:    cartRepository,
-		OrderRepository:   &orderRepository,
-		PointGateway:      pointGateway,
-		ProductRepository: productRepository,
-	}
 	paymentService := payment.PaymentService{
 		BankGateway:        &bankGateway,
 		ShippingGateway:    &shippingGateway,
@@ -119,6 +113,12 @@ func main() {
 	}
 	cartService := cart.CartService{
 		CartRepository: &cartRepository,
+	}
+	orderService := order.OrderService{
+		CartRepository:    cartRepository,
+		OrderRepository:   &orderRepository,
+		PointService:      pointService,
+		ProductRepository: productRepository,
 	}
 	storeAPI := api.StoreAPI{
 		OrderService: &orderService,
