@@ -14,8 +14,7 @@ type StoreAPI struct {
 }
 
 type OrderConfirmation struct {
-	OrderID    int     `json:"order_id"`
-	TotalPrice float64 `json:"total_price"`
+	OrderID int `json:"order_id"`
 }
 
 func (api StoreAPI) SubmitOrderHandler(context *gin.Context) {
@@ -29,7 +28,6 @@ func (api StoreAPI) SubmitOrderHandler(context *gin.Context) {
 	order := api.OrderService.CreateOrder(request)
 
 	context.JSON(http.StatusOK, OrderConfirmation{
-		OrderID:    order.OrderID,
-		TotalPrice: order.TotalPrice,
+		OrderID: order.OrderID,
 	})
 }

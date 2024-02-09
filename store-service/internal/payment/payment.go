@@ -63,5 +63,5 @@ func (service PaymentService) ConfirmPayment(orderID int, paymentdetail PaymentD
 		return "", err
 	}
 
-	return order.SendNotification(orderID, trackingID, service.Time(), shippingInfo.ShippingMethod), nil
+	return order.SendNotification(orderID, trackingID, service.Time()), nil
 }

@@ -10059,6 +10059,33 @@ INSERT INTO products (id,product_name,product_brand,stock,product_price,image_ur
 (10030,"Justice League of America Series 3 Green Lantern Action Figure","Justice League of America Series 3 Green Lantern Action Figure",3,"49.81","/Snoopy_Sno_Cone_Machine.png"),
 (10031,"Star Wars 1/72 Y-Wing Starfighter","Star Wars 1/72 Y-Wing Starfighter",31,"21.20","/Snoopy_Sno_Cone_Machine.png");
 
+CREATE TABLE shipping_methods (
+    id BIGINT AUTO_INCREMENT,
+    name varchar(255),
+    description varchar(255),
+    cost double,
+    created timestamp DEFAULT current_timestamp,
+    updated timestamp DEFAULT current_timestamp ON UPDATE current_timestamp,
+    PRIMARY KEY (id)
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+INSERT INTO shipping_methods (id,name,description,cost) VALUE 
+(1,"Kerry","4-5 business days",5),
+(2,"Thaipost","5-15 business days",5),
+(3,"Lineman","1-2 business days",7);
+
+CREATE TABLE payment_methods (
+    id BIGINT AUTO_INCREMENT,
+    name varchar(255),
+    description varchar(255),
+    created timestamp DEFAULT current_timestamp,
+    updated timestamp DEFAULT current_timestamp ON UPDATE current_timestamp,
+    PRIMARY KEY (id)
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+INSERT INTO payment_methods (id,name,description) VALUE 
+(1,"Credit Card / Debit Card", "");
+
 CREATE TABLE carts (
     id BIGINT AUTO_INCREMENT,
     user_id BIGINT,
@@ -10073,17 +10100,23 @@ CREATE TABLE carts (
 
 CREATE TABLE orders (
     id BIGINT AUTO_INCREMENT,
-    shipping_method varchar(50),
+    shipping_method_id BIGINT,
+    payment_method_id BIGINT,
+    burn_point int,
+    sub_total_price double,
+    discount_price double,
     total_price double,
     transaction_id varchar(255) DEFAULT '',
     status ENUM('created','completed','cancle','fail') DEFAULT 'created',
     authorized timestamp DEFAULT current_timestamp,
     created timestamp DEFAULT current_timestamp,
     updated timestamp DEFAULT current_timestamp ON UPDATE current_timestamp,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (shipping_method_id) REFERENCES shipping_methods(id),
+    FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
-INSERT INTO orders (id, shipping_method) VALUE (1,"Kerry");
+INSERT INTO orders (id, shipping_method_id) VALUE (1,1);
 INSERT INTO orders (id, total_price) 
 VALUE (8004359103,14.59);
 
@@ -10102,16 +10135,20 @@ VALUE (1, 1, 10, 129.5);
 CREATE TABLE shipping (
     id int AUTO_INCREMENT,
     order_id BIGINT,
+    method_id BIGINT,
     address varchar(255),
     sub_district varchar(255),
     district varchar(255),
     province varchar(255),
     zip_code varchar(5),
-    recipient varchar(255),
+    recipient_first_name varchar(255),
+    recipient_last_name varchar(255),
     phone_number varchar(13),
     created timestamp DEFAULT current_timestamp,
     updated timestamp DEFAULT current_timestamp ON UPDATE current_timestamp,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (method_id) REFERENCES shipping_methods(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
-INSERT INTO shipping (id,order_id,address,sub_district,district,province,zip_code,recipient,phone_number) 
-VALUE (1,1,"405/37 ถ.มหิดล", "ท่าศาลา", "เมือง", "เชียงใหม่", "50000", "ณัฐญา ชุติบุตร", "0970809292");
+INSERT INTO shipping (id,order_id, method_id, address,sub_district,district,province,zip_code,recipient_first_name,recipient_last_name,phone_number) 
+VALUE (1,1,1,"405/37 ถ.มหิดล", "ท่าศาลา", "เมือง", "เชียงใหม่", "50000", "ณัฐญา", "ชุติบุตร", "0970809292");
