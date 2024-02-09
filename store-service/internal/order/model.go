@@ -19,6 +19,7 @@ type SubmitedOrder struct {
 }
 
 type ShippingInfo struct {
+	UserID               int    `db:"user_id"`
 	ShippingMethodID     int    `db:"method_id"`
 	ShippingAddress      string `db:"address"`
 	ShippingSubDistrict  string `db:"sub_district"`

@@ -3,17 +3,29 @@ package order
 import (
 	"fmt"
 	"log"
+	"store-service/internal/cart"
+	"store-service/internal/point"
 	"store-service/internal/product"
 	"time"
 )
 
 type OrderService struct {
-	ProductRepository product.ProductRepository
+	CartRepository    cart.CartRepository
 	OrderRepository   OrderRepository
+	PointGateway      point.PointGateway
+	ProductRepository product.ProductRepository
+}
+
+type CartRepository interface {
+	DeleteCart(userID int, productID int)
 }
 
 type OrderInterface interface {
 	CreateOrder(submitedOrder SubmitedOrder) Order
+}
+
+type PointGateway interface {
+	CreatePoint(uid int, body point.Point) point.Point
 }
 
 type ProductRepository interface {
@@ -21,7 +33,8 @@ type ProductRepository interface {
 }
 
 func (orderService OrderService) CreateOrder(submitedOrder SubmitedOrder) Order {
-	orderID, err := orderService.OrderRepository.CreateOrder(submitedOrder)
+	uid := 1
+	orderID, err := orderService.OrderRepository.CreateOrder(uid, submitedOrder)
 	if err != nil {
 		log.Printf("OrderRepository.CreateOrder internal error %s", err.Error())
 		return Order{}
@@ -38,7 +51,7 @@ func (orderService OrderService) CreateOrder(submitedOrder SubmitedOrder) Order 
 		RecipientLastName:    submitedOrder.RecipientLastName,
 		RecipientPhoneNumber: submitedOrder.RecipientPhoneNumber,
 	}
-	_, err = orderService.OrderRepository.CreateShipping(orderID, shippingInfo)
+	_, err = orderService.OrderRepository.CreateShipping(uid, orderID, shippingInfo)
 	if err != nil {
 		log.Printf("OrderRepository.CreateShipping internal error %s", err.Error())
 		return Order{}
@@ -51,26 +64,33 @@ func (orderService OrderService) CreateOrder(submitedOrder SubmitedOrder) Order 
 			log.Printf("OrderRepository.CreateOrderProduct internal error %s", err.Error())
 			return Order{}
 		}
+
+		orderService.CartRepository.DeleteCart(uid, selectedProduct.ProductID)
 	}
+
+	if submitedOrder.BurnPoint > 0 {
+		orderService.OrderBurnPoint(uid, submitedOrder.BurnPoint)
+	}
+
 	return Order{
 		OrderID: orderID,
 	}
-	TODO
-	update point & clear cart
 }
 
-// func (orderService OrderService) GetTotalProductPrice(submitedOrder SubmitedOrder) float64 {
-// 	totalProductPrice := 0.00
-// 	for _, cartItem := range submitedOrder.Cart {
-// 		product, _ := orderService.ProductRepository.GetProductByID(cartItem.ProductID)
-// 		totalProductPrice += product.Price * float64(cartItem.Quantity)
-// 	}
-// 	return totalProductPrice
-// }
+func (orderService OrderService) OrderBurnPoint(uid int, burn int) point.Point {
+	submit := point.Point{
+		OrgID:  1,
+		UserID: uid,
+		Amount: -(burn),
+	}
 
-// func (orderService OrderService) GetTotalAmount(order SubmitedOrder) float64 {
-// 	return orderService.GetTotalProductPrice(order) + order.GetShippingFee()
-// }
+	totalPoint, err := orderService.PointGateway.CreatePoint(uid, submit)
+	if err != nil {
+		log.Printf("orderService.PointService.DeductPoint internal error %s", err.Error())
+		return point.Point{}
+	}
+	return totalPoint
+}
 
 func SendNotification(orderID int, trackingNumber string, dateTime time.Time) string {
 	return fmt.Sprintf("วันเวลาที่ชำระเงิน %s หมายเลขคำสั่งซื้อ %d คุณสามารถติดตามสินค้าผ่านช่องทาง xx หมายเลข %s", dateTime.Format("2/1/2006 15:04:05"), orderID, trackingNumber)

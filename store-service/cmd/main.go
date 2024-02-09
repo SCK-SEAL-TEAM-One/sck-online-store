@@ -89,10 +89,7 @@ func main() {
 	cartRepository := cart.CartRepositoryMySQL{
 		DBConnection: connection,
 	}
-	orderService := order.OrderService{
-		ProductRepository: productRepository,
-		OrderRepository:   &orderRepository,
-	}
+
 	bankGateway := payment.BankGateway{
 		BankEndpoint: "http://" + bankGatewayEndpoint,
 	}
@@ -101,6 +98,13 @@ func main() {
 	}
 	pointGateway := point.PointGateway{
 		PointEndpoint: "http://" + pointGatewayEndpoint,
+	}
+
+	orderService := order.OrderService{
+		CartRepository:    cartRepository,
+		OrderRepository:   &orderRepository,
+		PointGateway:      pointGateway,
+		ProductRepository: productRepository,
 	}
 	paymentService := payment.PaymentService{
 		BankGateway:        &bankGateway,

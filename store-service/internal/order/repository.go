@@ -7,10 +7,10 @@ import (
 )
 
 type OrderRepository interface {
-	CreateOrder(submitedOrder SubmitedOrder) (int, error)
+	CreateOrder(userID int, submitedOrder SubmitedOrder) (int, error)
 	CreateOrderProduct(orderID, productID, quantity int, productPrice float64) error
 	GetOrderProduct(orderID int) ([]OrderProduct, error)
-	CreateShipping(orderID int, shippingInfo ShippingInfo) (int, error)
+	CreateShipping(userID int, orderID int, shippingInfo ShippingInfo) (int, error)
 	UpdateOrder(orderID int, transactionID string) error
 }
 
@@ -18,11 +18,12 @@ type OrderRepositoryMySQL struct {
 	DBConnection *sqlx.DB
 }
 
-func (orderRepository OrderRepositoryMySQL) CreateShipping(orderID int, shippingInfo ShippingInfo) (int, error) {
+func (orderRepository OrderRepositoryMySQL) CreateShipping(userID int, orderID int, shippingInfo ShippingInfo) (int, error) {
 	result := orderRepository.
 		DBConnection.
-		MustExec(`INSERT INTO shipping (order_id, method_id, address, sub_district, district, province, zip_code, recipient_first_name, recipient_last_name, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		MustExec(`INSERT INTO shipping (order_id, user_id, method_id, address, sub_district, district, province, zip_code, recipient_first_name, recipient_last_name, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			orderID,
+			userID,
 			shippingInfo.ShippingMethodID,
 			shippingInfo.ShippingAddress,
 			shippingInfo.ShippingSubDistrict,
@@ -37,8 +38,8 @@ func (orderRepository OrderRepositoryMySQL) CreateShipping(orderID int, shipping
 	return int(id), err
 }
 
-func (orderRepository OrderRepositoryMySQL) CreateOrder(submitedOrder SubmitedOrder) (int, error) {
-	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO orders (shipping_method_id, payment_method_id, burn_point, sub_total_price, discount_price, total_price) VALUE (?,?,?,?,?,?)", submitedOrder.ShippingMethodID, submitedOrder.PaymentMethodID, submitedOrder.BurnPoint, submitedOrder.SubTotalPrice, submitedOrder.DiscountPrice, submitedOrder.TotalPrice)
+func (orderRepository OrderRepositoryMySQL) CreateOrder(userID int, submitedOrder SubmitedOrder) (int, error) {
+	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO orders (user_id, shipping_method_id, payment_method_id, burn_point, sub_total_price, discount_price, total_price) VALUE (?,?,?,?,?,?,?)", userID, submitedOrder.ShippingMethodID, submitedOrder.PaymentMethodID, submitedOrder.BurnPoint, submitedOrder.SubTotalPrice, submitedOrder.DiscountPrice, submitedOrder.TotalPrice)
 	insertedId, err := sqlResult.LastInsertId()
 	return int(insertedId), err
 }
