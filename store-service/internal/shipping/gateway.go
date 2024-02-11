@@ -6,24 +6,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"store-service/internal/order"
 )
 
-type Shipping interface {
-	ShipByKerry(shippingInfo order.ShippingInfo) (string, error)
-}
-
 type ShippingGateway struct {
-	KerryEndpoint string
+	ShippingEndpoint string
 }
 
 type ShippingGatewayResponse struct {
-	TrackingID string `json:"tracking_id"`
+	TrackingNumber string `json:"tracking_number"`
 }
 
-func (gateway ShippingGateway) ShipByKerry(shippingInfo order.ShippingInfo) (string, error) {
-	data, _ := json.Marshal(shippingInfo)
-	endPoint := gateway.KerryEndpoint + "/shipping/kerry"
+func (gateway ShippingGateway) GetTrackingNumber(shippingGatewaySubmit ShippingGatewaySubmit) (string, error) {
+	data, _ := json.Marshal(shippingGatewaySubmit)
+	endPoint := gateway.ShippingEndpoint + "/shipping"
 	response, err := http.Post(endPoint, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return "", err
@@ -36,11 +31,11 @@ func (gateway ShippingGateway) ShipByKerry(shippingInfo order.ShippingInfo) (str
 		return "", err
 	}
 
-	var shippingGatewayResponse ShippingGatewayResponse
-	err = json.Unmarshal(responseData, &shippingGatewayResponse)
+	var ShippingGatewayResponse ShippingGatewayResponse
+	err = json.Unmarshal(responseData, &ShippingGatewayResponse)
 	if err != nil {
-		return "0", err
+		return "", err
 	}
 
-	return shippingGatewayResponse.TrackingID, nil
+	return ShippingGatewayResponse.TrackingNumber, nil
 }

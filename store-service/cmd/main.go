@@ -9,6 +9,7 @@ import (
 	"store-service/internal/healthcheck"
 	"store-service/internal/order"
 	"store-service/internal/payment"
+	"store-service/internal/shipping"
 
 	"store-service/internal/point"
 	"store-service/internal/product"
@@ -30,15 +31,15 @@ func main() {
 	}
 
 	bankGatewayEndpoint := "bank-gateway:8882"
-	// shippingGatewayEndpoint := "shipping-gateway:8882"
+	shippingGatewayEndpoint := "shipping-gateway:8882"
 	pointGatewayEndpoint := "point-service:8001"
 
 	if os.Getenv("BANK_GATEWAY") != "" {
 		bankGatewayEndpoint = os.Getenv("BANK_GATEWAY")
 	}
-	// if os.Getenv("SHIPPING_GATEWAY") != "" {
-	// 	shippingGatewayEndpoint = os.Getenv("SHIPPING_GATEWAY")
-	// }
+	if os.Getenv("SHIPPING_GATEWAY") != "" {
+		shippingGatewayEndpoint = os.Getenv("SHIPPING_GATEWAY")
+	}
 	if os.Getenv("POINT_GATEWAY") != "" {
 		pointGatewayEndpoint = os.Getenv("POINT_GATEWAY")
 	}
@@ -87,20 +88,18 @@ func main() {
 	bankGateway := payment.BankGateway{
 		BankEndpoint: "http://" + bankGatewayEndpoint,
 	}
-	// shippingGateway := shipping.ShippingGateway{
-	// 	KerryEndpoint: "http://" + shippingGatewayEndpoint,
-	// }
+	shippingGateway := shipping.ShippingGateway{
+		ShippingEndpoint: "http://" + shippingGatewayEndpoint,
+	}
 	pointGateway := point.PointGateway{
 		PointEndpoint: "http://" + pointGatewayEndpoint,
 	}
 
 	paymentService := payment.PaymentService{
-		BankGateway: &bankGateway,
-		// ShippingGateway:    &shippingGateway,
+		BankGateway:       &bankGateway,
+		ShippingGateway:   &shippingGateway,
 		OrderRepository:   &orderRepository,
 		ProductRepository: productRepository,
-		// ShippingRepository: &shippingRepository,
-		// Time:               time.Now,
 	}
 	pointService := point.PointService{
 		PointGateway: &pointGateway,

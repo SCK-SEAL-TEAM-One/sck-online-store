@@ -15,19 +15,13 @@
         {
           "equals": {
             "method": "POST",
-            "path": "/shipping/kerry"
+            "path": "/shipping"
           }
         }
       ],
       "responses": [
         {
-          "is": {
-            "statusCode": 200,
-            "headers": {
-              "Content-Type": "application/json; charset=utf-8"
-            },
-            "body": { "tracking_id": "1785261900" }
-          }
+          "inject": "<%-stringify(filename, 'response.js') %>"
         }
       ]
     }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"store-service/internal/order"
 	"store-service/internal/product"
+	"store-service/internal/shipping"
 	"time"
 )
 
@@ -16,16 +17,15 @@ type BankGatewayInterface interface {
 	GetCardDetail(orgID int, userID int) (CardDetail, error)
 }
 
-// type ShippingGatewayInterface interface {
-// 	ShipByKerry(shippingInfo order.ShippingInfo) (string, error)
-// }
+type ShippingGatewayInterface interface {
+	GetTrackingNumber(shippingGatewaySubmit shipping.ShippingGatewaySubmit) (string, error)
+}
 
 type PaymentService struct {
-	BankGateway BankGatewayInterface
-	// ShippingGateway    ShippingGatewayInterface
+	BankGateway       BankGatewayInterface
+	ShippingGateway   ShippingGatewayInterface
 	OrderRepository   order.OrderRepository
 	ProductRepository product.ProductRepository
-	// ShippingRepository shipping.ShippingRepository
 }
 
 func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error) {
@@ -75,26 +75,25 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 		}
 	}
 
-	// shippingInfo, err := service.ShippingRepository.GetShippingByOrderID(orderID)
-	// if err != nil {
-	// 	log.Printf("ShippingRepository.GetShippingByOrderID internal error %s", err.Error())
-	// 	return "", err
-	// }
-	// trackingID, err := service.ShippingGateway.ShipByKerry(shippingInfo)
-	// if err != nil {
-	// 	log.Printf("ShippingGateway.ShipByKerry internal error %s", err.Error())
-	// 	return "", err
-	// }
-	// err = service.OrderRepository.UpdateOrderTransaction(orderID, transactionId)
-	// if err != nil {
-	// 	log.Printf("OrderRepository.UpdateOrderTransaction internal error %s", err.Error())
-	// 	return "", err
-	// }
+	err = service.OrderRepository.UpdateOrderTransaction(orderID, transactionId)
+	if err != nil {
+		log.Printf("OrderRepository.UpdateOrderTransaction internal error %s", err.Error())
+		return SubmitedPaymentResponse{}, err
+	}
+
+	shippingGatewaySubmit := shipping.ShippingGatewaySubmit{
+		ShippingMethodID: orderDetail.ShippingMethodID,
+	}
+	trackingNumber, err := service.ShippingGateway.GetTrackingNumber(shippingGatewaySubmit)
+	if err != nil {
+		log.Printf("ShippingGateway.GetTrackingNumber internal error %s", err.Error())
+		return SubmitedPaymentResponse{}, err
+	}
 
 	return SubmitedPaymentResponse{
 		OrderID:          orderID,
 		PaymentDate:      now,
 		ShippingMethodID: orderDetail.ShippingMethodID,
-		TrackingNumber:   transactionId,
+		TrackingNumber:   trackingNumber,
 	}, nil
 }
