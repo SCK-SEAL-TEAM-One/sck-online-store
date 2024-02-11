@@ -32,14 +32,14 @@ type mockOrderRepository struct {
 	mock.Mock
 }
 
-func (repo *mockOrderRepository) GetOrderByShippingMethodByOrderID(orderID int) (string, error) {
-	argument := repo.Called(orderID)
-	return argument.String(0), argument.Error(1)
-}
-
 func (repo *mockOrderRepository) CreateOrder(userID int, submitedOrder order.SubmitedOrder) (int, error) {
 	argument := repo.Called(userID, submitedOrder)
 	return argument.Int(0), argument.Error(1)
+}
+
+func (repo *mockOrderRepository) GetOrderByID(ID int) (order.OrderDetail, error) {
+	argument := repo.Called(ID)
+	return argument.Get(0).(order.OrderDetail), argument.Error(1)
 }
 
 func (repo *mockOrderRepository) CreateOrderProduct(orderID, productID, quantity int, productPrice float64) error {
@@ -57,7 +57,7 @@ func (repo *mockOrderRepository) CreateShipping(userID int, orderID int, shippin
 	return argument.Int(0), argument.Error(1)
 }
 
-func (repo *mockOrderRepository) UpdateOrder(orderID int, transactionID string) error {
+func (repo *mockOrderRepository) UpdateOrderTransaction(orderID int, transactionID string) error {
 	argument := repo.Called(orderID, transactionID)
 	return argument.Error(1)
 }

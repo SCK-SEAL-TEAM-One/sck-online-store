@@ -27,15 +27,15 @@ CREATE TABLE products (
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 INSERT INTO products (id,product_name,product_brand,stock,product_price,image_url) VALUE 
-(1,"Balance Training Bicycle","SportsFun",5,119.95,"/Balance_Training_Bicycle.png"),
-(2,"43 Piece dinner Set","CoolKidz",10,12.95,"/43_Piece_dinner_Set.png"),
-(3,"Horses and Unicorns Set","CoolKidZ",3,24.95,"/Horses_and_Unicorns_Set.png"),
+(1,"Balance Training Bicycle","SportsFun",100,119.95,"/Balance_Training_Bicycle.png"),
+(2,"43 Piece dinner Set","CoolKidz",200,12.95,"/43_Piece_dinner_Set.png"),
+(3,"Horses and Unicorns Set","CoolKidZ",32,24.95,"/Horses_and_Unicorns_Set.png"),
 (4,"Hoppity Ball 26 inch","SportsFun",12,29.95,"/Hoppity_Ball_26_inch.png"),
-(5,"Sleeping Queens Board Game","CoolKidZ",0,12.95,"/Sleeping_Queens_Board_Game.png"),
+(5,"Sleeping Queens Board Game","CoolKidZ",10,12.95,"/Sleeping_Queens_Board_Game.png"),
 (6,"Princess Palace","CoolKidZ",7,24.95,"/Princess_Palace.png"),
 (7,"Best Friends Forever Magnetic Dress Up","CoolKidZ",15,24.95,"/Best_Friends_Forever_Magnetic_Dress_Up.png"),
-(8,"City Gargage Truck Lego","Lego",0,19.95,"/City_Gargage_Truck_Lego.png"),
-(9,"Kettrike Tricycle","SportsFun",0,249.95,"/Kettrike_Tricycle.png"),
+(8,"City Gargage Truck Lego","Lego",10,19.95,"/City_Gargage_Truck_Lego.png"),
+(9,"Kettrike Tricycle","SportsFun",10,249.95,"/Kettrike_Tricycle.png"),
 (10,"Princess Training Bicycle","SportsFun",0,119.95,"/Princess_Training_Bicycle.png"),
 (11,"Earth DVD Game","VideoVroom",2,34.99,"/Earth_DVD_Game.png"),
 (12,"Twilight Board Game","GeekToys",7,24.95,"/Twilight_Board_Game.png"),
@@ -10084,7 +10084,8 @@ CREATE TABLE payment_methods (
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 INSERT INTO payment_methods (id,name,description) VALUE 
-(1,"Credit Card / Debit Card", "");
+(1,"Credit Card / Debit Card", ""),
+(2,"Line Pay", "");;
 
 CREATE TABLE carts (
     id BIGINT AUTO_INCREMENT,

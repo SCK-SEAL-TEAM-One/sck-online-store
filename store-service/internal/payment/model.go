@@ -1,34 +1,35 @@
 package payment
 
-type PaymentInformation struct {
-	OrderID      int     `json:"order_id"`
-	PaymentType  string  `json:"payment_type"`
-	Type         string  `json:"type"`
-	CardNumber   string  `json:"card_number"`
-	CVV          string  `json:"cvv"`
-	ExpiredMonth int     `json:"expired_month"`
-	ExpiredYear  int     `json:"expired_year"`
-	CardName     string  `json:"card_name"`
-	TotalPrice   float64 `json:"total_price"`
+import "time"
+
+type SubmitedPayment struct {
+	OrderID int    `json:"order_id"`
+	OTP     int    `json:"otp"`
+	RefOTP  string `json:"ref_otp"`
+}
+
+type SubmitedPaymentResponse struct {
+	OrderID          int       `json:"orer_id"`
+	PaymentDate      time.Time `json:"payment_date"`
+	ShippingMethodID int       `json:"shipping_method_id"`
+	TrackingNumber   string    `json:"tracking_number"`
 }
 
 type PaymentDetail struct {
 	CardNumber   string  `json:"card_number"`
-	CVV          string  `json:"cvv"`
+	CVV          int     `json:"cvv"`
 	ExpiredMonth int     `json:"expired_month"`
 	ExpiredYear  int     `json:"expired_year"`
 	CardName     string  `json:"card_name"`
-	TotalPrice   float64 `json:"total_price"`
+	Amount       float64 `json:"amount"`
+	Currency     string  `json:"currency"`
 	MerchantID   int     `json:"merchant_id"`
 }
 
-func NewShippingInfo(payment PaymentInformation) PaymentDetail {
-	return PaymentDetail{
-		CardNumber:   payment.CardNumber,
-		CVV:          payment.CVV,
-		ExpiredMonth: payment.ExpiredMonth,
-		ExpiredYear:  payment.ExpiredYear,
-		CardName:     payment.CardName,
-		TotalPrice:   payment.TotalPrice,
-	}
+type CardDetail struct {
+	CardNumber   string `json:"card_number"`
+	CVV          int    `json:"cvv"`
+	ExpiredMonth int    `json:"expired_month"`
+	ExpiredYear  int    `json:"expired_year"`
+	CardName     string `json:"card_name"`
 }

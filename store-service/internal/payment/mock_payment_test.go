@@ -30,10 +30,10 @@ type mockOrderRepository struct {
 	mock.Mock
 }
 
-func (order *mockOrderRepository) GetOrderByShippingMethodByOrderID(orderID int) (string, error) {
-	argument := order.Called(orderID)
-	return argument.String(0), argument.Error(1)
-}
+// func (order *mockOrderRepository) GetOrderByShippingMethodByOrderID(orderID int) (string, error) {
+// 	argument := order.Called(orderID)
+// 	return argument.String(0), argument.Error(1)
+// }
 
 func (order *mockOrderRepository) CreateOrder(totalPrice float64, shippingMethod string) (int, error) {
 	argument := order.Called(totalPrice, shippingMethod)
@@ -50,7 +50,7 @@ func (order *mockOrderRepository) CreateShipping(orderID int, shippingInfo order
 	return argument.Int(0), argument.Error(1)
 }
 
-func (order *mockOrderRepository) UpdateOrder(orderID int, transactionID string) error {
+func (order *mockOrderRepository) UpdateOrderTransaction(orderID int, transactionID string) error {
 	argument := order.Called(orderID, transactionID)
 	return argument.Error(0)
 }

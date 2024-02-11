@@ -40,10 +40,15 @@ type Order struct {
 	OrderID int
 }
 
-// func (s SubmitedOrder) GetShippingFee() float64 {
-// 	return 2.00
-// }
-
-// func (s SubmitedOrder) GetShippingMethodProvider() string {
-// 	return "Kerry"
-// }
+type OrderDetail struct {
+	ID               int     `json:"id"  db:"id"`
+	UserID           int     `json:"user_id"  db:"user_id"`
+	ShippingMethodID int     `json:"shipping_method_id"  db:"shipping_method_id"`
+	PaymentMethodID  int     `json:"payment_method_id"  db:"payment_method_id"`
+	BurnPoint        int     `json:"burn_point" db:"burn_point"`
+	SubTotalPrice    float64 `json:"sub_total_price" db:"sub_total_price"`
+	DiscountPrice    float64 `json:"discount_price" db:"discount_price"`
+	TotalPrice       float64 `json:"total_price" db:"total_price"`
+	TransactionID    string  `json:"transaction_id" db:"transaction_id"`
+	Status           string  `json:"status" db:"status"`
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"store-service/internal/order"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -53,6 +54,31 @@ func Test_OrderRepository(t *testing.T) {
 		assert.NotEmpty(t, actualId)
 	})
 
+	t.Run("GetOrderByID_Input_ID_1_Should_Be_Order_Detail_No_Error", func(t *testing.T) {
+		expected := order.OrderDetail{
+			ID:               1,
+			UserID:           1,
+			ShippingMethodID: 1,
+			PaymentMethodID:  1,
+			BurnPoint:        0,
+			SubTotalPrice:    100.00,
+			DiscountPrice:    10.00,
+			TotalPrice:       90.00,
+			TransactionID:    "",
+			Status:           "created",
+			Authorized:       time.Time{},
+		}
+		ID := 1
+
+		actual, err := repository.GetOrderByID(ID)
+		fmt.Println("------ actual ----")
+		fmt.Println(expected.ID)
+		fmt.Println(actual.ID)
+		fmt.Println(err)
+		assert.Equal(t, expected.ID, actual.ID)
+		assert.Equal(t, err, nil)
+	})
+
 	t.Run("CreateOrderProduct_Input_OrderID_2_And_ProductID_2_Should_Be_No_Error", func(t *testing.T) {
 		oid := 1
 		pid := 2
@@ -63,21 +89,21 @@ func Test_OrderRepository(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("UpdateOrder_Input_TransactionID_TXN202002021525_OrderID_1_Should_No_Error", func(t *testing.T) {
+	t.Run("UpdateOrderTransaction_Input_TransactionID_TXN202002021525_OrderID_1_Should_No_Error", func(t *testing.T) {
 		txn := "TXN202002021525"
 		oid := 1
 
-		err := repository.UpdateOrder(oid, txn)
+		err := repository.UpdateOrderTransaction(oid, txn)
 
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("UpdateOrder_Input_TransactionID_TXN202002021525_OrderID_11111111119_Should_Get_Error_No_Row_Affected", func(t *testing.T) {
+	t.Run("UpdateOrderTransaction_Input_TransactionID_TXN202002021525_OrderID_11111111119_Should_Get_Error_No_Row_Affected", func(t *testing.T) {
 		expectedError := fmt.Errorf("no any row affected , update not completed")
 		transactionID := "TXN202002021525"
 		orderID := 11111111119
 
-		err := repository.UpdateOrder(orderID, transactionID)
+		err := repository.UpdateOrderTransaction(orderID, transactionID)
 
 		assert.Equal(t, expectedError, err)
 	})

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"store-service/cmd/api"
 	"store-service/internal/cart"
@@ -13,8 +12,6 @@ import (
 
 	"store-service/internal/point"
 	"store-service/internal/product"
-	"store-service/internal/shipping"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
@@ -27,24 +24,21 @@ import (
 )
 
 func main() {
-	var testMode, useCache bool
-	if os.Getenv("TEST_MODE") != "" {
-		testMode = true
-	}
+	var useCache bool
 	if os.Getenv("CACHE_ON") != "" {
 		useCache = true
 	}
 
 	bankGatewayEndpoint := "bank-gateway:8882"
-	shippingGatewayEndpoint := "shipping-gateway:8882"
+	// shippingGatewayEndpoint := "shipping-gateway:8882"
 	pointGatewayEndpoint := "point-service:8001"
 
 	if os.Getenv("BANK_GATEWAY") != "" {
 		bankGatewayEndpoint = os.Getenv("BANK_GATEWAY")
 	}
-	if os.Getenv("SHIPPING_GATEWAY") != "" {
-		shippingGatewayEndpoint = os.Getenv("SHIPPING_GATEWAY")
-	}
+	// if os.Getenv("SHIPPING_GATEWAY") != "" {
+	// 	shippingGatewayEndpoint = os.Getenv("SHIPPING_GATEWAY")
+	// }
 	if os.Getenv("POINT_GATEWAY") != "" {
 		pointGatewayEndpoint = os.Getenv("POINT_GATEWAY")
 	}
@@ -83,9 +77,9 @@ func main() {
 	orderRepository := order.OrderRepositoryMySQL{
 		DBConnection: connection,
 	}
-	shippingRepository := shipping.ShippingRepositoryMySQL{
-		DBConnection: connection,
-	}
+	// shippingRepository := shipping.ShippingRepositoryMySQL{
+	// 	DBConnection: connection,
+	// }
 	cartRepository := cart.CartRepositoryMySQL{
 		DBConnection: connection,
 	}
@@ -93,20 +87,20 @@ func main() {
 	bankGateway := payment.BankGateway{
 		BankEndpoint: "http://" + bankGatewayEndpoint,
 	}
-	shippingGateway := shipping.ShippingGateway{
-		KerryEndpoint: "http://" + shippingGatewayEndpoint,
-	}
+	// shippingGateway := shipping.ShippingGateway{
+	// 	KerryEndpoint: "http://" + shippingGatewayEndpoint,
+	// }
 	pointGateway := point.PointGateway{
 		PointEndpoint: "http://" + pointGatewayEndpoint,
 	}
 
 	paymentService := payment.PaymentService{
-		BankGateway:        &bankGateway,
-		ShippingGateway:    &shippingGateway,
-		OrderRepository:    &orderRepository,
-		ProductRepository:  productRepository,
-		ShippingRepository: &shippingRepository,
-		Time:               time.Now,
+		BankGateway: &bankGateway,
+		// ShippingGateway:    &shippingGateway,
+		OrderRepository:   &orderRepository,
+		ProductRepository: productRepository,
+		// ShippingRepository: &shippingRepository,
+		// Time:               time.Now,
 	}
 	pointService := point.PointService{
 		PointGateway: &pointGateway,
@@ -120,7 +114,7 @@ func main() {
 		PointService:      pointService,
 		ProductRepository: productRepository,
 	}
-	storeAPI := api.StoreAPI{
+	orderAPI := api.OrderAPI{
 		OrderService: &orderService,
 	}
 	paymentAPI := api.PaymentAPI{
@@ -155,11 +149,11 @@ func main() {
 	route.Use(apmgin.Middleware(route))
 	route.GET("/api/v1/product", productAPI.SearchHandler)
 	route.GET("/api/v1/product/:id", productAPI.GetProductHandler)
-	route.POST("/api/v1/order", storeAPI.SubmitOrderHandler)
-	route.POST("/api/v1/confirmPayment", paymentAPI.ConfirmPaymentHandler)
 	route.GET("/api/v1/cart", cartAPI.GetCartHandler)
 	route.PUT("/api/v1/addCart", cartAPI.AddCartHandler)
 	route.PUT("/api/v1/updateCart", cartAPI.UpdateCartHandler)
+	route.POST("/api/v1/order", orderAPI.SubmitOrderHandler)
+	route.POST("/api/v1/confirmPayment", paymentAPI.ConfirmPaymentHandler)
 	route.GET("/api/v1/point", pointAPI.TotalPointHandler)
 	route.POST("/api/v1/point", pointAPI.DeductPointHandler)
 
@@ -175,27 +169,6 @@ func main() {
 			"message": user,
 		})
 	})
-	if testMode {
-		log.Println("Test mode: ", testMode)
-		route.GET("/mockTime/:time", func(context *gin.Context) {
-			fixedTime, err := time.Parse("02012006T15:04:05", context.Param("time"))
-			if err != nil {
-				context.JSON(http.StatusBadRequest, gin.H{
-					"status": "fail",
-					"masess": err,
-				})
-				return
-			}
-			now := func() time.Time {
-				return fixedTime
-			}
-			paymentService.Time = now
-			context.JSON(http.StatusOK, gin.H{
-				"status":  "ok",
-				"fixTime": fixedTime,
-			})
-		})
-	}
 
 	log.Fatal(route.Run(":8000"))
 }

@@ -21,17 +21,33 @@
       ],
       "responses": [
         {
+          "inject": "<%-stringify(filename, 'response.js') %>"
+        }
+      ]
+    },
+    {
+      "name": "Card information",
+      "predicates": [
+        {
+          "equals": {
+            "method": "GET",
+            "path": "/card/information"
+          }
+        }
+      ],
+      "responses": [
+        {
           "is": {
             "statusCode": 200,
             "headers": {
               "Content-Type": "application/json; charset=utf-8"
             },
             "body": {
-              "status": "success",
-              "fee": 0.0,
-              "available_balance": 2401.98,
-              "authorized": "1/3/2563 13:30:00",
-              "transaction_id": "TOY202002021525"
+              "card_number": "1233 2432 4353 4534",
+              "cvv": 123,
+              "expired_month": 12,
+              "expired_year": 27,
+              "card_name": "Jaranchai Thongkum"
             }
           }
         }

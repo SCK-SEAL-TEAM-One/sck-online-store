@@ -1,12 +1,10 @@
 package order
 
 import (
-	"fmt"
 	"log"
 	"store-service/internal/cart"
 	"store-service/internal/point"
 	"store-service/internal/product"
-	"time"
 )
 
 type OrderService struct {
@@ -91,8 +89,4 @@ func (orderService OrderService) OrderBurnPoint(uid int, burn int) (point.TotalP
 		return point.TotalPoint{}, err
 	}
 	return totalPoint, nil
-}
-
-func SendNotification(orderID int, trackingNumber string, dateTime time.Time) string {
-	return fmt.Sprintf("วันเวลาที่ชำระเงิน %s หมายเลขคำสั่งซื้อ %d คุณสามารถติดตามสินค้าผ่านช่องทาง xx หมายเลข %s", dateTime.Format("2/1/2006 15:04:05"), orderID, trackingNumber)
 }

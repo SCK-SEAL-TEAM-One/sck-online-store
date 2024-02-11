@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type StoreAPI struct {
+type OrderAPI struct {
 	OrderService order.OrderInterface
 }
 
@@ -17,7 +17,7 @@ type OrderConfirmation struct {
 	OrderID int `json:"order_id"`
 }
 
-func (api StoreAPI) SubmitOrderHandler(context *gin.Context) {
+func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
 	uid := 1
 	var request order.SubmitedOrder
 	if err := context.BindJSON(&request); err != nil {

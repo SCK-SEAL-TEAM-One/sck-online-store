@@ -13,15 +13,15 @@ type PaymentAPI struct {
 }
 
 func (api PaymentAPI) ConfirmPaymentHandler(context *gin.Context) {
-	var request payment.PaymentInformation
+	uid := 1
+	var request payment.SubmitedPayment
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
 		log.Printf("bad request %s", err.Error())
 		return
 	}
 
-	paymentDetail := payment.NewShippingInfo(request)
-	payment, err := api.PaymentService.ConfirmPayment(request.OrderID, paymentDetail)
+	payment, err := api.PaymentService.ConfirmPayment(uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -29,7 +29,5 @@ func (api PaymentAPI) ConfirmPaymentHandler(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{
-		"notify_message": payment,
-	})
+	context.JSON(http.StatusOK, payment)
 }

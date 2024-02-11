@@ -37,7 +37,7 @@ package payment_test
 // 			Quantity:  1,
 // 		},
 // 	}, nil)
-// 	mockOrderRepository.On("UpdateOrder", orderId, "TOY202002021525").Return(nil)
+// 	mockOrderRepository.On("UpdateOrderTransaction", orderId, "TOY202002021525").Return(nil)
 
 // 	mockProductRepository := new(mockProductRepository)
 // 	mockProductRepository.On("UpdateStock", 2, 1).Return(nil)

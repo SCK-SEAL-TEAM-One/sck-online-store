@@ -13,11 +13,9 @@ type BankGateway struct {
 }
 
 type BankGatewayResponse struct {
-	Status          string  `json:"status"`
-	Fee             float64 `json:"fee"`
-	AvailableBlance float64 `json:"available_balance"`
-	Authorized      string  `json:"authorized"`
-	TransactionID   string  `json:"transaction_id"`
+	Status        string `json:"status"`
+	PaymentDate   string `json:"payment_date"`
+	TransactionID string `json:"transaction_id"`
 }
 
 func (gateway BankGateway) Payment(paymentDetail PaymentDetail) (string, error) {
@@ -42,4 +40,27 @@ func (gateway BankGateway) Payment(paymentDetail PaymentDetail) (string, error) 
 	}
 
 	return BankGatewayResponse.TransactionID, nil
+}
+
+func (gateway BankGateway) GetCardDetail(orgID int, userID int) (CardDetail, error) {
+	endPoint := gateway.BankEndpoint + fmt.Sprintf("/card/information?oid=%s&uid=%s", orgID, userID)
+	response, err := http.Get(endPoint)
+	if err != nil {
+		return CardDetail{}, err
+	}
+	if response.StatusCode != 200 {
+		return CardDetail{}, fmt.Errorf("response is not ok but it's %d", response.StatusCode)
+	}
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return CardDetail{}, err
+	}
+
+	var CardDetailResponse CardDetail
+	err = json.Unmarshal(responseData, &CardDetailResponse)
+	if err != nil {
+		return CardDetail{}, err
+	}
+
+	return CardDetailResponse, nil
 }

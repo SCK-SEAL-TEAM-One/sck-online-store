@@ -8,8 +8,9 @@ import (
 
 type OrderRepository interface {
 	CreateOrder(userID int, submitedOrder SubmitedOrder) (int, error)
+	GetOrderByID(ID int) (OrderDetail, error)
 	CreateOrderProduct(orderID, productID, quantity int, productPrice float64) error
-	UpdateOrder(orderID int, transactionID string) error
+	UpdateOrderTransaction(orderID int, transactionID string) error
 	GetOrderProduct(orderID int) ([]OrderProduct, error)
 	CreateShipping(userID int, orderID int, shippingInfo ShippingInfo) (int, error)
 }
@@ -24,13 +25,22 @@ func (orderRepository OrderRepositoryMySQL) CreateOrder(userID int, submitedOrde
 	return int(insertedId), err
 }
 
+func (orderRepository OrderRepositoryMySQL) GetOrderByID(ID int) (OrderDetail, error) {
+	result := OrderDetail{}
+	err := orderRepository.DBConnection.Get(&result, `
+		SELECT id,user_id,shipping_method_id,payment_method_id,burn_point,sub_total_price,discount_price,total_price,transaction_id,status
+		FROM orders WHERE id=?
+	`, ID)
+	return result, err
+}
+
 func (orderRepository OrderRepositoryMySQL) CreateOrderProduct(orderID int, productID, quantity int, productPrice float64) error {
 	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO order_product (order_id, product_id, quantity, product_price) VALUE (?,?,?,?)", orderID, productID, quantity, productPrice)
 	_, err := sqlResult.RowsAffected()
 	return err
 }
 
-func (orderRepository OrderRepositoryMySQL) UpdateOrder(orderID int, transactionID string) error {
+func (orderRepository OrderRepositoryMySQL) UpdateOrderTransaction(orderID int, transactionID string) error {
 	status := "completed"
 	sqlResult := orderRepository.DBConnection.MustExec("UPDATE orders SET transaction_id=? , status=? WHERE id = ?", transactionID, status, orderID)
 	rowAffected, err := sqlResult.RowsAffected()

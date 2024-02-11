@@ -1,5 +1,5 @@
 
-setup_backend: store_db point_service
+setup_backend: store_db point_service bank
 backend_test_all: backend_unit_test backend_integration_test all_done
 
 backend_unit_test:
@@ -16,7 +16,10 @@ store_db:
 	docker compose up -d store-db 
 
 point_service:
-	docker compose up -d point-service 
+	docker compose up -d point-service
+
+bank:
+	docker compose up -d bank-gateway --build
 
 down:
 	docker compose down
