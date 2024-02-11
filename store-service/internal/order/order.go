@@ -12,7 +12,7 @@ import (
 type OrderService struct {
 	CartRepository    cart.CartRepository
 	OrderRepository   OrderRepository
-	PointService      point.PointService
+	PointService      point.PointServiceInterface
 	ProductRepository product.ProductRepository
 }
 

@@ -73,3 +73,17 @@ services:
     restart: always
     ports:
       - "8883:8882"
+
+  store-db-test:
+    image: mysql:8.3.0
+    container_name: store-db-test
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=store
+    volumes:
+      - ./tearup/store:/docker-entrypoint-initdb.d/
+    ports:
+      - "3305:3306"
+    restart: always

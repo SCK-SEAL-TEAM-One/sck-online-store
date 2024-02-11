@@ -13,7 +13,7 @@ import (
 )
 
 func Test_ProductRepository(t *testing.T) {
-	connection, err := sqlx.Connect("mysql", "user:password@(localhost:3306)/store")
+	connection, err := sqlx.Connect("mysql", "user:password@(localhost:3305)/store")
 	if err != nil {
 		t.Fatalf("cannot tearup data err %s", err)
 	}
