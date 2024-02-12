@@ -8,6 +8,8 @@ services:
       context: store-service
     ports:
       - "8000:8000"
+    environment:
+      - POINT_GATEWAY=host.docker.internal:8001
     depends_on:
       - store-db
     restart: always
