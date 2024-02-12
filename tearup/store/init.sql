@@ -10126,7 +10126,7 @@ CREATE TABLE order_product (
     product_price double
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
-CREATE TABLE shipping (
+CREATE TABLE order_shipping (
     id int AUTO_INCREMENT,
     order_id BIGINT,
     user_id BIGINT,

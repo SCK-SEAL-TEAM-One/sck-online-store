@@ -55,9 +55,6 @@ func main() {
 	orderRepository := order.OrderRepositoryMySQL{
 		DBConnection: connection,
 	}
-	// shippingRepository := shipping.ShippingRepositoryMySQL{
-	// 	DBConnection: connection,
-	// }
 	cartRepository := cart.CartRepositoryMySQL{
 		DBConnection: connection,
 	}

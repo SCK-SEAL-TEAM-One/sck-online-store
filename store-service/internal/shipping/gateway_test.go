@@ -3,25 +3,22 @@
 
 package shipping_test
 
-// func Test_ShipByKerry_Input_ShippingInfo_Should_Be_Tracking_Number_1785261900_And_No_Error(t *testing.T) {
-// 	expectedTrackingNumber := "1785261900"
+import (
+	"store-service/internal/shipping"
+	"testing"
 
-// 	shippingInfo := order.ShippingInfo{
-// 		ShippingMethod:       "Kerry",
-// 		ShippingAddress:      "405/35 ถ.มหิดล",
-// 		ShippingSubDistrict:  "ท่าศาลา",
-// 		ShippingDistrict:     "เมือง",
-// 		ShippingProvince:     "เชียงใหม่",
-// 		ShippingZipCode:      "50000",
-// 		RecipientName:        "ณัฐญา ชุติบุตร",
-// 		RecipientPhoneNumber: "0970804292",
-// 	}
+	"github.com/stretchr/testify/assert"
+)
 
-// 	service := shipping.ShippingGateway{
-// 		KerryEndpoint: "http://localhost:8883",
-// 	}
-// 	actualTrackingNumber, err := service.ShipByKerry(shippingInfo)
+func Test_GetTrackingNumber_Input_ShippingMethodID_Should_Be_Tracking_Number_No_Error(t *testing.T) {
 
-// 	assert.Equal(t, nil, err)
-// 	assert.Equal(t, expectedTrackingNumber, actualTrackingNumber)
-// }
+	service := shipping.ShippingGateway{
+		ShippingEndpoint: "http://localhost:8883",
+	}
+	actualTrackingNumber, err := service.GetTrackingNumber(shipping.ShippingGatewaySubmit{
+		ShippingMethodID: 1,
+	})
+
+	assert.NotEmpty(t, actualTrackingNumber)
+	assert.Equal(t, nil, err)
+}

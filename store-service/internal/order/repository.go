@@ -59,7 +59,7 @@ func (repository OrderRepositoryMySQL) GetOrderProduct(orderID int) ([]OrderProd
 func (orderRepository OrderRepositoryMySQL) CreateShipping(userID int, orderID int, shippingInfo ShippingInfo) (int, error) {
 	result := orderRepository.
 		DBConnection.
-		MustExec(`INSERT INTO shipping (order_id, user_id, method_id, address, sub_district, district, province, zip_code, recipient_first_name, recipient_last_name, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		MustExec(`INSERT INTO order_shipping (order_id, user_id, method_id, address, sub_district, district, province, zip_code, recipient_first_name, recipient_last_name, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			orderID,
 			userID,
 			shippingInfo.ShippingMethodID,
