@@ -8,7 +8,7 @@ backend_unit_test:
 
 backend_integration_test:
 	docker compose up -d store-db-test bank-gateway shipping-gateway
-	sleep 10
+	sleep 20
 	cat tearup/store/init.sql | docker exec -i store-db-test /usr/bin/mysql -u user --password=password --default-character-set=utf8  store
 	cd store-service && go test -tags=integration ./...
 	docker compose down store-db-test 
