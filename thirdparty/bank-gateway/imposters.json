@@ -43,11 +43,11 @@
               "Content-Type": "application/json; charset=utf-8"
             },
             "body": {
-              "card_number": "1233 2432 4353 4534",
-              "cvv": 123,
+              "card_number": "4719700591590995",
+              "cvv": 752,
               "expired_month": 12,
               "expired_year": 27,
-              "card_name": "Jaranchai Thongkum"
+              "card_name": "SCK ShuHaRi"
             }
           }
         }

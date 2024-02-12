@@ -43,7 +43,7 @@ func (gateway BankGateway) Payment(paymentDetail PaymentDetail) (string, error) 
 }
 
 func (gateway BankGateway) GetCardDetail(orgID int, userID int) (CardDetail, error) {
-	endPoint := gateway.BankEndpoint + fmt.Sprintf("/card/information?oid=%s&uid=%s", orgID, userID)
+	endPoint := gateway.BankEndpoint + fmt.Sprintf("/card/information?oid=%d&uid=%d", orgID, userID)
 	response, err := http.Get(endPoint)
 	if err != nil {
 		return CardDetail{}, err

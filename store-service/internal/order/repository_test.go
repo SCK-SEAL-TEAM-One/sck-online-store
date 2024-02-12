@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"store-service/internal/order"
 	"testing"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -66,15 +65,11 @@ func Test_OrderRepository(t *testing.T) {
 			TotalPrice:       90.00,
 			TransactionID:    "",
 			Status:           "created",
-			Authorized:       time.Time{},
 		}
 		ID := 1
 
 		actual, err := repository.GetOrderByID(ID)
-		fmt.Println("------ actual ----")
-		fmt.Println(expected.ID)
-		fmt.Println(actual.ID)
-		fmt.Println(err)
+
 		assert.Equal(t, expected.ID, actual.ID)
 		assert.Equal(t, err, nil)
 	})
