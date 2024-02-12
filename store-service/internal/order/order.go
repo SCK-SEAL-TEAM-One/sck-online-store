@@ -7,19 +7,20 @@ import (
 	"store-service/internal/product"
 )
 
+type OrderInterface interface {
+	CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error)
+	OrderBurnPoint(uid int, burn int) (point.TotalPoint, error)
+}
+
 type OrderService struct {
 	CartRepository    cart.CartRepository
 	OrderRepository   OrderRepository
-	PointService      point.PointServiceInterface
+	PointService      point.PointInterface
 	ProductRepository product.ProductRepository
 }
 
 type CartRepository interface {
 	DeleteCart(userID int, productID int)
-}
-
-type OrderInterface interface {
-	CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error)
 }
 
 type PointService interface {

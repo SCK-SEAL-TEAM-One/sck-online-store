@@ -10,7 +10,7 @@ import (
 )
 
 type CartAPI struct {
-	CartService cart.CartService
+	CartService cart.CartInterface
 }
 
 func (api CartAPI) GetCartHandler(context *gin.Context) {

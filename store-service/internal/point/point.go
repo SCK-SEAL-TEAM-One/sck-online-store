@@ -5,19 +5,19 @@ import (
 	"log"
 )
 
-type PointServiceInterface interface {
+type PointInterface interface {
 	TotalPoint(uid int) (TotalPoint, error)
 	DeductPoint(uid int, submitedPoint SubmitedPoint) (TotalPoint, error)
 	CheckBurnPoint(uid int, amount int) (bool, error)
 }
 
+type PointService struct {
+	PointGateway PointGatewayInterface
+}
+
 type PointGatewayInterface interface {
 	GetPoints(uid int) ([]Point, error)
 	CreatePoint(uid int, body Point) (Point, error)
-}
-
-type PointService struct {
-	PointGateway PointGatewayInterface
 }
 
 func (pointService PointService) TotalPoint(uid int) (TotalPoint, error) {

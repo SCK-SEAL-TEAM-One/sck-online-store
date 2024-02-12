@@ -22,8 +22,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderID_8004359103(t *test
 	qty := 1
 	productPrice := 12.95
 
-	mockPointServiceInterface := new(mockPointServiceInterface)
-	mockPointServiceInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -82,7 +82,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderID_8004359103(t *test
 		ProductRepository: mockProductRepository,
 		OrderRepository:   mockOrderRepository,
 		CartRepository:    mockCartRepository,
-		PointService:      mockPointServiceInterface,
+		PointService:      mockPointInterface,
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -98,8 +98,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Error_Points_not_En
 	uid := 1
 	burnPoint := 100
 
-	mockPointServiceInterface := new(mockPointServiceInterface)
-	mockPointServiceInterface.On("CheckBurnPoint", uid, -(burnPoint)).Return(false, fmt.Errorf("points are not enough, please try again"))
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("CheckBurnPoint", uid, -(burnPoint)).Return(false, fmt.Errorf("points are not enough, please try again"))
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -125,7 +125,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Error_Points_not_En
 	}
 
 	orderService := order.OrderService{
-		PointService: mockPointServiceInterface,
+		PointService: mockPointInterface,
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -140,8 +140,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 	uid := 1
 	oid := 8004359103
 
-	mockPointServiceInterface := new(mockPointServiceInterface)
-	mockPointServiceInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -170,7 +170,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 
 	orderService := order.OrderService{
 		OrderRepository: mockOrderRepository,
-		PointService:    mockPointServiceInterface,
+		PointService:    mockPointInterface,
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -185,8 +185,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 	uid := 1
 	oid := 8004359103
 
-	mockPointServiceInterface := new(mockPointServiceInterface)
-	mockPointServiceInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -228,7 +228,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 
 	orderService := order.OrderService{
 		OrderRepository: mockOrderRepository,
-		PointService:    mockPointServiceInterface,
+		PointService:    mockPointInterface,
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -246,8 +246,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	qty := 1
 	productPrice := 12.95
 
-	mockPointServiceInterface := new(mockPointServiceInterface)
-	mockPointServiceInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -302,7 +302,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	orderService := order.OrderService{
 		ProductRepository: mockProductRepository,
 		OrderRepository:   mockOrderRepository,
-		PointService:      mockPointServiceInterface,
+		PointService:      mockPointInterface,
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -322,13 +322,13 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Totol_Point_50(t
 		Amount: -(burnPoint),
 	}
 
-	mockPointServiceInterface := new(mockPointServiceInterface)
-	mockPointServiceInterface.On("DeductPoint", uid, submitedPoint).Return(point.TotalPoint{
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("DeductPoint", uid, submitedPoint).Return(point.TotalPoint{
 		Point: 50,
 	}, nil)
 
 	orderService := order.OrderService{
-		PointService: mockPointServiceInterface,
+		PointService: mockPointInterface,
 	}
 
 	actual, err := orderService.OrderBurnPoint(uid, burnPoint)
@@ -346,11 +346,11 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Totol_Point_Erro
 		Amount: -(burnPoint),
 	}
 
-	mockPointServiceInterface := new(mockPointServiceInterface)
-	mockPointServiceInterface.On("DeductPoint", uid, submitedPoint).Return(point.TotalPoint{}, errors.New("DeductPoint Error"))
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("DeductPoint", uid, submitedPoint).Return(point.TotalPoint{}, errors.New("DeductPoint Error"))
 
 	orderService := order.OrderService{
-		PointService: mockPointServiceInterface,
+		PointService: mockPointInterface,
 	}
 
 	actual, err := orderService.OrderBurnPoint(uid, burnPoint)

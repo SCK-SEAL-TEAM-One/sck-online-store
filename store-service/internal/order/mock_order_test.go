@@ -9,21 +9,21 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type mockPointServiceInterface struct {
+type mockPointInterface struct {
 	mock.Mock
 }
 
-func (service *mockPointServiceInterface) TotalPoint(uid int) (point.TotalPoint, error) {
+func (service *mockPointInterface) TotalPoint(uid int) (point.TotalPoint, error) {
 	argument := service.Called(uid)
 	return argument.Get(0).(point.TotalPoint), argument.Error(1)
 }
 
-func (service *mockPointServiceInterface) DeductPoint(uid int, submitedPoint point.SubmitedPoint) (point.TotalPoint, error) {
+func (service *mockPointInterface) DeductPoint(uid int, submitedPoint point.SubmitedPoint) (point.TotalPoint, error) {
 	argument := service.Called(uid, submitedPoint)
 	return argument.Get(0).(point.TotalPoint), argument.Error(1)
 }
 
-func (service *mockPointServiceInterface) CheckBurnPoint(uid int, amount int) (bool, error) {
+func (service *mockPointInterface) CheckBurnPoint(uid int, amount int) (bool, error) {
 	argument := service.Called(uid, amount)
 	return argument.Bool(0), argument.Error(1)
 }

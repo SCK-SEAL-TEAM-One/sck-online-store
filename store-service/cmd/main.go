@@ -15,7 +15,6 @@ import (
 	"store-service/internal/product"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v7"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
@@ -25,10 +24,6 @@ import (
 )
 
 func main() {
-	var useCache bool
-	if os.Getenv("CACHE_ON") != "" {
-		useCache = true
-	}
 
 	bankGatewayEndpoint := "bank-gateway:8882"
 	shippingGatewayEndpoint := "shipping-gateway:8882"
@@ -52,27 +47,9 @@ func main() {
 	if err != nil {
 		log.Fatalln("cannot connect to database", err)
 	}
-	var productRepository product.ProductRepository
 
-	if useCache {
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     "store-cache:6379", // use default Addr
-			Password: "",                 // no password set
-			DB:       0,                  // use default DB
-		})
-		_, err := rdb.Ping().Result()
-		if err != nil {
-			log.Fatalln("cannot connect to cache", err)
-		}
-		log.Println("redis connected")
-		productRepository = &product.ProductRepositoryMySQLWithCache{
-			DBConnection:    connection,
-			RedisConnection: rdb,
-		}
-	} else {
-		productRepository = &product.ProductRepositoryMySQL{
-			DBConnection: connection,
-		}
+	productRepository := product.ProductRepositoryMySQL{
+		DBConnection: connection,
 	}
 
 	orderRepository := order.OrderRepositoryMySQL{
@@ -113,6 +90,10 @@ func main() {
 		PointService:      pointService,
 		ProductRepository: productRepository,
 	}
+
+	cartAPI := api.CartAPI{
+		CartService: &cartService,
+	}
 	orderAPI := api.OrderAPI{
 		OrderService: &orderService,
 	}
@@ -121,9 +102,6 @@ func main() {
 	}
 	productAPI := api.ProductAPI{
 		ProductRepository: productRepository,
-	}
-	cartAPI := api.CartAPI{
-		CartService: cartService,
 	}
 	pointAPI := api.PointAPI{
 		PointService: pointService,

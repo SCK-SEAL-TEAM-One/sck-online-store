@@ -12,6 +12,13 @@ type PaymentInterface interface {
 	ConfirmPayment(uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error)
 }
 
+type PaymentService struct {
+	BankGateway       BankGatewayInterface
+	ShippingGateway   ShippingGatewayInterface
+	OrderRepository   order.OrderRepository
+	ProductRepository product.ProductRepository
+}
+
 type BankGatewayInterface interface {
 	Payment(paymentDetail PaymentDetail) (string, error)
 	GetCardDetail(orgID int, userID int) (CardDetail, error)
@@ -19,13 +26,6 @@ type BankGatewayInterface interface {
 
 type ShippingGatewayInterface interface {
 	GetTrackingNumber(shippingGatewaySubmit shipping.ShippingGatewaySubmit) (string, error)
-}
-
-type PaymentService struct {
-	BankGateway       BankGatewayInterface
-	ShippingGateway   ShippingGatewayInterface
-	OrderRepository   order.OrderRepository
-	ProductRepository product.ProductRepository
 }
 
 func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error) {

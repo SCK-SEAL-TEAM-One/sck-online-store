@@ -5,6 +5,12 @@ import (
 	"log"
 )
 
+type CartInterface interface {
+	GetCart(uid int) ([]CartDetail, error)
+	AddCart(uid int, submitedCart SubmitedCart) (string, error)
+	UpdateCart(uid int, submitedCart SubmitedCart) (string, error)
+}
+
 type CartService struct {
 	CartRepository CartRepository
 }

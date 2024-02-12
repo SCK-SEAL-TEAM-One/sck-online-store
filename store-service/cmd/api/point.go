@@ -10,7 +10,7 @@ import (
 )
 
 type PointAPI struct {
-	PointService point.PointService
+	PointService point.PointInterface
 }
 
 func (api PointAPI) DeductPointHandler(context *gin.Context) {
