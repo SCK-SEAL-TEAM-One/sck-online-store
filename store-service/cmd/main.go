@@ -86,6 +86,9 @@ func main() {
 	cartService := cart.CartService{
 		CartRepository: &cartRepository,
 	}
+	productService := product.ProductService{
+		ProductRepository: &productRepository,
+	}
 	orderService := order.OrderService{
 		CartRepository:    cartRepository,
 		OrderRepository:   &orderRepository,
@@ -103,7 +106,7 @@ func main() {
 		PaymentService: &paymentService,
 	}
 	productAPI := api.ProductAPI{
-		ProductRepository: productRepository,
+		ProductService: &productService,
 	}
 	pointAPI := api.PointAPI{
 		PointService: pointService,
