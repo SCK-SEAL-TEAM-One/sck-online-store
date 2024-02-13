@@ -14,9 +14,10 @@ const OrderSummary = () => {
       <Header3>Summary</Header3>
 
       <div className="mb-6 pb-2 border-b border-gray-200 text-gray-800">
-        <SummaryText text="Merchandise Subtotal" value={subTotal} />
-        <SummaryText text="Shipping Fee" value={shipping.shippingFee} />
+        <SummaryText id='order-summary-subtotal' text="Merchandise Subtotal" value={subTotal} />
+        <SummaryText id='order-summary-shipping-fee' text="Shipping Fee" value={shipping.shippingFee} />
         <SummaryText
+          id='order-summary-point-discount'
           text="Points Discount"
           textBeforeValue="-"
           format="number"
@@ -30,6 +31,7 @@ const OrderSummary = () => {
       </div>
       <div>
         <SummaryText
+          id='order-summary-receive-point'
           text="Receive Point"
           format="number"
           className="font-semibold"
@@ -37,6 +39,7 @@ const OrderSummary = () => {
           value={receivePoint}
         />
         <SummaryText
+          id='order-summary-total-payment'
           className="font-semibold"
           text="Total Payment"
           value={totalPayment}

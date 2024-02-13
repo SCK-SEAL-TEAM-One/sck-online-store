@@ -14,7 +14,11 @@ const OrderList = () => {
       <div className="w-full mx-auto text-gray-800 font-light mb-6 border-b border-gray-200 pb-6">
         <Header3>Orders</Header3>
 
-        <ul role="list" className="-my-6 divide-y divide-gray-200">
+        <ul
+          id="order-product-list"
+          role="list"
+          className="-my-6 divide-y divide-gray-200"
+        >
           {cart.map((product) => (
             <ProductItem
               key={`product-item-${product.id}`}

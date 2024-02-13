@@ -1,7 +1,7 @@
 'use client'
 
-import useOrderStore from '@/hooks/use-order-store'
 import Text from '@/components/typography/text'
+import useOrderStore from '@/hooks/use-order-store'
 import getPointService from '@/services/point'
 import { converNumber } from '@/utils/format'
 import { useEffect } from 'react'
@@ -28,12 +28,13 @@ const DiscountPoint = () => {
     <div className="flex justify-between mt-5">
       <div className="flex items-center mb-4">
         <input
-          id="default-checkbox"
+          id="discount-use-point-input"
           type="checkbox"
           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
           onChange={handleUsePointChange}
         />
         <label
+          id="discount-use-point-label"
           htmlFor="default-checkbox"
           className="ms-2 text-md font-medium text-gray-900 cursor-pointer"
         >
@@ -41,7 +42,7 @@ const DiscountPoint = () => {
         </label>
       </div>
       <div>
-        <Text size="md" className="font-medium text-gray-900">
+        <Text id='discount-use-point-total' size="md" className="font-medium text-gray-900">
           {`${converNumber(point.point)} Points`}
         </Text>
       </div>

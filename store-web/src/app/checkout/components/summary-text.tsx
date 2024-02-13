@@ -8,6 +8,7 @@ import { converNumber, convertCurrency } from '@/utils/format'
 type SummaryTextProps = {
   text: string
   value: number
+  id?: string
   format?: string
   size?: string
   className?: string
@@ -16,6 +17,7 @@ type SummaryTextProps = {
 }
 
 const SummaryText = ({
+  id,
   text,
   value,
   format = 'currency',
@@ -27,14 +29,16 @@ const SummaryText = ({
   return (
     <div className="w-full flex mb-3 items-center">
       <div className="flex-grow">
-        <Text size={size} className="font-regular">
+        <Text id={id} size={size} className="font-regular">
           {text}
         </Text>
       </div>
       <div className="pl-3">
-        <Text className={className}>
+        <Text id={`${id}-price`} className={className}>
           {value === 0 ? '' : textBeforeValue}
-          {format === 'number' ? converNumber(value) : convertCurrency(value, 'THB')}
+          {format === 'number'
+            ? converNumber(value)
+            : convertCurrency(value, 'THB')}
           {unit ? ` ${unit}` : ''}
         </Text>
       </div>

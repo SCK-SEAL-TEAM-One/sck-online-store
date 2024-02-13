@@ -172,7 +172,7 @@ const ShippingInfomation = () => {
 
       <div className="grid gap-6 mb-2 md:grid-cols-2">
         <InputField
-          id="first-name"
+          id="shipping-form-first-name"
           label="First name"
           type="text"
           name="firstName"
@@ -183,7 +183,7 @@ const ShippingInfomation = () => {
         />
 
         <InputField
-          id="last-name"
+          id="shipping-form-last-name"
           label="Last name"
           type="text"
           name="lastName"
@@ -195,7 +195,7 @@ const ShippingInfomation = () => {
       </div>
 
       <InputField
-        id="address"
+        id="shipping-form-address"
         label="Address (Building, Street, etc.)"
         type="text"
         name="address"
@@ -207,6 +207,7 @@ const ShippingInfomation = () => {
       />
 
       <ShippingDropdownList
+        id="shipping-form-province"
         label="Province: "
         list={provinceList}
         name="province"
@@ -214,6 +215,7 @@ const ShippingInfomation = () => {
       />
 
       <ShippingDropdownList
+        id="shipping-form-district"
         label="District: "
         list={districtList}
         name="district"
@@ -221,6 +223,7 @@ const ShippingInfomation = () => {
       />
 
       <ShippingDropdownList
+        id="shipping-form-sub-district"
         label="Sub-district: "
         list={subDistrictList}
         name="subDistrict"
@@ -228,7 +231,7 @@ const ShippingInfomation = () => {
       />
 
       <InputField
-        id="zipcode"
+        id="shipping-form-zipcode"
         label="Zipcode"
         type="text"
         name="zipCode"
@@ -240,7 +243,7 @@ const ShippingInfomation = () => {
       />
 
       <InputField
-        id="mobile"
+        id="shipping-form-mobile"
         label="Mobile number (For Contact)"
         type="tel"
         name="mobileNumber"

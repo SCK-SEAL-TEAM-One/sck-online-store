@@ -11,10 +11,17 @@ const DiscountForm = () => {
     <div className="border-b pb-5">
       <div className="-mx-2 flex items-end justify-between">
         <div className="flex-grow px-2 lg:max-w-sm">
-          <InputField id="discount" type="text" placeholder="XXXXXX" />
+          <InputField
+            id="discount-form-discount-code"
+            label="discount"
+            type="text"
+            placeholder="XXXXXX"
+          />
         </div>
         <div className="px-2">
-          <Button size="sm">APPLY</Button>
+          <Button id="discount-apply-btn" size="sm">
+            APPLY
+          </Button>
         </div>
       </div>
 

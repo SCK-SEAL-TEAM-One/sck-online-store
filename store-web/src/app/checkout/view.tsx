@@ -92,6 +92,7 @@ const CheckoutView = () => {
                 <Discount />
                 <OrderSummary />
                 <Button
+                  id="payment-now-btn"
                   type="button"
                   onClick={submitPaymentOrder}
                   isblock="true"

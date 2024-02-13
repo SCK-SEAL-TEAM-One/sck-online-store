@@ -1,11 +1,11 @@
 'use client'
 
-import useOrderStore from '@/hooks/use-order-store'
 import MastercardIcon from '@/components/icons/mastercard'
 import VisaIcon from '@/components/icons/visa'
 import Image from '@/components/image'
 import InputField from '@/components/input-field'
 import Header3 from '@/components/typography/header3'
+import useOrderStore from '@/hooks/use-order-store'
 import {
   formatCVV,
   formatCreditCardNumber,
@@ -98,7 +98,7 @@ const PaymentMethod = () => {
             className="flex items-center cursor-pointer text-sm font-bold text-gray-900"
           >
             <input
-              id="payment-credit-card"
+              id="payment-credit-input"
               type="radio"
               name="payment-method"
               value="credit-card"
@@ -111,6 +111,7 @@ const PaymentMethod = () => {
 
           <div className={paymentMethod === 'credit-card' ? 'mt-5' : 'hidden'}>
             <InputField
+              id={`payment-credit-form-fullname`}
               type="text"
               label="Name on card"
               name="fullname"
@@ -122,6 +123,7 @@ const PaymentMethod = () => {
             <div className="mb-3 -mx-2 flex items-center">
               <div className="px-2 w-3/4">
                 <InputField
+                  id={`payment-credit-form-card-number`}
                   type="text"
                   label="Card number"
                   name="number"
@@ -133,7 +135,10 @@ const PaymentMethod = () => {
                 />
               </div>
               <div className="px-2 w-1/4">
-                <div className="flex items-center gap-2 mt-5">
+                <div
+                  id={`payment-credit-form-provider`}
+                  className="flex items-center gap-2 mt-5"
+                >
                   <VisaIcon
                     width={48}
                     height={32}
@@ -159,6 +164,7 @@ const PaymentMethod = () => {
             <div className="mb-3 -mx-2 flex items-end">
               <div className="px-2 w-1/3">
                 <InputField
+                  id={`payment-credit-form-expiry`}
                   type="text"
                   label="Expiration date"
                   name="expiry"
@@ -169,6 +175,7 @@ const PaymentMethod = () => {
               </div>
               <div className="px-2 w-1/3">
                 <InputField
+                  id={`payment-credit-form-cvv`}
                   type="text"
                   label="Security code"
                   name="cvv"
