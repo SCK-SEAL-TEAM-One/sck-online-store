@@ -94,7 +94,7 @@ const PaymentMethod = () => {
         {/* Credit/Debit Card */}
         <div className="w-full p-3 border-b border-gray-200">
           <label
-            htmlFor="payment-credit-card"
+            htmlFor="payment-credit-input"
             className="flex items-center cursor-pointer text-sm font-bold text-gray-900"
           >
             <input

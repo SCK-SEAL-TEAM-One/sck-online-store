@@ -35,7 +35,7 @@ const DiscountPoint = () => {
         />
         <label
           id="discount-use-point-label"
-          htmlFor="default-checkbox"
+          htmlFor="discount-use-point-input"
           className="ms-2 text-md font-medium text-gray-900 cursor-pointer"
         >
           Use your points

@@ -34,7 +34,7 @@ const ShippingDropdownList = ({
     <div className="mb-2">
       <label
         id={`${id}-label`}
-        htmlFor={label}
+        htmlFor={`${id}-select`}
         className="block mb-2 text-sm font-medium text-gray-900"
       >
         {label}
