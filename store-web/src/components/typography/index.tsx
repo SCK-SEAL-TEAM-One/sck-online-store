@@ -1,0 +1,5 @@
+export * from '@/components/typography/header1'
+export * from '@/components/typography/header2'
+export * from '@/components/typography/header3'
+export * from '@/components/typography/header4'
+export * from '@/components/typography/text'

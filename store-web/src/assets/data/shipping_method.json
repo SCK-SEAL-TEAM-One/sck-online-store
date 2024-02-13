@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "kerry",
+    "shippingTime": "4–10 business days",
+    "condition": "",
+    "price": 3
+  },
+  {
+    "id": 2,
+    "name": "thai post",
+    "shippingTime": "5–15 business days",
+    "condition": "",
+    "price": 2.5
+  },
+  {
+    "id": 3,
+    "name": "lineman",
+    "shippingTime": "1-2 business days",
+    "condition": "*Bangkok and perimeter only",
+    "price": 4
+  }
+]
