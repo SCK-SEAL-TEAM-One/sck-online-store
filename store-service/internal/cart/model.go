@@ -12,6 +12,11 @@ type Cart struct {
 	Quantity  int `json:"quantity" db:"quantity"`
 }
 
+type CartResult struct {
+	Carts   []CartDetail `json:"carts"`
+	Summary CartSummary  `json:"summary"`
+}
+
 type CartDetail struct {
 	ID           int     `json:"id" db:"id"`
 	UserID       int     `json:"user_id" db:"user_id"`
@@ -24,4 +29,11 @@ type CartDetail struct {
 	Image        string  `json:"product_image" db:"image_url"`
 	Stock        int     `json:"stock" db:"stock"`
 	Brand        string  `json:"product_brand" db:"product_brand"`
+}
+
+type CartSummary struct {
+	TotalPrice        float64 `json:"total_price"`
+	TotalPriceTHB     float64 `json:"total_price_thb"`
+	TotalPriceFullTHB float64 `json:"total_price_full_thb"`
+	ReceivePoint      int     `json:"receive_point"`
 }

@@ -7,68 +7,94 @@ import (
 )
 
 type CartInterface interface {
-	GetCart(uid int) ([]CartDetail, error)
-	AddCart(uid int, submitedCart SubmitedCart) (string, error)
-	UpdateCart(uid int, submitedCart SubmitedCart) (string, error)
+	GetCart(uid int) (CartResult, error)
+	AddCart(uid int, submitedCart SubmitedCart) (CartResult, error)
+	UpdateCart(uid int, submitedCart SubmitedCart) (CartResult, error)
 }
 
 type CartService struct {
 	CartRepository CartRepository
 }
 
-func (cartService CartService) GetCart(uid int) ([]CartDetail, error) {
+func (cartService CartService) GetCart(uid int) (CartResult, error) {
 	carts, err := cartService.CartRepository.GetCartDetail(uid)
 	if err != nil {
 		log.Printf("CartRepository.GetCartDetail internal error %s", err.Error())
 	}
 
+	totalPrice := 0.0
 	for i := range carts {
 		c := &carts[i]
 		digit := common.ConvertToThb(c.Price)
 
 		c.PriceTHB = digit.ShortDigit
 		c.PriceFullTHB = digit.LongDigit
+		totalPrice = totalPrice + (c.Price * float64(c.Quantity))
 	}
+
+	digitTotal := common.ConvertToThb(totalPrice)
+	totalPriceTHB := digitTotal.ShortDigit
+	totalPriceFullTHB := digitTotal.LongDigit
 
 	if len(carts) == 0 {
-		return []CartDetail{}, err
+		return CartResult{
+			Carts:   []CartDetail{},
+			Summary: CartSummary{},
+		}, err
 	}
-	return carts, err
+	return CartResult{
+		Carts: carts,
+		Summary: CartSummary{
+			TotalPrice:        totalPrice,
+			TotalPriceTHB:     totalPriceTHB,
+			TotalPriceFullTHB: totalPriceFullTHB,
+			ReceivePoint:      common.CalculatePoint(totalPriceTHB),
+		},
+	}, err
 }
 
-func (cartService CartService) AddCart(uid int, submitedCart SubmitedCart) (string, error) {
+func (cartService CartService) AddCart(uid int, submitedCart SubmitedCart) (CartResult, error) {
 	cart, err := cartService.CartRepository.GetCartByProductID(uid, submitedCart.ProductID)
-	act := "updated"
 
 	if err == sql.ErrNoRows {
-		act = "added"
 		cartService.CartRepository.CreateCart(uid, submitedCart.ProductID, submitedCart.Quantity)
-		return act, nil
+		cartResult, _ := cartService.GetCart(uid)
+		return cartResult, nil
 	}
 	err = cartService.CartRepository.UpdateCart(uid, submitedCart.ProductID, submitedCart.Quantity+cart.Quantity)
 	if err != nil {
 		log.Printf("CartRepository.UpdateCart internal error %s", err.Error())
-		return "", err
+		return CartResult{
+			Carts:   []CartDetail{},
+			Summary: CartSummary{},
+		}, err
 	}
-	return act, nil
+
+	cartResult, _ := cartService.GetCart(uid)
+	return cartResult, nil
 }
 
-func (cartService CartService) UpdateCart(uid int, submitedCart SubmitedCart) (string, error) {
-	act := "updated"
+func (cartService CartService) UpdateCart(uid int, submitedCart SubmitedCart) (CartResult, error) {
 	if submitedCart.Quantity <= 0 {
-		act = "deleted"
 		err := cartService.CartRepository.DeleteCart(uid, submitedCart.ProductID)
 		if err != nil {
 			log.Printf("CartRepository.DeleteCart internal error %s", err.Error())
-			return "", err
+			return CartResult{
+				Carts:   []CartDetail{},
+				Summary: CartSummary{},
+			}, err
 		}
 	} else {
 		err := cartService.CartRepository.UpdateCart(uid, submitedCart.ProductID, submitedCart.Quantity)
 		if err != nil {
 			log.Printf("CartRepository.UpdateCart internal error %s", err.Error())
-			return "", err
+			return CartResult{
+				Carts:   []CartDetail{},
+				Summary: CartSummary{},
+			}, err
 		}
 	}
-	return act, nil
+	cartResult, _ := cartService.GetCart(uid)
+	return cartResult, nil
 
 }
