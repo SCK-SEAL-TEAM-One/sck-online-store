@@ -1,6 +1,13 @@
+# run all sysytem
+all: backend_start store_web
 
+# run backend api include arrange system
 backend_start: store_service point_service bank shipping
+
+# run all arrange system of backend
 backend_setup: store_db point_service bank shipping
+
+# run all test of backend
 backend_test_all: backend_unit_test backend_integration_test all_done
 
 backend_unit_test:
