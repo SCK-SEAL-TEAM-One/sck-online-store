@@ -68,7 +68,7 @@ const CheckoutView = () => {
     if (result) {
       window.location.href = '/payment?order-id=' + result.order_id
     } else {
-      alert ('Error Checkout, Please Try Again')
+      alert('Error Checkout, Please Try Again')
     }
   }
 
