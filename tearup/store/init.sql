@@ -10070,9 +10070,9 @@ CREATE TABLE shipping_methods (
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 INSERT INTO shipping_methods (id,name,description,cost) VALUE 
-(1,"Kerry","4-5 business days",5),
-(2,"Thaipost","5-15 business days",5),
-(3,"Lineman","1-2 business days",7);
+(1,"Kerry","4-5 business days",50),
+(2,"Thaipost","5-15 business days",50),
+(3,"Lineman","1-2 business days",100);
 
 CREATE TABLE payment_methods (
     id BIGINT AUTO_INCREMENT,
@@ -10109,7 +10109,7 @@ CREATE TABLE orders (
     discount_price double,
     total_price double,
     transaction_id varchar(255) DEFAULT '',
-    status ENUM('created','completed','cancle','fail') DEFAULT 'created',
+    status ENUM('created', 'paid', 'completed','cancel') DEFAULT 'created',
     authorized timestamp DEFAULT current_timestamp,
     created timestamp DEFAULT current_timestamp,
     updated timestamp DEFAULT current_timestamp ON UPDATE current_timestamp,
