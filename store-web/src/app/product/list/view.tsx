@@ -7,28 +7,38 @@ import SearchForm from '@/app/product/list/components/search-form'
 import getProductListService, {
   GetProductListServiceResponse
 } from '@/services/product-lists'
+import axios from 'axios'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 // ----------------------------------------------------------------------
 
 const ProductView = () => {
+  const searchParams = useSearchParams()
+  const searchKeyword = searchParams.get('keyword') || ''
+
   const [products, setProducts] =
     useState<GetProductListServiceResponse | null>(null)
-  const [keyword, setKeword] = useState('')
+  const [keyword, setKeword] = useState(searchKeyword)
 
-  const getProductList = async (keyword: string = '') => {
+  const getProductList = async (keyword: string) => {
     const productList = await getProductListService({
       keyword,
       limit: 20,
       offset: 0
     })
 
-    setProducts(productList)
+    if (productList.data) {
+      setProducts(productList)
+    } else {
+      setProducts(null)
+    }
   }
 
   const onSubmitSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    getProductList(keyword)
+    // getProductList(keyword)
+    window.location.href = '/product/list?keyword=' + keyword
   }
 
   const onChangeSearchKeyword = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,8 +46,8 @@ const ProductView = () => {
   }
 
   useEffect(() => {
-    getProductList()
-  }, [])
+    getProductList(searchKeyword)
+  }, [searchKeyword])
 
   return (
     <div className="bg-white">
@@ -50,7 +60,7 @@ const ProductView = () => {
 
         <ProductTitle title="All Products" />
 
-        {products && products.total > 0 ? (
+        {products && products.data && products.data?.total > 0 ? (
           <ProductList products={products} />
         ) : (
           <ProductNotFound />

@@ -1,4 +1,5 @@
-import { mockProductListResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
 
 // ------------------------------------------------
 
@@ -15,9 +16,14 @@ export type ProductDetailType = {
   product_image: string
 }
 
-export type GetProductListServiceResponse = {
+export type ProductListDataType = {
   total: number
   products: ProductDetailType[]
+}
+
+export type GetProductListServiceResponse = {
+  data?: ProductListDataType
+  message?: string
 }
 
 const getProductListService = async ({
@@ -25,28 +31,28 @@ const getProductListService = async ({
   offset = 0,
   limit = 50
 }: GetProductListServiceRequest): Promise<GetProductListServiceResponse> => {
-  // const queryString =
-  //     '?' +
-  //     new URLSearchParams({
-  //       q: keyword,
-  //       offset: offset.toString(),
-  //       limit: limit.toString()
-  //     }).toString()
+  try {
+    const queryString =
+      '?' +
+      new URLSearchParams({
+        q: keyword,
+        offset: offset.toString(),
+        limit: limit.toString()
+      }).toString()
 
-  //   const result = await axiosShoppingMallApi.get(
-  //     `/api/v1/product${queryString}`
-  //   )
-
-  let result = mockProductListResponse.body
-
-  if (keyword) {
-    result = {
-      total: 0,
-      products: []
+    const { data } = await axiosShoppingMallApi.get(
+      `${process.env.storeServiceURL}/api/v1/product${queryString}`
+    )
+    return {
+      data: data
     }
+  } catch (error) {
+    return handleServiceError(error)
   }
 
-  return result
+  // return {
+  //   data: mockProductListResponse.body
+  // }
 }
 
 export default getProductListService
