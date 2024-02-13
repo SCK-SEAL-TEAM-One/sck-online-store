@@ -100,6 +100,7 @@ const ProductItem = ({
     <li className="flex py-6">
       <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
         <Image
+          id={`product-${product_id}-image`}
           src={`${config.imageUrl}/${product_image}`}
           alt={product_name}
           width={94}
@@ -111,19 +112,21 @@ const ProductItem = ({
       <div className="ml-4 flex flex-1 flex-col">
         <div>
           <div className="flex justify-between text-base font-medium text-gray-900">
-            <h3>
+            <h3 id={`product-${product_id}-name`}>
               <a href={`/product/${product_id}`}>{product_name}</a>
             </h3>
-            <p className="ml-4">{convertCurrency(product_price, 'THB')}</p>
+            <p id={`product-${product_id}-price`} className="ml-4">
+              {convertCurrency(product_price, 'THB')}
+            </p>
           </div>
-          <Text className="mt-1 text-sm text-gray-500">
+          <Text id={`product-${product_id}-stock`} className="mt-1 text-sm text-gray-500">
             {`Stock ${converNumber(stock)} items`}
           </Text>
         </div>
 
         <div className="flex flex-1 items-end justify-between text-sm mt-4">
           <InputQuantity
-            id="quantity"
+            id={`product-${product_id}-quantity`}
             placeholder="999"
             increment={incrementQuantity}
             decrement={decrementQuantity}
@@ -134,7 +137,7 @@ const ProductItem = ({
             required
           />
 
-          <RemoveItem onClick={handleRemoveItem} />
+          <RemoveItem id={`product-${product_id}-remove-btn`} onClick={handleRemoveItem} />
         </div>
       </div>
     </li>

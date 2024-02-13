@@ -4,9 +4,9 @@ import ButtonContiueShopping from '@/app/cart/components/button-continue'
 import ProductList from '@/app/cart/components/product-list'
 import ShoppingHeader from '@/app/cart/components/shopping-header'
 import SubTotal from '@/app/cart/components/sub-total'
-import useOrderStore from '@/hooks/use-order-store'
 import ButtonLink from '@/components/button/button-link'
 import Text from '@/components/typography/text'
+import useOrderStore from '@/hooks/use-order-store'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment, useEffect } from 'react'
 
@@ -39,7 +39,10 @@ const ShoppingCartView = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          <div
+            id="shopping-cart-overlay"
+            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-hidden">
@@ -58,6 +61,7 @@ const ShoppingCartView = ({
                   <div className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
                     <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                       <ShoppingHeader
+                        id="shopping-cart-header"
                         closeShoppingCart={() => setOpenShoppingCart(false)}
                       />
 
@@ -71,13 +75,18 @@ const ShoppingCartView = ({
                         Shipping and taxes calculated at checkout.
                       </Text>
 
-                      <ButtonLink href="/checkout" className="mt-6">
+                      <ButtonLink
+                        id="shopping-cart-checkout-btn"
+                        href="/checkout"
+                        className="mt-6"
+                      >
                         Checkout
                       </ButtonLink>
 
                       <div className="mt-6 flex justify-center flex-col items-center text-center text-sm text-gray-500">
                         <Text className="mb-3">or</Text>
                         <ButtonContiueShopping
+                          id="shopping-cart-continue-link"
                           onClick={() => setOpenShoppingCart(false)}
                         />
                       </div>

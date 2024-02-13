@@ -13,7 +13,11 @@ const ProductList = ({ list }: ProductListProps) => {
   return (
     <div className="mt-8">
       <div className="flow-root">
-        <ul role="list" className="-my-6 divide-y divide-gray-200">
+        <ul
+          id="order-product-list"
+          role="list"
+          className="-my-6 divide-y divide-gray-200"
+        >
           {list.map((product) => (
             <ProductItem
               key={`product-item-${product.id}`}

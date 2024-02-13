@@ -12,8 +12,10 @@ type SubTotalProps = {
 const SubTotal = ({ total }: SubTotalProps) => {
   return (
     <div className="flex justify-between text-base font-medium text-gray-900">
-      <Text>Subtotal</Text>
-      <Text>{convertCurrency(total, 'THB')}</Text>
+      <Text id="shopping-cart-subtotal-label">Subtotal</Text>
+      <Text id="shopping-cart-subtotal-price">
+        {convertCurrency(total, 'THB')}
+      </Text>
     </div>
   )
 }
