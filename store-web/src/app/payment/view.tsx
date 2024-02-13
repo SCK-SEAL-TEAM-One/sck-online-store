@@ -38,11 +38,11 @@ const PaymentView = () => {
         otpRef: otpRef
       })
 
-      if (result) {
+      if (result.data) {
         const convertResultToObject = {
-          ...result,
-          order_id: result.order_id.toString(),
-          shipping_method_id: result.shipping_method_id.toString()
+          ...result.data,
+          order_id: result.data.order_id.toString(),
+          shipping_method_id: result.data.shipping_method_id.toString()
         }
 
         const query = new URLSearchParams(convertResultToObject).toString()

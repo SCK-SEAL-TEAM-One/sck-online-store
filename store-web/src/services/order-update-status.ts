@@ -1,4 +1,6 @@
 import { mockOrderUpdateStatusResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
 
 // ------------------------------------------------
 
@@ -7,11 +9,17 @@ type OrderUpdateStatusServiceRequest = {
   otp: number
   otpRef: string
 }
-export type OrderUpdateStatusServiceResponse = {
+
+export type OrderUpdateStatusDetailType = {
   order_id: number
   payment_date: string
   shipping_method_id: number
   tracking_id: string
+}
+
+export type OrderUpdateStatusServiceResponse = {
+  data?: OrderUpdateStatusDetailType
+  message?: string
 }
 
 const orderUpdateStatusService = async ({
@@ -19,14 +27,25 @@ const orderUpdateStatusService = async ({
   otp,
   otpRef
 }: OrderUpdateStatusServiceRequest): Promise<OrderUpdateStatusServiceResponse> => {
-  //   const result = await axiosShoppingMallApi.put(
-  //     `/api/v1/order`,
-  //   )
+  // try {
+  //   const { data } = await axiosShoppingMallApi.put(`/api/v1/order`, {
+  //     order_id: orderId,
+  //     otp: otp,
+  //     ref_otp: otpRef
+  //   })
+  //   return {
+  //     data: data
+  //   }
+  // } catch (error) {
+  //   return handleServiceError(error)
+  // }
 
   // Mock Response
   let result = mockOrderUpdateStatusResponse.body
 
-  return result
+  return {
+    data: result
+  }
 }
 
 export default orderUpdateStatusService
