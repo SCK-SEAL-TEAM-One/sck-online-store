@@ -25,6 +25,9 @@ store_service_dev_mode:
 point_service:
 	docker compose up -d point-service
 
+store_web:
+	docker compose up -d store-web
+
 bank:
 	docker compose up -d bank-gateway --build
 

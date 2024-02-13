@@ -86,6 +86,14 @@ services:
     ports:
       - "8883:8882"
 
+  store-web:
+    image: store-web:0.1.0
+    container_name: store-web
+    build:
+      context: store-web
+    ports:
+      - "3000:3000"
+
   store-db-test:
     image: mysql:8.3.0
     container_name: store-db-test
