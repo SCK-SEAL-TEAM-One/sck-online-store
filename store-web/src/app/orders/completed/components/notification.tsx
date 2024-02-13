@@ -29,7 +29,7 @@ const Notification = () => {
       isApplication
     })
 
-    if (result.status === 'success') {
+    if (result.data?.status === 'success') {
       let text = 'Send notification completed.\n\nClick OK for go to Product lists.'
       if (confirm(text) == true) {
         window.location.href = '/product/list'

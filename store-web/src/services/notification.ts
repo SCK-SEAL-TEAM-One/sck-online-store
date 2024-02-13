@@ -1,4 +1,6 @@
 import { mockNotificationResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
 
 // ------------------------------------------------
 
@@ -11,21 +13,45 @@ type NotificationServiceRequest = {
 }
 
 export type OrderCheckoutServiceResponse = {
-  status: string
+  data?: {
+    status: string
+  }
+  message?: string
 }
 
 const notificationService = async (
-  data: NotificationServiceRequest
+  notificationInfo: NotificationServiceRequest
 ): Promise<OrderCheckoutServiceResponse> => {
-  //   const result = await axiosShoppingMallApi.put(
-  //     `/api/v1/order`,
+  // try {
+  //   const { status } = await axiosShoppingMallApi.post(
+  //     `/api/v1/notification`,
+  //     {
+  //       user_id: notificationInfo.userId,
+  //       order_id: notificationInfo.orderId,
+  //       in_applicaition: notificationInfo.isApplication,
+  //       email: notificationInfo.email,
+  //       mobile: notificationInfo.mobile
+  //     }
   //   )
+
+  //   if (status === 200) {
+  //     return {
+  //       data: {
+  //         status: 'success'
+  //       }
+  //     }
+  //   }
+  // } catch (error) {
+  //   return handleServiceError(error)
+  // }
 
   // Mock Response
   let result = mockNotificationResponse.status
 
   return {
-    status: result === 200 ? 'success' : 'fail'
+    data: {
+      status: result === 200 ? 'success' : 'fail'
+    }
   }
 }
 
