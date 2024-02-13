@@ -3,6 +3,7 @@ package cart
 import (
 	"database/sql"
 	"log"
+	"store-service/internal/common"
 )
 
 type CartInterface interface {
@@ -19,6 +20,14 @@ func (cartService CartService) GetCart(uid int) ([]CartDetail, error) {
 	carts, err := cartService.CartRepository.GetCartDetail(uid)
 	if err != nil {
 		log.Printf("CartRepository.GetCartDetail internal error %s", err.Error())
+	}
+
+	for i := range carts {
+		c := &carts[i]
+		digit := common.ConvertToThb(c.Price)
+
+		c.PriceTHB = digit.ShortDigit
+		c.PriceFullTHB = digit.LongDigit
 	}
 
 	if len(carts) == 0 {
