@@ -3,6 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['tailwindui.com', 'localhost']
+  },
+  env: {
+    storeServiceURL: 'https://localhost:8000',
   }
 }
 
