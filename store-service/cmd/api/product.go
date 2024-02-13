@@ -9,7 +9,7 @@ import (
 )
 
 type ProductAPI struct {
-	ProductRepository product.ProductRepository
+	ProductService product.ProductInterface
 }
 
 func (api ProductAPI) SearchHandler(context *gin.Context) {
@@ -17,7 +17,7 @@ func (api ProductAPI) SearchHandler(context *gin.Context) {
 	limit := context.DefaultQuery("limit", "30")
 	offset := context.DefaultQuery("offset", "0")
 
-	productResult, err := api.ProductRepository.GetProducts(keyword, limit, offset)
+	productResult, err := api.ProductService.GetProducts(keyword, limit, offset)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -37,7 +37,7 @@ func (api ProductAPI) GetProductHandler(context *gin.Context) {
 		})
 		return
 	}
-	product, err := api.ProductRepository.GetProductByID(id)
+	product, err := api.ProductService.GetProductByID(id)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
