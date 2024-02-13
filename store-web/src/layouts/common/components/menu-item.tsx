@@ -3,13 +3,18 @@
 // ---------------------------------------------------
 
 type MenuItemProps = {
+  id?: string
   link: string
   name: string
 }
 
-const MenuItem = ({ link, name }: MenuItemProps) => {
+const MenuItem = ({ id, link, name }: MenuItemProps) => {
   return (
-    <a href={link} className="text-sm font-semibold leading-6 text-gray-900">
+    <a
+      id={id}
+      href={link}
+      className="text-sm font-semibold leading-6 text-gray-900"
+    >
       {name}
     </a>
   )
