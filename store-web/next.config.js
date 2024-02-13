@@ -5,7 +5,7 @@ const nextConfig = {
     domains: ['tailwindui.com', 'localhost']
   },
   env: {
-    storeServiceURL: 'https://localhost:8000',
+    storeServiceURL: 'http://localhost:8000',
   }
 }
 

@@ -14,6 +14,7 @@ import (
 	"store-service/internal/point"
 	"store-service/internal/product"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -105,6 +106,10 @@ func main() {
 	}
 
 	route := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	route.Use(cors.New(config))
 
 	// get global Monitor object
 	m := ginmetrics.GetMonitor()
