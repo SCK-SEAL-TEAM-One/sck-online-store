@@ -2,9 +2,11 @@ FROM node:21-alpine as base
 
 WORKDIR /app
 
-COPY . .
+COPY package.json package-lock.json .
 
 RUN npm install
+
+COPY . .
 
 RUN npm run build
 
