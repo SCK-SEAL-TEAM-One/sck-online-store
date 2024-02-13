@@ -35,16 +35,14 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 	}
 
 	uid := 1
-	act, err := api.CartService.AddCart(uid, request)
+	cart, err := api.CartService.AddCart(uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	context.JSON(http.StatusOK, gin.H{
-		"status": act,
-	})
+	context.JSON(http.StatusOK, cart)
 }
 
 func (api CartAPI) UpdateCartHandler(context *gin.Context) {
@@ -56,14 +54,12 @@ func (api CartAPI) UpdateCartHandler(context *gin.Context) {
 	}
 
 	uid := 1
-	act, err := api.CartService.UpdateCart(uid, request)
+	cart, err := api.CartService.UpdateCart(uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	context.JSON(http.StatusOK, gin.H{
-		"status": act,
-	})
+	context.JSON(http.StatusOK, cart)
 }
