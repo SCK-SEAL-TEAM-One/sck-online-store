@@ -33,7 +33,7 @@ const ProductCard = ({ data }: ProductCardProps) => {
           </a>
         </Header4>
         <Text size="md" className="font-medium text-gray-900">
-          {convertCurrency(data.product_price)}
+          {convertCurrency(data.product_price, 'THB')}
         </Text>
       </div>
     </div>

@@ -2,20 +2,17 @@ import config from '@/config'
 
 // ----------------------------------------------------------------------------
 
-export const subTotal = (priceList: number[]) => {
+export const subTotal = (priceList: { price: number; quantity: number }[]) => {
   let total = 0
 
   for (let i = 0; i < priceList.length; i++) {
-    total += priceList[i]
+    total += priceList[i].price * priceList[i].quantity
   }
 
   return total
 }
 
-export const pointBurn = (
-  point: number,
-  subTotal: number
-) => {
+export const pointBurn = (point: number, subTotal: number) => {
   let pointsUsed = 0
 
   if (point <= subTotal) {

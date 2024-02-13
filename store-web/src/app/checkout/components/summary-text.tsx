@@ -34,7 +34,7 @@ const SummaryText = ({
       <div className="pl-3">
         <Text className={className}>
           {value === 0 ? '' : textBeforeValue}
-          {format === 'number' ? converNumber(value) : convertCurrency(value)}
+          {format === 'number' ? converNumber(value) : convertCurrency(value, 'THB')}
           {unit ? ` ${unit}` : ''}
         </Text>
       </div>

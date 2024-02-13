@@ -56,7 +56,7 @@ const ShippingMethodItem = ({
           )}
 
           <div className="w-full mt-2 font-semibold">
-            {convertCurrency(price)}
+            {convertCurrency(price, 'THB')}
           </div>
         </div>
       </label>

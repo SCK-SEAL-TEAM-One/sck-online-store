@@ -22,7 +22,7 @@ const getProductDetailService = async (
 ): Promise<GetProductDetailServiceResponse> => {
   try {
     const { data } = await axiosShoppingMallApi.get(
-      `${process.env.storeServiceURL}/api/v1/product/${id}`
+      `/api/v1/product/${id}`
     )
     return {
       data: data

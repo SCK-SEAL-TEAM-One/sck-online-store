@@ -45,17 +45,13 @@ const ProductContent = (product: ProductDetailType) => {
 
   const addToCart = async () => {
     const result = await addToCartService({
-      product_id: product.id,
+      productId: product.id,
       quantity
     })
 
-    if (result) {
+    // Add to cart is Success
+    if (result.data) {
       getProductListInCart()
-      // For Counting Product in Cart and save it in Local Storage
-      //   addToCartLocal({
-      //     product_id: product.id,
-      //     quantity
-      //   })
     }
   }
 

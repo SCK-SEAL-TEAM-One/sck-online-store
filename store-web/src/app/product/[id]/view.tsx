@@ -25,8 +25,6 @@ const ProductDetailView = () => {
     getProductDetail()
   }, [id])
 
-  console.log('productDetail', productDetail)
-
   return (
     <div className="bg-white min-h-[calc(100vh-88px)]">
       {/* <Breadcrumbs

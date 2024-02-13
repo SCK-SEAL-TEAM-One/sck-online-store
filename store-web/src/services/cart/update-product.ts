@@ -1,35 +1,35 @@
-import { mockUpdateCartResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
 
 // ------------------------------------------------
 
 export type UpdateProductInCartServiceResponse = {
-  status: string // deleted, updated
+  data?: {
+    status: string // deleted, updated
+  }
+  message?: string
 }
 
 type UpdateProductInCartServiceRequest = {
-  product_id: number
+  productId: number
   quantity: number
 }
 
 const updateProductInCartService = async ({
-  product_id,
+  productId,
   quantity
 }: UpdateProductInCartServiceRequest): Promise<UpdateProductInCartServiceResponse> => {
-  // const queryString =
-  //     '?' +
-  //     new URLSearchParams({
-  //       q: keyword,
-  //       offset: offset.toString(),
-  //       limit: limit.toString()
-  //     }).toString()
-
-  //   const result = await axiosShoppingMallApi.get(
-  //     `/api/v1/product${queryString}`
-  //   )
-
-  let result = mockUpdateCartResponse.body
-
-  return result
+  try {
+    const { data } = await axiosShoppingMallApi.put(`/api/v1/updateCart`, {
+      product_id: productId,
+      quantity: quantity
+    })
+    return {
+      data: data
+    }
+  } catch (error) {
+    return handleServiceError(error)
+  }
 }
 
 export default updateProductInCartService

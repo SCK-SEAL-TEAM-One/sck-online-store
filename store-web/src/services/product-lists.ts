@@ -41,7 +41,7 @@ const getProductListService = async ({
       }).toString()
 
     const { data } = await axiosShoppingMallApi.get(
-      `${process.env.storeServiceURL}/api/v1/product${queryString}`
+      `/api/v1/product${queryString}`
     )
     return {
       data: data

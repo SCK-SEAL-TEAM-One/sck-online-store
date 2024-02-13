@@ -1,4 +1,6 @@
 import { mockOrderCheckoutResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
 
 // ------------------------------------------------
 
@@ -34,20 +36,27 @@ type OrderRequest = {
 }
 
 export type OrderCheckoutServiceResponse = {
-  order_id: number
+  data?: {
+    order_id: number
+  }
+  message?: string
 }
 
 const orderCheckoutService = async (
   order: OrderRequest
 ): Promise<OrderCheckoutServiceResponse> => {
-  //   const result = await axiosShoppingMallApi.put(
-  //     `/api/v1/order`,
-  //   )
+  // try {
+  //   const { data } = await axiosShoppingMallApi.post(`/api/v1/order`, order)
+  //   return {
+  //     data: data
+  //   }
+  // } catch (error) {
+  //   return handleServiceError(error)
+  // }
 
-  // Mock Response
-  let result = mockOrderCheckoutResponse.body
-
-  return result
+  return {
+    data: mockOrderCheckoutResponse.body
+  }
 }
 
 export default orderCheckoutService

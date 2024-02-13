@@ -1,11 +1,11 @@
 'use client'
 
 import RemoveItem from '@/app/cart/components/remove-item'
-import useOrderStore from '@/hooks/use-order-store'
 import Image from '@/components/image'
 import InputQuantity from '@/components/input-quantity'
 import Text from '@/components/typography/text'
 import config from '@/config'
+import useOrderStore from '@/hooks/use-order-store'
 import { ProductDetailInCart } from '@/services/cart/get-product-list'
 import updateProductInCartService from '@/services/cart/update-product'
 import { converNumber, convertCurrency, isNumber } from '@/utils/format'
@@ -19,7 +19,6 @@ type ProductItemProps = ProductDetailInCart & {
 
 const ProductItem = ({
   id,
-  // user_id,
   product_id,
   quantity,
   product_name,
@@ -40,36 +39,56 @@ const ProductItem = ({
   const handleQuantityOnBlur = (e: { target: { value: string } }) => {
     const value = Number(e.target.value)
     if (value > 0 && value <= stock) {
-      setNewQuantity(value)
+      updateQuantity(value)
     } else {
-      setNewQuantity(1)
+      updateQuantity(1)
     }
   }
 
   const incrementQuantity = () => {
     if (newQuantity < stock) {
-      setNewQuantity(newQuantity + 1)
+      updateQuantity(newQuantity + 1)
     }
   }
 
   const decrementQuantity = () => {
     if (newQuantity > 1) {
-      setNewQuantity(newQuantity - 1)
+      updateQuantity(newQuantity - 1)
+    }
+  }
+
+  const updateQuantity = async (qt: number) => {
+    setNewQuantity(qt)
+
+    const result = await updateProductInCartService({
+      productId: id,
+      quantity: qt
+    })
+
+    if (result.data) {
+      // Update Cart
+      getProductListInCart()
+    } else if (result.message) {
+      alert('Cannot update quantity, ' + result.message)
     }
   }
 
   const handleRemoveItem = async () => {
-    const result = await updateProductInCartService({
-      product_id: id,
-      quantity: 0
-    })
+    if (window.confirm('Do you want to remove this item?' + id)) {
+      const result = await updateProductInCartService({
+        productId: id,
+        quantity: 0
+      })
 
-    if (result) {
-      // Get Cart Service
-      alert('Remove item success')
+      if (result.data) {
+        // Get Cart Service
+        alert('Remove item success')
 
-      // Get Services for update Product List in cart
-      getProductListInCart()
+        // Get Services for update Product List in cart
+        getProductListInCart()
+      } else if (result.message) {
+        alert('Cannot remove item, ' + result.message)
+      }
     }
   }
 
@@ -95,7 +114,7 @@ const ProductItem = ({
             <h3>
               <a href={`/product/${product_id}`}>{product_name}</a>
             </h3>
-            <p className="ml-4">{convertCurrency(product_price)}</p>
+            <p className="ml-4">{convertCurrency(product_price, 'THB')}</p>
           </div>
           <Text className="mt-1 text-sm text-gray-500">
             {`Stock ${converNumber(stock)} items`}

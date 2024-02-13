@@ -1,4 +1,5 @@
-import { mockCartListResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
 
 // ------------------------------------------------
 
@@ -14,26 +15,22 @@ export type ProductDetailInCart = {
   product_brand: string
 }
 
-export type GetProductInCartServiceResponse = ProductDetailInCart[]
+export type GetProductInCartServiceResponse = {
+  data?: ProductDetailInCart[]
+  message?: string
+}
 
 const GetProductInCartService = async (
   userId: number
 ): Promise<GetProductInCartServiceResponse> => {
-  // const queryString =
-  //     '?' +
-  //     new URLSearchParams({
-  //       q: keyword,
-  //       offset: offset.toString(),
-  //       limit: limit.toString()
-  //     }).toString()
-
-  //   const result = await axiosShoppingMallApi.get(
-  //     `/api/v1/product${queryString}`
-  //   )
-
-  let result = mockCartListResponse.body
-
-  return result
+  try {
+    const { data } = await axiosShoppingMallApi.get(`/api/v1/cart`)
+    return {
+      data: data
+    }
+  } catch (error) {
+    return handleServiceError(error)
+  }
 }
 
 export default GetProductInCartService

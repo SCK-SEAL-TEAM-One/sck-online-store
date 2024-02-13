@@ -1,35 +1,40 @@
 import { mockAddToCartResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
+import axios from 'axios'
 
 // ------------------------------------------------
 
 export type AddToCartServiceResponse = {
-  status: string // added, updated
+  data?: {
+    status: string // added, updated
+  }
+  message?: string
 }
 
 type AddToCartServiceRequest = {
-  product_id: number
+  productId: number
   quantity: number
 }
 
 const addToCartService = async ({
-  product_id,
+  productId,
   quantity
 }: AddToCartServiceRequest): Promise<AddToCartServiceResponse> => {
-  // const queryString =
-  //     '?' +
-  //     new URLSearchParams({
-  //       q: keyword,
-  //       offset: offset.toString(),
-  //       limit: limit.toString()
-  //     }).toString()
-
-  //   const result = await axiosShoppingMallApi.get(
-  //     `/api/v1/product${queryString}`
-  //   )
-
-  let result = mockAddToCartResponse.body
-
-  return result
+  try {
+    const { data } = await axiosShoppingMallApi.put(
+      `/api/v1/addCart`,
+      {
+        product_id: productId,
+        quantity: quantity
+      }
+    )
+    return {
+      data: data
+    }
+  } catch (error) {
+    return handleServiceError(error)
+  }
 }
 
 export default addToCartService

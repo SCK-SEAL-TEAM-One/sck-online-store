@@ -12,6 +12,7 @@ export const handleServiceError = (error: AxiosError | unknown) => {
 }
 
 export const handleAxiosError = (error: AxiosError) => {
+  console.log('Service Error: ', error)
   return {
     status: 'error',
     message: error.message

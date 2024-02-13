@@ -13,7 +13,7 @@ const SubTotal = ({ total }: SubTotalProps) => {
   return (
     <div className="flex justify-between text-base font-medium text-gray-900">
       <Text>Subtotal</Text>
-      <Text>{convertCurrency(total)}</Text>
+      <Text>{convertCurrency(total, 'THB')}</Text>
     </div>
   )
 }

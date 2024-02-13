@@ -6,7 +6,7 @@ import PaymentText from '@/app/payment/components/payment-text'
 import Button from '@/components/button/button'
 import Text from '@/components/typography/text'
 import orderUpdateStatusService from '@/services/order-update-status'
-import { isNumber } from '@/utils/format'
+import { convertCurrency, isNumber } from '@/utils/format'
 import dayjs from 'dayjs'
 import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
@@ -16,6 +16,8 @@ import { useState } from 'react'
 const PaymentView = () => {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('order-id')
+  const total = Number(searchParams.get('total')) || 0
+  const cardNumber = searchParams.get('card')
 
   const today = dayjs().format('DD/MM/YYYY')
 
@@ -64,11 +66,11 @@ const PaymentView = () => {
 
         <div className="my-10">
           <PaymentText label="Merchant" text="SCK Shopping Mall" />
-          <PaymentText label="Amount" text="$87.00" />
+          <PaymentText label="Amount" text={convertCurrency(total, 'THB')} />
           <PaymentText label="Date" text={today} />
           <PaymentText
             label="Card Number"
-            text={'1234 1234 1234 0264'.replace(/[0-9](?=([0-9]{4}))/g, '*')}
+            text={`**** **** **** ${cardNumber}`}
           />
         </div>
 

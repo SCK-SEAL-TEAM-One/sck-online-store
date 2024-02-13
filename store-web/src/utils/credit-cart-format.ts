@@ -48,7 +48,7 @@ export const formatCVV = (value: string) => {
 
 export const formatExpirationDate = (value: string) => {
   const clearValue = clearNumber(value)
-  console.log(clearValue)
+
   if (clearValue.length >= 3) {
     return `${clearValue.slice(0, 2)}/${clearValue.slice(2, 4)}`
   }

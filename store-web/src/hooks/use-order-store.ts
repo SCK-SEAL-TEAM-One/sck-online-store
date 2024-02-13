@@ -120,18 +120,27 @@ const useOrderStore = create<OrderStoreType>()(
           const userId = 1
 
           const productInCart = await GetProductInCartService(userId)
-          const price = productInCart?.map((item) => item.product_price)
-          const total = calculate.subTotal(price)
 
-          set(
-            produce((state) => {
-              state.totalProduct = productInCart.length
-              state.cart = productInCart
-              state.subTotal = total
-              state.totalPayment = total
+          if (productInCart.data) {
+            const price = productInCart.data.map((item) => {
+              return {
+                price: item.product_price,
+                quantity: item.quantity
+              }
             })
-          )
-          
+
+            const total = calculate.subTotal(price)
+
+            set(
+              produce((state) => {
+                state.totalProduct = productInCart.data?.length
+                state.cart = productInCart.data
+                state.subTotal = total
+                state.totalPayment = total
+              })
+            )
+          }
+
           // Reset Discount Point
           set(
             produce((state) => {

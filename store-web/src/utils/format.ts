@@ -1,5 +1,5 @@
 export const convertCurrency = (value: number, currency?: string) => {
-  if (currency === 'thb') {
+  if (currency?.toLocaleLowerCase() === 'thb') {
     return new Intl.NumberFormat('th-TH', {
       style: 'currency',
       currency: 'THB'

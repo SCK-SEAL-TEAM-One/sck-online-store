@@ -8,7 +8,7 @@ import config from '@/config'
 
 const PaymentLogo = () => {
   return (
-    <div>
+    <div className="flex flex-col items-center">
       <Image
         src={config.logo.sckPaymentGateway}
         width={100}

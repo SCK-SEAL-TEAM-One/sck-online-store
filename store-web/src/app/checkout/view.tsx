@@ -65,8 +65,8 @@ const CheckoutView = () => {
 
     const result = await orderCheckoutService(order)
 
-    if (result) {
-      window.location.href = '/payment?order-id=' + result.order_id
+    if (result.data) {
+      window.location.href = `/payment?id=${result.data.order_id}&total=${totalPayment}&card=${payment.paymentCreditInformation.number.slice(-4)}`
     } else {
       alert('Error Checkout, Please Try Again')
     }
