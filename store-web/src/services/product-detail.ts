@@ -1,8 +1,9 @@
-import { mockProductDetailResponse } from '@/mock'
-
 // ------------------------------------------------
 
-export type GetProductDetailServiceResponse = {
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
+
+export type ProductDetailType = {
   id: number
   product_name: string
   product_price: number
@@ -11,24 +12,24 @@ export type GetProductDetailServiceResponse = {
   product_brand: string
 }
 
+export type GetProductDetailServiceResponse = {
+  data?: ProductDetailType
+  message?: string
+}
+
 const getProductDetailService = async (
   id: string
 ): Promise<GetProductDetailServiceResponse> => {
-  // const queryString =
-  //     '?' +
-  //     new URLSearchParams({
-  //       q: keyword,
-  //       offset: offset.toString(),
-  //       limit: limit.toString()
-  //     }).toString()
-
-  //   const result = await axiosShoppingMallApi.get(
-  //     `/api/v1/product${queryString}`
-  //   )
-
-  let result = mockProductDetailResponse(id).body
-
-  return result
+  try {
+    const { data } = await axiosShoppingMallApi.get(
+      `${process.env.storeServiceURL}/api/v1/product/${id}`
+    )
+    return {
+      data: data
+    }
+  } catch (error) {
+    return handleServiceError(error)
+  }
 }
 
 export default getProductDetailService

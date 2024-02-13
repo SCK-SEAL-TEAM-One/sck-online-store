@@ -25,6 +25,8 @@ const ProductDetailView = () => {
     getProductDetail()
   }, [id])
 
+  console.log('productDetail', productDetail)
+
   return (
     <div className="bg-white min-h-[calc(100vh-88px)]">
       {/* <Breadcrumbs
@@ -34,12 +36,16 @@ const ProductDetailView = () => {
         /> */}
 
       {/* Product info */}
-      {productDetail ? (
+      {productDetail && productDetail.data ? (
         <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:grid-rows-[auto,auto,1fr] lg:gap-x-8 lg:px-8 lg:pb-24 lg:pt-16">
-          {/* Images */}
-          <ProductImage {...productDetail} />
-          {/* ProductContent */}
-          <ProductContent {...productDetail} />
+          {productDetail ? (
+            <>
+              {/* Images */}
+              <ProductImage {...productDetail.data} />
+              {/* ProductContent */}
+              <ProductContent {...productDetail.data} />
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>

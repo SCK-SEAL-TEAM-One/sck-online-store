@@ -2,11 +2,11 @@
 
 import Image from '@/components/image'
 import config from '@/config'
-import { GetProductDetailServiceResponse } from '@/services/product-detail'
+import { ProductDetailType } from '@/services/product-detail'
 
 // ----------------------------------------------------------------------
 
-const ProductImage = (product: GetProductDetailServiceResponse) => {
+const ProductImage = (product: ProductDetailType) => {
   return (
     <div className="lg:col-span-2 lg:border-r lg:border-gray-200 lg:pr-8">
       <div className="aspect-h-2 aspect-w-3 hidden overflow-hidden rounded-lg lg:block">

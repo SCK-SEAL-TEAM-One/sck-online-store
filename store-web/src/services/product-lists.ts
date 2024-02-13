@@ -49,10 +49,6 @@ const getProductListService = async ({
   } catch (error) {
     return handleServiceError(error)
   }
-
-  // return {
-  //   data: mockProductListResponse.body
-  // }
 }
 
 export default getProductListService
