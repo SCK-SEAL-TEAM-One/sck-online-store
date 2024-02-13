@@ -131,6 +131,14 @@ const useOrderStore = create<OrderStoreType>()(
               state.totalPayment = total
             })
           )
+          
+          // Reset Discount Point
+          set(
+            produce((state) => {
+              state.point.burnPoint = 0
+              state.point.isUsePoint = false
+            })
+          )
 
           get().updateSummary()
         },
