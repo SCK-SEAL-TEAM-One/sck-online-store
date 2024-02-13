@@ -57,22 +57,29 @@ const ProductContent = (product: ProductDetailType) => {
 
   return (
     <div className="mt-4 lg:row-span-3 lg:mt-0">
-      <Header1 className="mb-4 tracking-tight sm:text-3xl">
+      <Header1
+        id="product-detail-product-name"
+        className="mb-4 tracking-tight sm:text-3xl"
+      >
         {product.product_name}
       </Header1>
 
-      <Text size="sm" className="mb-4">
+      <Text id="product-detail-brand" size="sm" className="mb-4">
         {product.product_brand}
       </Text>
 
-      <Text size="xl" className="font-medium tracking-tight text-gray-900">
-        {convertCurrency(product.product_price)}
+      <Text
+        id="product-detail-price-usd"
+        size="xl"
+        className="font-medium tracking-tight text-gray-900"
+      >
+        {convertCurrency(product.product_price, 'USD')}
       </Text>
 
       <form className="mt-6">
         <InputQuantity
           label="Quantity:"
-          id="quantity"
+          id="product-detail-quantity"
           placeholder="999"
           increment={incrementQuantity}
           decrement={decrementQuantity}
@@ -82,11 +89,12 @@ const ProductContent = (product: ProductDetailType) => {
           required
         />
 
-        <Text size="sm" className="mt-3">
+        <Text id="product-detail-stock" size="sm" className="mt-3">
           {`Stock ${converNumber(product.stock)} items`}
         </Text>
 
         <Button
+          id="product-detail-add-to-cart-btn"
           className="mt-6"
           type="button"
           isblock="true"

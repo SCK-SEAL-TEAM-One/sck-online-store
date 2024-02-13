@@ -17,7 +17,8 @@ const InputQuantity = (props: InputFieldProps) => {
     <div>
       {props.label && !props.isHiddenLable ? (
         <label
-          htmlFor={props.id}
+          id={`${props.id}-label`}
+          htmlFor={`${props.id}-input`}
           className="block mb-2 text-sm font-medium text-gray-900"
         >
           {props.label}
@@ -27,7 +28,7 @@ const InputQuantity = (props: InputFieldProps) => {
       <div className="relative flex items-center max-w-[10rem]">
         <button
           type="button"
-          id="decrement-button"
+          id={`${props.id}-decrement-btn`}
           data-input-counter-decrement="quantity-input"
           className="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-s-lg p-3 h-11 focus:ring-gray-100 focus:ring-2 focus:outline-none"
           onClick={props.decrement}
@@ -41,7 +42,7 @@ const InputQuantity = (props: InputFieldProps) => {
         />
         <button
           type="button"
-          id="increment-button"
+          id={`${props.id}-increment-btn`}
           data-input-counter-increment="quantity-input"
           className="bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-e-lg p-3 h-11 focus:ring-gray-100"
           onClick={props.increment}
