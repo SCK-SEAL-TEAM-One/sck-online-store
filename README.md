@@ -11,9 +11,10 @@ console.log(this.test)
 ```
 
 ## Function And Parameter Naming Conventions
-- ส่วนที่เกี่ยวข้องกับ UI จะใช้รูปแบบการตั้งชื่อแบบ **camelCase ขึ้นต้นต้วยตัวพิมพ์ใหญ่**
+- ส่วนที่เกี่ยวข้องกับ UI และ Type จะใช้รูปแบบการตั้งชื่อแบบ **camelCase ขึ้นต้นต้วยตัวพิมพ์ใหญ่**
 - ส่วนที่เป็นการคำนวน จะใช้รูปแบบการตั้งชื่อแบบ **camelCase ขึ้นต้นต้วยตัวพิมพ์เล็ก**
 ```
+type HomeType //Type
 func Homepage() //UI
 func calculateTotalPrice() //logic
 ```
@@ -33,10 +34,11 @@ product
 ```
 
 ## File Name
-- ใช้รูปแบบการตั้งชื่อฟังก์ชั่นแบบ **camelCase ขึ้นต้นต้วยตัวพิมพ์ใหญ่**
+- ใช้รูปแบบการตั้งชื่อฟังก์ชั่นแบบ **Kebab Case ขึ้นต้นต้วยตัวพิมพ์ใหญ่**
 ```
-Order.js
-Shipping.test.js
+order.ts
+order-list.ts
+shipping.test.ts
 ```
 
 ## Test Name

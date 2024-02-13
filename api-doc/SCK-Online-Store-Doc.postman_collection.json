@@ -1,0 +1,224 @@
+{
+	"info": {
+		"_postman_id": "a0138f43-c134-432c-919e-a9fa0e5762d9",
+		"name": "SCK-Online-Store-Doc",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "878122"
+	},
+	"item": [
+		{
+			"name": "Product Lists",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=bal&offset=0&limit=20",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"product"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "bal"
+						},
+						{
+							"key": "offset",
+							"value": "0"
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						}
+					]
+				},
+				"description": "This endpoint makes an HTTP GET request to retrieve a list of products from the store service. The request includes query parameters for search term, offset, and limit. The search term parameter 'q' is used to filter products, while the 'offset' and 'limit' parameters are used for pagination.\n\nThe response returns a status code of 200 and a JSON object with the total count of products and an array of product objects. Each product object includes an ID, product name, product price, and product image.\n\nExample:\n\n``` json\n{\n    \"total\": 1,\n    \"products\": [\n        {\n            \"id\": 1,\n            \"product_name\": \"Balance Training Bicycle\",\n            \"product_price\": 119.95,\n            \"product_image\": \"/Balance_Training_Bicycle.png\"\n        }\n    ]\n}\n\n ```"
+			},
+			"response": []
+		},
+		{
+			"name": "Cart",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/cart",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"cart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product Detail",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/product/1",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"product",
+						"1"
+					]
+				},
+				"description": "This HTTP GET request retrieves information about a specific product from the store service. The request should be made to {{STORE_SERVICE_URL}}/api/v1/product/1.\n\nThe response will have a status code of 200 and a content type of application/json. The response body will contain information about the product, including its ID, name, price, image, stock, and brand.\n\nAdd documentation"
+			},
+			"response": []
+		},
+		{
+			"name": "Add to Cart",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"product_id\": 2,\r\n  \"quantity\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/addCart",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"addCart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Cart",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"product_id\": 2,\r\n  \"quantity\": 2\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/updateCart",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"updateCart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"cart\":[\r\n\t\t{\r\n\t\t\t\"product_id\": 2,\r\n\t\t\t\"quantity\": 1\r\n\t\t}\r\n\t],\r\n\t\"shipping_method_id\": 1, // 1 = kerry, 2 = thai post, 3 = lineman\r\n\t\"shipping_address\": \"405/37 ถ.มหิดล\",\r\n\t\"shipping_sub_district\": \"ท่าศาลา\",\r\n\t\"shipping_district\": \"เมือง\",\r\n\t\"shipping_province\": \"เชียงใหม่\",\r\n\t\"shipping_zip_code\": \"50000\",\r\n\t\"recipient_first_name\": \"ณัฐญา\",\r\n\t\"recipient_last_name\": \"ชุติบุตร\",\r\n\t\"recipient_phone_number\": \"0970809292\",\r\n\t\"payment_method_id\": 1, // 1 = credit card, 2 = Line pay\r\n    \"burn_point\": 0,\r\n    \"sub_total_price\": 100.00,\r\n    \"discount_price\": 10.00,\r\n    \"total_price\": 90.00,\r\n\t\"payment_information\": {\r\n\t    \"card_name\": \"Jaranchai Thongkum\",\r\n    \t\"card_number\": \"1233 2432 4353 4534\",\r\n    \t\"expire_date\": \"12/27\",\r\n    \t\"cvv\": \"123\"\r\n\t}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/order",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Payment 2FA",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"order_id\": 1,\r\n\t\"otp\": 234123,\r\n\t\"ref_otp\": \"AXYZ\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/order",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Send Notification",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\": 1,\r\n    \"order_id\": 1,\r\n\t\"in_applicaition\": true,\r\n    \"email\": \"jaranchai.nt@scrum123.com\",\r\n    \"mobile\": \"0923456789\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/notification",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"notification"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
