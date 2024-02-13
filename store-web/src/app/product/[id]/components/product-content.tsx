@@ -24,7 +24,7 @@ const ProductContent = (product: GetProductDetailServiceResponse) => {
 
   const handleQuantityOnBlur = (e: { target: { value: string } }) => {
     const value = Number(e.target.value)
-    if (value > 0 && value < product.stock) {
+    if (value > 0 && value <= product.stock) {
       setQuantity(value)
     } else {
       setQuantity(1)

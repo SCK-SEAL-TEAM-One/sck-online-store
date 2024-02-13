@@ -39,7 +39,7 @@ const ProductItem = ({
 
   const handleQuantityOnBlur = (e: { target: { value: string } }) => {
     const value = Number(e.target.value)
-    if (value > 0 && value < stock) {
+    if (value > 0 && value <= stock) {
       setNewQuantity(value)
     } else {
       setNewQuantity(1)
