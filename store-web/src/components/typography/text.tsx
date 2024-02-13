@@ -1,8 +1,10 @@
 const Text = ({
+  id,
   children,
   size,
   className
 }: {
+  id?: string
   children: React.ReactNode
   size?: string
   className?: string
@@ -21,7 +23,7 @@ const Text = ({
   }
 
   return (
-    <p className={`text-gray-600 ${customClassName} ${className}`}>
+    <p id={id} className={`text-gray-600 ${customClassName} ${className}`}>
       {children}
     </p>
   )
