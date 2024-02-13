@@ -32,7 +32,7 @@ const Notification = () => {
     if (result.status === 'success') {
       let text = 'Send notification completed.\n\nClick OK for go to Product lists.'
       if (confirm(text) == true) {
-        window.location.href = '/products'
+        window.location.href = '/product/list'
       }
     }
   }
