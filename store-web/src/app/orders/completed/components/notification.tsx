@@ -30,7 +30,8 @@ const Notification = () => {
     })
 
     if (result.data?.status === 'success') {
-      let text = 'Send notification completed.\n\nClick OK for go to Product lists.'
+      let text =
+        'Send notification completed.\n\nClick OK for go to Product lists.'
       if (confirm(text) == true) {
         window.location.href = '/product/list'
       }
@@ -44,11 +45,24 @@ const Notification = () => {
         Please enter your email or mobile number for send notification.
       </Text>
 
-      <NotificationInputEmail onChange={setEmail} value={email} />
-      <NotificationInputMobile onChange={setMobile} value={mobile} />
-      <NotificationInApplication onChange={setIsApplication} />
+      <NotificationInputEmail
+        id="notification-form-email"
+        onChange={setEmail}
+        value={email}
+      />
+      <NotificationInputMobile
+        id="notification-form-mobile"
+        onChange={setMobile}
+        value={mobile}
+      />
+      <NotificationInApplication
+        id="notification-form-in-application"
+        onChange={setIsApplication}
+      />
 
-      <Button onClick={sendNotification}>Send Notification</Button>
+      <Button id="send-notification-btn" onClick={sendNotification}>
+        Send Notification
+      </Button>
     </div>
   )
 }

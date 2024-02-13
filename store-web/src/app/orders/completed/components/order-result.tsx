@@ -45,9 +45,14 @@ const OrderResult = () => {
         Thank you for your order
       </Header1>
 
-      <Text size="md" className="text-gray-600 my-10">
-        {`Date and time of payment ${dayjs(paymentDate).format('DD/MM/YYYY HH:mm:ss')} Order number `}
+      <Text id="order-success-text" size="md" className="text-gray-600 my-10">
+        {`Date and time of payment `}
+        <span id="order-success-order-payment-date" className='font-semibold'>
+          {dayjs(paymentDate).format('DD/MM/YYYY HH:mm:ss')}
+        </span>
+        {` Order number `}
         <a
+          id="order-success-order-id"
           className="text-sm font-medium text-indigo-600"
           href="#?order_id=102323"
         >
@@ -55,8 +60,11 @@ const OrderResult = () => {
         </a>
         {shipping ? (
           <div>
-            {` You can track the product via ${shipping.name} with number `}
+            {` You can track the product via `}
+            <span id="order-success-shipping-method" className='font-semibold'>{shipping.name}</span>
+            {` with number `}
             <a
+              id="order-success-tracking-id"
               className="text-sm font-medium text-indigo-600"
               href={`#?tracking_id=${trackingId}`}
             >
