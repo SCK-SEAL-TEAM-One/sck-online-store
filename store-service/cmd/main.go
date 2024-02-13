@@ -29,6 +29,7 @@ func main() {
 	bankGatewayEndpoint := "bank-gateway:8882"
 	shippingGatewayEndpoint := "shipping-gateway:8882"
 	pointGatewayEndpoint := "point-service:8001"
+	storeWebEndpoint := "http://localhost:3000"
 
 	if os.Getenv("BANK_GATEWAY") != "" {
 		bankGatewayEndpoint = os.Getenv("BANK_GATEWAY")
@@ -38,6 +39,9 @@ func main() {
 	}
 	if os.Getenv("POINT_GATEWAY") != "" {
 		pointGatewayEndpoint = os.Getenv("POINT_GATEWAY")
+	}
+	if os.Getenv("STORE_WEB_HOST") != "" {
+		storeWebEndpoint = os.Getenv("STORE_WEB_HOST")
 	}
 
 	dbConnecton := "user:password@(store-db:3306)/store"
@@ -108,7 +112,7 @@ func main() {
 	route := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowOrigins = []string{storeWebEndpoint}
 	route.Use(cors.New(config))
 
 	// get global Monitor object
