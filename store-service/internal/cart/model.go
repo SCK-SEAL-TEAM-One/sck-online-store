@@ -13,13 +13,15 @@ type Cart struct {
 }
 
 type CartDetail struct {
-	ID        int     `json:"id" db:"id"`
-	UserID    int     `json:"user_id" db:"user_id"`
-	ProductID int     `json:"product_id" db:"product_id"`
-	Quantity  int     `json:"quantity" db:"quantity"`
-	Name      string  `json:"product_name" db:"product_name"`
-	Price     float64 `json:"product_price" db:"product_price"`
-	Image     string  `json:"product_image" db:"image_url"`
-	Stock     int     `json:"stock" db:"stock"`
-	Brand     string  `json:"product_brand" db:"product_brand"`
+	ID           int     `json:"id" db:"id"`
+	UserID       int     `json:"user_id" db:"user_id"`
+	ProductID    int     `json:"product_id" db:"product_id"`
+	Quantity     int     `json:"quantity" db:"quantity"`
+	Name         string  `json:"product_name" db:"product_name"`
+	Price        float64 `json:"product_price" db:"product_price"`
+	PriceTHB     float64 `json:"product_price_thb"`
+	PriceFullTHB float64 `json:"product_price_full_thb"`
+	Image        string  `json:"product_image" db:"image_url"`
+	Stock        int     `json:"stock" db:"stock"`
+	Brand        string  `json:"product_brand" db:"product_brand"`
 }
