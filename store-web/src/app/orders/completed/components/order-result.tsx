@@ -68,6 +68,7 @@ const OrderResult = () => {
             <a
               id="order-success-tracking-id"
               className="text-sm font-medium text-indigo-600"
+              target="_blank"
               href={`https://th.kerryexpress.com/th/track/?track=${trackingNumber}`}
             >
               {trackingNumber}
