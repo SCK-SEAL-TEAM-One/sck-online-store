@@ -8,7 +8,7 @@ import config from '@/config'
 const Logo = () => {
   return (
     <div className="flex lg:flex-1">
-      <a id="header-logo" href="#" className="-m-1.5 p-1.5">
+      <a id="header-logo" href="/product/list" className="-m-1.5 p-1.5">
         <span id="header-logo-text" className="sr-only">
           SCK Shopping Mall
         </span>
