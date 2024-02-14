@@ -7,7 +7,7 @@ import (
 )
 
 type OrderRepository interface {
-	CreateOrder(userID int, submitedOrder SubmitedOrder) (int, error)
+	CreateOrder(userID int, orderDetail OrderDetail) (int, error)
 	GetOrderByID(ID int) (OrderDetail, error)
 	CreateOrderProduct(orderID, productID, quantity int, productPrice float64) error
 	UpdateOrderTransaction(orderID int, transactionID string) error
@@ -19,8 +19,8 @@ type OrderRepositoryMySQL struct {
 	DBConnection *sqlx.DB
 }
 
-func (orderRepository OrderRepositoryMySQL) CreateOrder(userID int, submitedOrder SubmitedOrder) (int, error) {
-	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO orders (user_id, shipping_method_id, payment_method_id, burn_point, sub_total_price, discount_price, total_price) VALUE (?,?,?,?,?,?,?)", userID, submitedOrder.ShippingMethodID, submitedOrder.PaymentMethodID, submitedOrder.BurnPoint, submitedOrder.SubTotalPrice, submitedOrder.DiscountPrice, submitedOrder.TotalPrice)
+func (orderRepository OrderRepositoryMySQL) CreateOrder(userID int, orderDetail OrderDetail) (int, error) {
+	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO orders (user_id, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point) VALUE (?,?,?,?,?,?,?,?,?)", userID, orderDetail.ShippingMethodID, orderDetail.PaymentMethodID, orderDetail.SubTotalPrice, orderDetail.DiscountPrice, orderDetail.TotalPrice, orderDetail.ShippingFee, orderDetail.BurnPoint, orderDetail.EarnPoint)
 	insertedId, err := sqlResult.LastInsertId()
 	return int(insertedId), err
 }
@@ -28,7 +28,7 @@ func (orderRepository OrderRepositoryMySQL) CreateOrder(userID int, submitedOrde
 func (orderRepository OrderRepositoryMySQL) GetOrderByID(ID int) (OrderDetail, error) {
 	result := OrderDetail{}
 	err := orderRepository.DBConnection.Get(&result, `
-		SELECT id,user_id,shipping_method_id,payment_method_id,burn_point,sub_total_price,discount_price,total_price,transaction_id,status
+		SELECT id,user_id,shipping_method_id,payment_method_id,sub_total_price,discount_price,total_price,shipping_fee,burn_point,earn_point,transaction_id,status
 		FROM orders WHERE id=?
 	`, ID)
 	return result, err

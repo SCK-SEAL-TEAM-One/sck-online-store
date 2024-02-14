@@ -25,8 +25,8 @@ func (productService ProductService) GetProducts(keyword string, limit string, o
 		p := &res.Products[i]
 		digit := common.ConvertToThb(p.Price)
 
-		p.PriceTHB = digit.ShortDigit
-		p.PriceFullTHB = digit.LongDigit
+		p.PriceTHB = digit.ShortDecimal
+		p.PriceFullTHB = digit.LongDecimal
 	}
 	return res, err
 }
@@ -41,8 +41,8 @@ func (productService ProductService) GetProductByID(ID int) (ProductDetail, erro
 	p := &productDetail
 	digit := common.ConvertToThb(p.Price)
 
-	p.PriceTHB = digit.ShortDigit
-	p.PriceFullTHB = digit.LongDigit
+	p.PriceTHB = digit.ShortDecimal
+	p.PriceFullTHB = digit.LongDecimal
 
 	return productDetail, err
 }

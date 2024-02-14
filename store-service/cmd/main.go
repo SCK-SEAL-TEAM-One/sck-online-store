@@ -56,11 +56,13 @@ func main() {
 	productRepository := product.ProductRepositoryMySQL{
 		DBConnection: connection,
 	}
-
 	orderRepository := order.OrderRepositoryMySQL{
 		DBConnection: connection,
 	}
 	cartRepository := cart.CartRepositoryMySQL{
+		DBConnection: connection,
+	}
+	shippingRepository := shipping.ShippingRepositoryMySQL{
 		DBConnection: connection,
 	}
 
@@ -90,10 +92,11 @@ func main() {
 		ProductRepository: &productRepository,
 	}
 	orderService := order.OrderService{
-		CartRepository:    cartRepository,
-		OrderRepository:   &orderRepository,
-		PointService:      pointService,
-		ProductRepository: productRepository,
+		CartRepository:     cartRepository,
+		OrderRepository:    &orderRepository,
+		PointService:       pointService,
+		ProductRepository:  productRepository,
+		ShippingRepository: shippingRepository,
 	}
 
 	cartAPI := api.CartAPI{

@@ -27,14 +27,14 @@ func (cartService CartService) GetCart(uid int) (CartResult, error) {
 		c := &carts[i]
 		digit := common.ConvertToThb(c.Price)
 
-		c.PriceTHB = digit.ShortDigit
-		c.PriceFullTHB = digit.LongDigit
+		c.PriceTHB = digit.ShortDecimal
+		c.PriceFullTHB = digit.LongDecimal
 		totalPrice = totalPrice + (c.Price * float64(c.Quantity))
 	}
 
-	digitTotal := common.ConvertToThb(totalPrice)
-	totalPriceTHB := digitTotal.ShortDigit
-	totalPriceFullTHB := digitTotal.LongDigit
+	decimal := common.ConvertToThb(totalPrice)
+	totalPriceTHB := decimal.ShortDecimal
+	totalPriceFullTHB := decimal.LongDecimal
 
 	if len(carts) == 0 {
 		return CartResult{
