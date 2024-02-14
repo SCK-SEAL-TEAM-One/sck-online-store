@@ -13,7 +13,7 @@ const PaymentLogo = () => {
         src={config.logo.sckPaymentGateway}
         width={100}
         height={100}
-        alt="SCK Payment Gateway"
+        alt="K Payment Gateway"
       />
 
       <Header1 className="text-green-600 mt-2">SCK Payment Gateway</Header1>
