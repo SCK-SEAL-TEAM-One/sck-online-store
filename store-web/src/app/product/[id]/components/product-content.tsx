@@ -55,9 +55,9 @@ const ProductContent = (product: ProductDetailType) => {
       if (result.data) {
         getProductListInCart()
       }
+    } else {
+      alert('Cannot add to cart, this product out of stock.')
     }
-
-    alert('Cannot add to cart, this product out of stock.')
   }
 
   return (
@@ -83,7 +83,7 @@ const ProductContent = (product: ProductDetailType) => {
       <Text
         id="product-detail-point"
         size="md"
-        className="font-medium tracking-tight text-gray-400"
+        className="text-sm font-medium tracking-tight text-gray-400"
       >
         {`${converNumber(receiptPoint(product.product_price_thb))} Points`}
       </Text>
