@@ -242,8 +242,10 @@ const useOrderStore = create<OrderStoreType>()(
             shippingFee
           )
 
+          const totalWithOutShipping = totalPayment - shippingFee
+
           // Point Receive
-          const receivePoint = pointCalulate.receiptPoint(totalPayment)
+          const receivePoint = pointCalulate.receiptPoint(totalWithOutShipping)
 
           set(
             produce((state) => {

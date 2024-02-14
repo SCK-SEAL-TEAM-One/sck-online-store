@@ -7,8 +7,9 @@ import useOrderStore from '@/hooks/use-order-store'
 // ----------------------------------------------------------------------
 
 const OrderSummary = () => {
-  const { summary, totalPayment, receivePoint, point, shipping } =
-    useOrderStore((state) => state)
+  const { summary, totalPayment, receivePoint, shipping } = useOrderStore(
+    (state) => state
+  )
   return (
     <div className="mb-6">
       <Header3>Summary</Header3>
@@ -18,6 +19,14 @@ const OrderSummary = () => {
           id="order-summary-subtotal"
           text="Merchandise Subtotal"
           value={summary.total_price_thb}
+        />
+        <SummaryText
+          id="order-summary-receive-point"
+          text="Receive Points"
+          format="number"
+          className="font-semibold"
+          unit="Points"
+          value={receivePoint}
         />
         <SummaryText
           id="order-summary-shipping-fee"
@@ -38,14 +47,6 @@ const OrderSummary = () => {
         <SummaryText text='Tax (7%)' value={3.99} /> */}
       </div>
       <div>
-        <SummaryText
-          id="order-summary-receive-point"
-          text="Receive Points"
-          format="number"
-          className="font-semibold"
-          unit="Points"
-          value={receivePoint}
-        />
         <SummaryText
           id="order-summary-total-payment"
           className="font-semibold"
