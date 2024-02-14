@@ -9,7 +9,7 @@ type SubmitedPayment struct {
 }
 
 type SubmitedPaymentResponse struct {
-	OrderID          int       `json:"orer_id"`
+	OrderID          int       `json:"order_id"`
 	PaymentDate      time.Time `json:"payment_date"`
 	ShippingMethodID int       `json:"shipping_method_id"`
 	TrackingNumber   string    `json:"tracking_number"`
