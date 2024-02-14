@@ -147,7 +147,7 @@ const ProductItem = ({
           </Text>
         </div>
 
-        <div className="flex flex-1 items-end justify-between text-sm mt-4">
+        <div className="flex flex-1 items-end justify-between">
           <InputQuantity
             id={`product-${product_id}-quantity`}
             placeholder="999"

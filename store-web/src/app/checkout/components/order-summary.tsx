@@ -40,7 +40,7 @@ const OrderSummary = () => {
       <div>
         <SummaryText
           id="order-summary-receive-point"
-          text="Receive Point"
+          text="Receive Points"
           format="number"
           className="font-semibold"
           unit="Points"
