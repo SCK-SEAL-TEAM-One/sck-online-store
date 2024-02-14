@@ -45,15 +45,19 @@ const ProductContent = (product: ProductDetailType) => {
   }
 
   const addToCart = async () => {
-    const result = await addToCartService({
-      productId: product.id,
-      quantity
-    })
+    if (product.stock > 0) {
+      const result = await addToCartService({
+        productId: product.id,
+        quantity
+      })
 
-    // Add to cart is Success
-    if (result.data) {
-      getProductListInCart()
+      // Add to cart is Success
+      if (result.data) {
+        getProductListInCart()
+      }
     }
+
+    alert('Cannot add to cart, Stock 0 items')
   }
 
   return (
@@ -103,10 +107,11 @@ const ProductContent = (product: ProductDetailType) => {
 
         <Button
           id="product-detail-add-to-cart-btn"
-          className="mt-6"
+          className="mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
           isblock="true"
           onClick={addToCart}
+          disabled={product.stock === 0}
         >
           Add to cart
         </Button>
