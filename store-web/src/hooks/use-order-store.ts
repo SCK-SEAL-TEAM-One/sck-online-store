@@ -122,21 +122,21 @@ const useOrderStore = create<OrderStoreType>()(
           const productInCart = await GetProductInCartService(userId)
 
           if (productInCart.data) {
-            const price = productInCart.data.map((item) => {
-              return {
-                price: item.product_price,
-                quantity: item.quantity
-              }
-            })
+            // const price = productInCart.data.map((item) => {
+            //   return {
+            //     price: item.product_price_thb,
+            //     quantity: item.quantity
+            //   }
+            // })
 
-            const total = calculate.subTotal(price)
+            // const total = calculate.subTotal(price)
 
             set(
               produce((state) => {
-                state.totalProduct = productInCart.data?.length
-                state.cart = productInCart.data
-                state.subTotal = total
-                state.totalPayment = total
+                state.totalProduct = productInCart.data?.carts.length
+                state.cart = productInCart.data?.carts
+                state.subTotal = productInCart.data?.summary.total_price_thb
+                state.totalPayment = productInCart.data?.summary.total_price_thb
               })
             )
           }
@@ -149,7 +149,7 @@ const useOrderStore = create<OrderStoreType>()(
             })
           )
 
-          get().updateSummary()
+          // get().updateSummary()
         },
         setPoint(point: number) {
           set(

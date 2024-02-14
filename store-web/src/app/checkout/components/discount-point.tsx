@@ -18,7 +18,12 @@ const DiscountPoint = () => {
   useEffect(() => {
     const getPoint = async () => {
       const result = await getPointService()
-      setPoint(result.point)
+
+      if (result.data) {
+        setPoint(result.data.point)
+      } else {
+        setPoint(0)
+      }
     }
 
     getPoint()

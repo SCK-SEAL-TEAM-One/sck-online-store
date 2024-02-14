@@ -26,19 +26,20 @@ const ProductCard = ({ data }: ProductCardProps) => {
           className="h-full w-full object-contain bg-white object-center lg:h-full lg:w-full"
         />
       </div>
-      <div className="mt-4 mb-1 flex justify-between">
+      <div className="mt-4 mb-1 flex align-top justify-between">
         <Header4 id={`product-card-name-${data.id}`} className="text-gray-700">
           <a href={`/product/${data.id}`}>
             <span aria-hidden="true" className="absolute inset-0" />
             {data.product_name}
           </a>
         </Header4>
+
         <Text
           id={`product-card-price-${data.id}`}
           size="md"
           className="font-medium text-gray-900"
         >
-          {convertCurrency(data.product_price, 'THB')}
+          {convertCurrency(data.product_price_thb, 'THB')}
         </Text>
       </div>
     </div>

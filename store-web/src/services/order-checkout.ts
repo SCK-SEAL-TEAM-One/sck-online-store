@@ -45,18 +45,18 @@ export type OrderCheckoutServiceResponse = {
 const orderCheckoutService = async (
   order: OrderRequest
 ): Promise<OrderCheckoutServiceResponse> => {
-  // try {
-  //   const { data } = await axiosShoppingMallApi.post(`/api/v1/order`, order)
-  //   return {
-  //     data: data
-  //   }
-  // } catch (error) {
-  //   return handleServiceError(error)
-  // }
-
-  return {
-    data: mockOrderCheckoutResponse.body
+  try {
+    const { data } = await axiosShoppingMallApi.post(`/api/v1/order`, order)
+    return {
+      data: data
+    }
+  } catch (error) {
+    return handleServiceError(error)
   }
+
+  // return {
+  //   data: mockOrderCheckoutResponse.body
+  // }
 }
 
 export default orderCheckoutService

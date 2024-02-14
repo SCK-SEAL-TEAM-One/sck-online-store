@@ -22,7 +22,7 @@ const ProductItem = ({
   product_id,
   quantity,
   product_name,
-  product_price,
+  product_price_thb,
   product_image,
   stock,
   isHiddenLable = false
@@ -116,10 +116,13 @@ const ProductItem = ({
               <a href={`/product/${product_id}`}>{product_name}</a>
             </h3>
             <p id={`product-${product_id}-price`} className="ml-4">
-              {convertCurrency(product_price, 'THB')}
+              {convertCurrency(product_price_thb, 'THB')}
             </p>
           </div>
-          <Text id={`product-${product_id}-stock`} className="mt-1 text-sm text-gray-500">
+          <Text
+            id={`product-${product_id}-stock`}
+            className="mt-1 text-sm text-gray-500"
+          >
             {`Stock ${converNumber(stock)} items`}
           </Text>
         </div>
@@ -137,7 +140,10 @@ const ProductItem = ({
             required
           />
 
-          <RemoveItem id={`product-${product_id}-remove-btn`} onClick={handleRemoveItem} />
+          <RemoveItem
+            id={`product-${product_id}-remove-btn`}
+            onClick={handleRemoveItem}
+          />
         </div>
       </div>
     </li>

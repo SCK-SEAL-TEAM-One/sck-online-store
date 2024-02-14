@@ -2,7 +2,12 @@ import config from '@/config'
 
 // ----------------------------------------------------------------------------
 
-export const subTotal = (priceList: { price: number; quantity: number }[]) => {
+type SubTotalType = {
+  price: number
+  quantity: number
+}
+
+export const subTotal = (priceList: SubTotalType[]): number => {
   let total = 0
 
   for (let i = 0; i < priceList.length; i++) {

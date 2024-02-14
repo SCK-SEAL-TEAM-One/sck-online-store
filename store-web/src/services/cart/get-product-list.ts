@@ -10,13 +10,25 @@ export type ProductDetailInCart = {
   quantity: number
   product_name: string
   product_price: number
+  product_price_thb: number
+  product_price_full_thb: number
   product_image: string
   stock: number
   product_brand: string
 }
 
+export type ProductDetailInCartSummary = {
+  total_price: number
+  total_price_thb: number
+  total_price_full_thb: number
+  receive_point: number
+}
+
 export type GetProductInCartServiceResponse = {
-  data?: ProductDetailInCart[]
+  data?: {
+    carts: ProductDetailInCart[]
+    summary: ProductDetailInCartSummary
+  }
   message?: string
 }
 

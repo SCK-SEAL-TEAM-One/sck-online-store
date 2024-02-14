@@ -1,7 +1,5 @@
-import { mockAddToCartResponse } from '@/mock'
 import axiosShoppingMallApi from '@/utils/axios'
 import { handleServiceError } from '@/utils/helper'
-import axios from 'axios'
 
 // ------------------------------------------------
 

@@ -12,7 +12,7 @@ type NotificationServiceRequest = {
   mobile: string
 }
 
-export type OrderCheckoutServiceResponse = {
+export type NotificationServiceResponse = {
   data?: {
     status: string
   }
@@ -21,38 +21,44 @@ export type OrderCheckoutServiceResponse = {
 
 const notificationService = async (
   notificationInfo: NotificationServiceRequest
-): Promise<OrderCheckoutServiceResponse> => {
-  // try {
-  //   const { status } = await axiosShoppingMallApi.post(
-  //     `/api/v1/notification`,
-  //     {
-  //       user_id: notificationInfo.userId,
-  //       order_id: notificationInfo.orderId,
-  //       in_applicaition: notificationInfo.isApplication,
-  //       email: notificationInfo.email,
-  //       mobile: notificationInfo.mobile
-  //     }
-  //   )
+): Promise<NotificationServiceResponse> => {
+  try {
+    const { status } = await axiosShoppingMallApi.post(
+      `/api/v1/notification`,
+      {
+        user_id: notificationInfo.userId,
+        order_id: notificationInfo.orderId,
+        in_applicaition: notificationInfo.isApplication,
+        email: notificationInfo.email,
+        mobile: notificationInfo.mobile
+      }
+    )
 
-  //   if (status === 200) {
-  //     return {
-  //       data: {
-  //         status: 'success'
-  //       }
-  //     }
-  //   }
-  // } catch (error) {
-  //   return handleServiceError(error)
-  // }
+    if (status === 200) {
+      return {
+        data: {
+          status: 'success'
+        }
+      }
+    }
+    
+    return {
+      data: {
+        status: 'error'
+      }
+    }
+  } catch (error) {
+    return handleServiceError(error)
+  }
 
   // Mock Response
-  let result = mockNotificationResponse.status
+  // let result = mockNotificationResponse.status
 
-  return {
-    data: {
-      status: result === 200 ? 'success' : 'fail'
-    }
-  }
+  // return {
+  //   data: {
+  //     status: result === 200 ? 'success' : 'fail'
+  //   }
+  // }
 }
 
 export default notificationService

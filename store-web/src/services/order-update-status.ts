@@ -27,25 +27,25 @@ const orderUpdateStatusService = async ({
   otp,
   otpRef
 }: OrderUpdateStatusServiceRequest): Promise<OrderUpdateStatusServiceResponse> => {
-  // try {
-  //   const { data } = await axiosShoppingMallApi.put(`/api/v1/order`, {
-  //     order_id: orderId,
-  //     otp: otp,
-  //     ref_otp: otpRef
-  //   })
-  //   return {
-  //     data: data
-  //   }
-  // } catch (error) {
-  //   return handleServiceError(error)
-  // }
+  try {
+    const { data } = await axiosShoppingMallApi.put(`/api/v1/order`, {
+      order_id: orderId,
+      otp: otp,
+      ref_otp: otpRef
+    })
+    return {
+      data: data
+    }
+  } catch (error) {
+    return handleServiceError(error)
+  }
 
   // Mock Response
-  let result = mockOrderUpdateStatusResponse.body
+  // let result = mockOrderUpdateStatusResponse.body
 
-  return {
-    data: result
-  }
+  // return {
+  //   data: result
+  // }
 }
 
 export default orderUpdateStatusService

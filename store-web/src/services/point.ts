@@ -1,20 +1,24 @@
-import { mockGetPointResponse } from '@/mock'
+import axiosShoppingMallApi from '@/utils/axios'
+import { handleServiceError } from '@/utils/helper'
 
 // ------------------------------------------------
 
 export type GetPointServiceResponse = {
-  point: number
+  data?: {
+    point: number
+  }
+  message?: string
 }
 
 const getPointService = async (): Promise<GetPointServiceResponse> => {
-  //   const result = await axiosShoppingMallApi.get(
-  //     `/api/v1/point`
-  //   )
-
-  // Mock Response
-  let result = mockGetPointResponse.body
-
-  return result
+  try {
+    const { data } = await axiosShoppingMallApi.put(`/api/v1/point`)
+    return {
+      data: data
+    }
+  } catch (error) {
+    return handleServiceError(error)
+  }
 }
 
 export default getPointService

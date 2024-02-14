@@ -18,13 +18,17 @@ const ProductList = ({ list }: ProductListProps) => {
           role="list"
           className="-my-6 divide-y divide-gray-200"
         >
-          {list.map((product) => (
-            <ProductItem
-              key={`product-item-${product.id}`}
-              isHiddenLable
-              {...product}
-            />
-          ))}
+          {list.length > 0 ? (
+            list.map((product) => (
+              <ProductItem
+                key={`product-item-${product.id}`}
+                isHiddenLable
+                {...product}
+              />
+            ))
+          ) : (
+            <li>No data</li>
+          )}
         </ul>
       </div>
     </div>
