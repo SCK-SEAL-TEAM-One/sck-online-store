@@ -57,7 +57,7 @@ const ProductContent = (product: ProductDetailType) => {
       }
     }
 
-    alert('Cannot add to cart, Stock 0 items')
+    alert('Cannot add to cart, this product out of stock.')
   }
 
   return (
