@@ -2,7 +2,8 @@ import SHIPPING_METHOD from '@/assets/data/shipping_method.json'
 import GetProductInCartService, {
   ProductDetailInCart
 } from '@/services/cart/get-product-list'
-import * as calculate from '@/utils/total-price'
+import * as pointCalulate from '@/utils/point'
+import * as priceCalculate from '@/utils/total-price'
 import type {} from '@redux-devtools/extension' // required for devtools typing
 import { produce } from 'immer'
 import { create } from 'zustand'
@@ -47,14 +48,22 @@ type PointType = {
 }
 
 type PaymentType = {
-  paymentMethod: string
+  paymentMethod: number
   paymentCreditInformation: PaymentCreditInformationType
+}
+
+type OrderSummaryType = {
+  total_price: number
+  total_price_thb: number
+  total_price_full_thb: number
+  receive_point: number
 }
 
 type OrderStoreType = {
   cart: ProductDetailInCart[]
+  summary: OrderSummaryType
   totalProduct: number
-  subTotal: number
+  // subTotal: number
   totalPayment: number
   receivePoint: number
   shipping: ShippingType
@@ -77,8 +86,14 @@ const useOrderStore = create<OrderStoreType>()(
     persist(
       (set, get) => ({
         cart: [],
+        summary: {
+          total_price: 0,
+          total_price_thb: 0,
+          total_price_full_thb: 0,
+          receive_point: 0
+        },
         totalProduct: 0,
-        subTotal: 0,
+        // subTotal: 0,
         totalPayment: 0,
         receivePoint: 0,
         shipping: {
@@ -105,7 +120,7 @@ const useOrderStore = create<OrderStoreType>()(
           isUsePoint: false
         },
         payment: {
-          paymentMethod: 'credit',
+          paymentMethod: 1,
           paymentCreditInformation: {
             number: '',
             name: '',
@@ -129,12 +144,14 @@ const useOrderStore = create<OrderStoreType>()(
             //   }
             // })
 
-            // const total = calculate.subTotal(price)
+            // const total = priceCalculate.subTotal(price)
 
             set(
               produce((state) => {
                 state.totalProduct = productInCart.data?.carts.length
                 state.cart = productInCart.data?.carts
+                state.summary = productInCart.data?.summary
+
                 state.subTotal = productInCart.data?.summary.total_price_thb
                 state.totalPayment = productInCart.data?.summary.total_price_thb
               })
@@ -149,7 +166,7 @@ const useOrderStore = create<OrderStoreType>()(
             })
           )
 
-          // get().updateSummary()
+          get().updateSummary()
         },
         setPoint(point: number) {
           set(
@@ -184,7 +201,7 @@ const useOrderStore = create<OrderStoreType>()(
           )
         },
         setShippingMethod: (shippingMethod: number, shippingFee: number) => {
-          const newTotalPayment = get().subTotal + shippingFee
+          const newTotalPayment = get().summary.total_price_thb + shippingFee
 
           set(
             produce((state) => {
@@ -209,16 +226,16 @@ const useOrderStore = create<OrderStoreType>()(
           const isUsePoint = get().point.isUsePoint
           const point = get().point.point
 
-          const subTotal = get().subTotal
+          const subTotal = get().summary.total_price_thb
           const shippingFee = get().shipping.shippingFee
 
-          // Calculate Point
+          // priceCalculate Point
           const pointsUsed = isUsePoint
-            ? calculate.pointBurn(point, subTotal)
+            ? priceCalculate.pointBurn(point, subTotal)
             : 0
 
           // Total Payment
-          const totalPayment = calculate.totalPayment(
+          const totalPayment = priceCalculate.totalPayment(
             isUsePoint,
             pointsUsed,
             subTotal,
@@ -226,7 +243,7 @@ const useOrderStore = create<OrderStoreType>()(
           )
 
           // Point Receive
-          const receivePoint = calculate.receiptPoint(totalPayment)
+          const receivePoint = pointCalulate.receiptPoint(totalPayment)
 
           set(
             produce((state) => {

@@ -1,6 +1,5 @@
 'use client'
 
-import Discount from '@/app/checkout/components/discount'
 import OrderList from '@/app/checkout/components/order-list'
 import OrderSummary from '@/app/checkout/components/order-summary'
 import PaymentMethod from '@/app/checkout/components/payment-method'
@@ -25,13 +24,13 @@ const CheckoutView = () => {
     shipping,
     point,
     payment,
-    subTotal,
+    summary,
     totalPayment
   } = useOrderStore()
 
   const submitPaymentOrder = async () => {
     const cartList: CartType[] = []
-
+    console.log('cart', cart)
     cart.map((item) => {
       cartList.push({
         product_id: item.product_id,
@@ -42,7 +41,7 @@ const CheckoutView = () => {
     const order = {
       cart: cartList,
       burn_point: point.burnPoint,
-      sub_total_price: subTotal,
+      sub_total_price: summary.total_price_thb,
       discount_price: 0,
       total_price: totalPayment,
       shipping_method_id: shipping.shippingMethod,
@@ -62,6 +61,29 @@ const CheckoutView = () => {
         cvv: payment.paymentCreditInformation.cvv
       }
     }
+    // const order = {
+    //   cart: cartList,
+    //   shipping_method_id: 1, // 1 = kerry, 2 = thai post, 3 = lineman
+    //   shipping_address: '405/37 ถ.มหิดล',
+    //   shipping_sub_district: 'ท่าศาลา',
+    //   shipping_district: 'เมือง',
+    //   shipping_province: 'เชียงใหม่',
+    //   shipping_zip_code: '50000',
+    //   recipient_first_name: 'ณัฐญา',
+    //   recipient_last_name: 'ชุติบุตร',
+    //   recipient_phone_number: '0970809292',
+    //   payment_method_id: 1, // 1 = credit card, 2 = Line pay
+    //   burn_point: 0,
+    //   sub_total_price: 100.0,
+    //   discount_price: 10.0,
+    //   total_price: 90.0,
+    //   payment_information: {
+    //     card_name: 'Jaranchai Thongkum',
+    //     card_number: '1233 2432 4353 4534',
+    //     expire_date: '12/27',
+    //     cvv: '123'
+    //   }
+    // }
 
     const result = await orderCheckoutService(order)
 
@@ -89,7 +111,7 @@ const CheckoutView = () => {
                 <PaymentMethod />
               </div>
               <div className="px-3 md:w-5/12">
-                <Discount />
+                {/* <Discount /> */}
                 <OrderSummary />
                 <Button
                   id="payment-now-btn"

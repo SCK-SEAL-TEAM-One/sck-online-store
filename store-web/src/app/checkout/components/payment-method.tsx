@@ -30,7 +30,7 @@ type CardInfoTypes = {
 }
 
 const PaymentMethod = () => {
-  const [paymentMethod, setPaymentMethod] = useState('credit-card')
+  const [paymentMethod, setPaymentMethod] = useState(1) // 1. credit/debit 2.linepay
   const [cardProvider, setCardProvider] = useState('')
   const [cardInfo, setCardInfo] = useState<CardInfoTypes>({
     number: '',
@@ -46,7 +46,7 @@ const PaymentMethod = () => {
   const handlePaymentMethodChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setPaymentMethod(event.target.value)
+    setPaymentMethod(Number(event.target.value))
   }
 
   const handleInputFocus = ({ target }: React.FocusEvent<HTMLInputElement>) => {
@@ -104,12 +104,12 @@ const PaymentMethod = () => {
               value="credit-card"
               className="form-radio h-5 w-5 text-indigo-500 mr-2"
               onChange={handlePaymentMethodChange}
-              checked={paymentMethod === 'credit-card'}
+              checked={paymentMethod === 1}
             />
             Credit Card / Debit Card
           </label>
 
-          <div className={paymentMethod === 'credit-card' ? 'mt-5' : 'hidden'}>
+          <div className={paymentMethod === 1 ? 'mt-5' : 'hidden'}>
             <InputField
               id={`payment-credit-form-fullname`}
               type="text"
@@ -202,12 +202,12 @@ const PaymentMethod = () => {
               value="linepay"
               className="form-radio h-5 w-5 text-indigo-500 mr-2"
               onChange={handlePaymentMethodChange}
-              checked={paymentMethod === 'linepay'}
+              checked={paymentMethod === 2}
               disabled
             />
             Line Pay
           </label>
-          <div className={paymentMethod === 'linepay' ? 'mt-2' : 'hidden'}>
+          <div className={paymentMethod === 2 ? 'mt-2' : 'hidden'}>
             <Image
               src="/qr-code-line-pay.png"
               width={290}

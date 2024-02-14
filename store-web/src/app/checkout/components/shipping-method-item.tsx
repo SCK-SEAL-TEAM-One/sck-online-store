@@ -37,7 +37,7 @@ const ShippingMethodItem = ({
         required
       />
       <label
-        htmlFor={`shipping-method-${id}`}
+        htmlFor={`shipping-method-${id}-input`}
         className="inline-flex items-center justify-between w-full p-5 text-gray-700 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100"
       >
         <div className="block">

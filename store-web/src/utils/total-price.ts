@@ -50,8 +50,3 @@ export const totalPayment = (
 
   return totalPayment
 }
-
-export const receiptPoint = (totalPayment: number) => {
-  // ปัดเศษลง
-  return Math.floor(totalPayment / config.pointRate)
-}

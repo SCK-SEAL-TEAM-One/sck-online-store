@@ -5,7 +5,7 @@ import PaymentLogo from '@/app/payment/components/logo'
 import PaymentText from '@/app/payment/components/payment-text'
 import Button from '@/components/button/button'
 import Text from '@/components/typography/text'
-import orderUpdateStatusService from '@/services/order-update-status'
+import orderConfirmPaymentService from '@/services/confirm-payment'
 import { convertCurrency, isNumber } from '@/utils/format'
 import dayjs from 'dayjs'
 import { useSearchParams } from 'next/navigation'
@@ -15,7 +15,7 @@ import { useState } from 'react'
 
 const PaymentView = () => {
   const searchParams = useSearchParams()
-  const orderId = searchParams.get('order-id')
+  const orderId = searchParams.get('id')
   const total = Number(searchParams.get('total')) || 0
   const cardNumber = searchParams.get('card')
 
@@ -32,7 +32,7 @@ const PaymentView = () => {
 
   const handlePaymentConfirm = async () => {
     if (otp.length === 6) {
-      const result = await orderUpdateStatusService({
+      const result = await orderConfirmPaymentService({
         orderId: Number(orderId),
         otp: Number(otp),
         otpRef: otpRef
@@ -40,9 +40,10 @@ const PaymentView = () => {
 
       if (result.data) {
         const convertResultToObject = {
-          ...result.data,
-          order_id: result.data.order_id.toString(),
-          shipping_method_id: result.data.shipping_method_id.toString()
+          order: result.data.order_id.toString(),
+          shipping: result.data.shipping_method_id.toString(),
+          payment: result.data.payment_date,
+          tracking: result.data.tracking_number
         }
 
         const query = new URLSearchParams(convertResultToObject).toString()

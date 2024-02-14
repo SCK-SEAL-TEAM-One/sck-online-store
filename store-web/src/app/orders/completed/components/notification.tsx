@@ -6,7 +6,6 @@ import NotificationInputMobile from '@/app/orders/completed/components/notificat
 import Button from '@/components/button/button'
 import Header2 from '@/components/typography/header2'
 import Text from '@/components/typography/text'
-import notificationService from '@/services/notification'
 import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
@@ -21,21 +20,28 @@ const Notification = () => {
   const [isApplication, setIsApplication] = useState(false)
 
   const sendNotification = async () => {
-    const result = await notificationService({
-      userId: 1,
-      orderId: Number(orderId),
-      email,
-      mobile,
-      isApplication
-    })
-
-    if (result.data?.status === 'success') {
-      let text =
+    if (
+      confirm(
         'Send notification completed.\n\nClick OK for go to Product lists.'
-      if (confirm(text) == true) {
-        window.location.href = '/product/list'
-      }
+      )
+    ) {
+      window.location.href = '/product/list'
     }
+
+    // ยังไม่ได้ใช้งาน
+    // const result = await notificationService({
+    //   userId: 1,
+    //   orderId: Number(orderId),
+    //   email,
+    //   mobile,
+    //   isApplication
+    // })
+
+    // if (result.data?.status === 'success') {
+    //   if (confirm('Send notification completed.\n\nClick OK for go to Product lists.') == true) {
+    //     window.location.href = '/product/list'
+    //   }
+    // }
   }
 
   return (

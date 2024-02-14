@@ -20,7 +20,7 @@ const InputField = (props: InputFieldProps) => {
       ) : null}
 
       <input
-        className="bg-white text-sm w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-indigo-500 transition-colors"
+        className="bg-white text-sm w-full px-3 py-2 text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:border-indigo-500 transition-colors"
         {...props}
       />
     </div>

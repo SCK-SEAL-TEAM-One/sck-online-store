@@ -21,7 +21,7 @@ const ShoppingCartView = ({
   openShoppingCart,
   setOpenShoppingCart
 }: ShoppingCartViewProps) => {
-  const { cart, subTotal, getProductListInCart } = useOrderStore()
+  const { cart, summary, getProductListInCart } = useOrderStore()
 
   useEffect(() => {
     getProductListInCart()
@@ -69,7 +69,7 @@ const ShoppingCartView = ({
                     </div>
 
                     <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-                      <SubTotal total={subTotal} />
+                      <SubTotal total={summary.total_price_thb} />
 
                       <Text size="sm" className="mt-0.5 text-gray-500">
                         Shipping and taxes calculated at checkout.

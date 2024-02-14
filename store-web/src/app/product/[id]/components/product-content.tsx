@@ -8,7 +8,7 @@ import useOrderStore from '@/hooks/use-order-store'
 import addToCartService from '@/services/cart/add-to-cart'
 import { ProductDetailType } from '@/services/product-detail'
 import { converNumber, convertCurrency, isNumber } from '@/utils/format'
-import { receiptPoint } from '@/utils/total-price'
+import { receiptPoint } from '@/utils/point'
 import { useState } from 'react'
 
 // ----------------------------------------------------------------------

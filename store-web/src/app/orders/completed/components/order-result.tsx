@@ -20,10 +20,10 @@ type ShippingType = {
 
 const OrderResult = () => {
   const search = useSearchParams()
-  const orderId = search.get('order_id')
-  const paymentDate = search.get('payment_date')
-  const shippingMethodId = search.get('shipping_method_id')
-  const trackingId = search.get('tracking_id')
+  const orderId = search.get('order')
+  const paymentDate = search.get('payment')
+  const shippingMethodId = search.get('shipping')
+  const trackingNumber = search.get('tracking')
 
   const [shipping, setShipping] = useState<ShippingType | null>(null)
 
@@ -47,7 +47,7 @@ const OrderResult = () => {
 
       <Text id="order-success-text" size="md" className="text-gray-600 my-10">
         {`Date and time of payment `}
-        <span id="order-success-order-payment-date" className='font-semibold'>
+        <span id="order-success-order-payment-date" className="font-semibold">
           {dayjs(paymentDate).format('DD/MM/YYYY HH:mm:ss')}
         </span>
         {` Order number `}
@@ -61,35 +61,20 @@ const OrderResult = () => {
         {shipping ? (
           <div>
             {` You can track the product via `}
-            <span id="order-success-shipping-method" className='font-semibold'>{shipping.name}</span>
+            <span id="order-success-shipping-method" className="font-semibold">
+              {shipping.name}
+            </span>
             {` with number `}
             <a
               id="order-success-tracking-id"
               className="text-sm font-medium text-indigo-600"
-              href={`#?tracking_id=${trackingId}`}
+              href={`https://th.kerryexpress.com/th/track/?track=${trackingNumber}`}
             >
-              {trackingId}
+              {trackingNumber}
             </a>
           </div>
         ) : null}
       </Text>
-
-      {/* <Text size='md' className='text-gray-600 my-10'>
-        {'วันเวลาที่ชําระเงิน 1/3/2020 13:30:00 หมายเลขคําสั่งซื้อ '}
-        <a
-          className='text-sm font-medium text-indigo-600'
-          href='/orders/102323'
-        >
-          102323
-        </a>
-        {' คุณสามารถติดตามสินค้าผ่านช่องทาง Kerry ด้วยหมายเลข '}
-        <a
-          className='text-sm font-medium text-indigo-600'
-          href='#?tracking_id=51547878755545848512'
-        >
-          51547878755545848512
-        </a>
-      </Text> */}
     </div>
   )
 }
