@@ -33,7 +33,7 @@ point_service:
 	docker compose up -d point-service
 
 store_web:
-	docker compose up -d store-web
+	docker compose up -d store-web --build
 
 bank:
 	docker compose up -d bank-gateway --build
