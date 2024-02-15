@@ -51,7 +51,7 @@ const ProductItem = ({
 
   const incrementQuantity = () => {
     const incrementQty = quantity + 1
-    if (incrementQty < stock) {
+    if (incrementQty <= stock) {
       setNewQuantity(incrementQty)
       updateQuantity(incrementQty)
     }
