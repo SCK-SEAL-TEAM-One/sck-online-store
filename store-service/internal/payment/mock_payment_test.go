@@ -36,8 +36,8 @@ type mockOrderRepository struct {
 	mock.Mock
 }
 
-func (repo *mockOrderRepository) CreateOrder(userID int, submitedOrder order.SubmitedOrder) (int, error) {
-	argument := repo.Called(userID, submitedOrder)
+func (repo *mockOrderRepository) CreateOrder(userID int, orderDetail order.OrderDetail) (int, error) {
+	argument := repo.Called(userID, orderDetail)
 	return argument.Int(0), argument.Error(1)
 }
 

@@ -7,7 +7,7 @@ import (
 type ProductRepository interface {
 	GetProducts(keyword string, limit string, offset string) (ProductResult, error)
 	GetProductByID(ID int) (ProductDetail, error)
-	UpdateStock(productID, quantity int) error
+	UpdateStock(productID int, quantity int) error
 }
 
 type ProductRepositoryMySQL struct {
@@ -45,7 +45,7 @@ func (productRepository ProductRepositoryMySQL) GetProductByID(ID int) (ProductD
 	return result, err
 }
 
-func (productRepository ProductRepositoryMySQL) UpdateStock(productID, stock int) error {
+func (productRepository ProductRepositoryMySQL) UpdateStock(productID int, stock int) error {
 	_, err := productRepository.DBConnection.Exec(`UPDATE products SET stock = stock-? WHERE id=?`, stock, productID)
 	return err
 }

@@ -5,6 +5,7 @@ import (
 	"store-service/internal/order"
 	"store-service/internal/point"
 	"store-service/internal/product"
+	"store-service/internal/shipping"
 
 	"github.com/stretchr/testify/mock"
 )
@@ -32,8 +33,8 @@ type mockOrderRepository struct {
 	mock.Mock
 }
 
-func (repo *mockOrderRepository) CreateOrder(userID int, submitedOrder order.SubmitedOrder) (int, error) {
-	argument := repo.Called(userID, submitedOrder)
+func (repo *mockOrderRepository) CreateOrder(userID int, orderDetail order.OrderDetail) (int, error) {
+	argument := repo.Called(userID, orderDetail)
 	return argument.Int(0), argument.Error(1)
 }
 
@@ -108,4 +109,13 @@ func (repo *mockCartRepository) UpdateCart(userID int, productID int, quantity i
 func (repo *mockCartRepository) DeleteCart(userID int, productID int) error {
 	argument := repo.Called(userID, productID)
 	return argument.Error(0)
+}
+
+type mockShippingRepository struct {
+	mock.Mock
+}
+
+func (repo *mockShippingRepository) GetShippingMethodByID(ID int) (shipping.ShippingMethodDetail, error) {
+	argument := repo.Called(ID)
+	return argument.Get(0).(shipping.ShippingMethodDetail), argument.Error(1)
 }
