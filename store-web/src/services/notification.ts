@@ -12,6 +12,7 @@ type NotificationServiceRequest = {
   mobile: string
 }
 
+// Not used now
 export type NotificationServiceResponse = {
   data?: {
     status: string
@@ -50,15 +51,6 @@ const notificationService = async (
   } catch (error) {
     return handleServiceError(error)
   }
-
-  // Mock Response
-  // let result = mockNotificationResponse.status
-
-  // return {
-  //   data: {
-  //     status: result === 200 ? 'success' : 'fail'
-  //   }
-  // }
 }
 
 export default notificationService

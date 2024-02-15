@@ -53,10 +53,6 @@ const orderCheckoutService = async (
   } catch (error) {
     return handleServiceError(error)
   }
-
-  // return {
-  //   data: mockOrderCheckoutResponse.body
-  // }
 }
 
 export default orderCheckoutService

@@ -1,6 +1,5 @@
 'use client'
 
-// import Breadcrumbs from '@/components/breadcrumb'
 import ProductContent from '@/app/product/[id]/components/product-content'
 import ProductImage from '@/app/product/[id]/components/product-image'
 import getProductDetailService, {
