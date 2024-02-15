@@ -74,7 +74,7 @@ const ProductContent = (product: ProductDetailType) => {
       </Text>
 
       <Text
-        id="product-detail-price-usd"
+        id="product-detail-price-thb"
         size="xl"
         className="font-medium tracking-tight text-gray-900 mb-2"
       >
