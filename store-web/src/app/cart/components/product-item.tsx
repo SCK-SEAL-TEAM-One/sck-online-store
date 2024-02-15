@@ -45,7 +45,6 @@ const ProductItem = ({
         updateQuantity(value)
       } else {
         setNewQuantity(quantity)
-        updateQuantity(quantity)
       }
     }
   }
