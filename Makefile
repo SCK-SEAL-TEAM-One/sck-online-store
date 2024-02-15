@@ -1,10 +1,10 @@
-# run all sysytem
+# run all systems
 all: backend_start store_web
 
 # run backend api include arrange system
 backend_start: store_service point_service bank shipping
 
-# run all arrange system of backend
+# run all arrange systems of backend
 backend_setup: store_db point_service bank shipping
 
 # run all test of backend
@@ -33,7 +33,7 @@ point_service:
 	docker compose up -d point-service
 
 store_web:
-	docker compose up -d store-web
+	docker compose up -d store-web --build
 
 bank:
 	docker compose up -d bank-gateway --build

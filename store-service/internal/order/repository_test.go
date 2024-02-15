@@ -24,30 +24,19 @@ func Test_OrderRepository(t *testing.T) {
 
 	t.Run("CreateOrder_Input_SubmitedOrder_Should_Be_OrderID_No_Error", func(t *testing.T) {
 		uid := 1
-		submittedOrder := order.SubmitedOrder{
-			Cart: []order.OrderProduct{
-				{
-					ProductID: 2,
-					Quantity:  1,
-				},
-			},
-			ShippingMethodID:     1,
-			ShippingAddress:      "405/37 ถ.มหิดล",
-			ShippingSubDistrict:  "ท่าศาลา",
-			ShippingDistrict:     "เมือง",
-			ShippingProvince:     "เชียงใหม่",
-			ShippingZipCode:      "50000",
-			RecipientFirstName:   "ณัฐญา",
-			RecipientLastName:    "ชุติบุตร",
-			RecipientPhoneNumber: "0970809292",
-			PaymentMethodID:      1,
-			BurnPoint:            0,
-			SubTotalPrice:        100.00,
-			DiscountPrice:        10.00,
-			TotalPrice:           90.00,
+
+		orderDetail := order.OrderDetail{
+			ShippingMethodID: 1,
+			PaymentMethodID:  1,
+			SubTotalPrice:    465.811034,
+			DiscountPrice:    0,
+			TotalPrice:       515.811034,
+			ShippingFee:      50,
+			BurnPoint:        0,
+			EarnPoint:        4,
 		}
 
-		actualId, err := repository.CreateOrder(uid, submittedOrder)
+		actualId, err := repository.CreateOrder(uid, orderDetail)
 
 		assert.Equal(t, nil, err)
 		assert.NotEmpty(t, actualId)
