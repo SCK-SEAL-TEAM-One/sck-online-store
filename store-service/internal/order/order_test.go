@@ -155,6 +155,43 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Error_Points_not_En
 	assert.Equal(t, expectedErr, err)
 }
 
+func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_No_Product_in_Order_Error(t *testing.T) {
+	expected := order.Order{}
+	expectedErr := fmt.Errorf("There is no product in order, please try again")
+
+	uid := 1
+
+	submittedOrder := order.SubmitedOrder{
+		Cart:                 []order.OrderProduct{},
+		ShippingMethodID:     1,
+		ShippingAddress:      "405/37 ถ.มหิดล",
+		ShippingSubDistrict:  "ท่าศาลา",
+		ShippingDistrict:     "เมือง",
+		ShippingProvince:     "เชียงใหม่",
+		ShippingZipCode:      "50000",
+		RecipientFirstName:   "ณัฐญา",
+		RecipientLastName:    "ชุติบุตร",
+		RecipientPhoneNumber: "0970809292",
+		PaymentMethodID:      1,
+		BurnPoint:            0,
+		SubTotalPrice:        100.00,
+		DiscountPrice:        0,
+		TotalPrice:           100.00,
+	}
+
+	mockPointInterface := new(mockPointInterface)
+	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+
+	orderService := order.OrderService{
+		PointService: mockPointInterface,
+	}
+
+	actual, err := orderService.CreateOrder(uid, submittedOrder)
+
+	assert.Equal(t, expected, actual)
+	assert.Equal(t, expectedErr, err)
+}
+
 func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(t *testing.T) {
 	expected := order.Order{}
 

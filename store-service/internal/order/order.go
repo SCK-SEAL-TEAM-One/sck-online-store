@@ -1,6 +1,7 @@
 package order
 
 import (
+	"fmt"
 	"log"
 	"store-service/internal/cart"
 	"store-service/internal/common"
@@ -42,6 +43,10 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 	_, err := orderService.PointService.CheckBurnPoint(uid, -(submitedOrder.BurnPoint))
 	if err != nil {
 		return Order{}, err
+	}
+
+	if len(submitedOrder.Cart) == 0 {
+		return Order{}, fmt.Errorf("There is no product in order, please try again")
 	}
 
 	subtotalPrice := 0.0
