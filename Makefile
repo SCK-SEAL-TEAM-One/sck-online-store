@@ -46,3 +46,15 @@ down:
 
 all_done:
 	echo "All done"
+
+build_frontend:
+	docker compose up -d store-web --build
+
+build_nginx:
+	docker compose up -d nginx --build
+
+run_robot:
+	cd atdd/ui && robot -v URL:http://localhost/product/list .
+
+run_newman:
+	cd atdd/api && newman run sck-online-store.postman_collection.json
