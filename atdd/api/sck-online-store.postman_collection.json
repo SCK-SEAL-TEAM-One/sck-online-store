@@ -31,7 +31,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://10.141.1.135/api/v1/product?q=Bicycle&offset=0&limit=20",
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=Bicycle&offset=0&limit=20",
 					"protocol": "http",
 					"host": [
 						"10",
@@ -86,7 +86,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://10.141.1.135/api/v1/product/1",
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/product/1",
 					"protocol": "http",
 					"host": [
 						"10",
@@ -142,7 +142,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://10.141.1.135/api/v1/addCart",
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/addCart",
 					"protocol": "http",
 					"host": [
 						"10",
@@ -193,7 +193,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://10.141.1.135/api/v1/order",
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/order",
 					"protocol": "http",
 					"host": [
 						"10",
@@ -250,7 +250,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://10.141.1.135/api/v1/confirmPayment",
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",
 					"protocol": "http",
 					"host": [
 						"10",
