@@ -8,6 +8,8 @@ services:
       context: store-service
     ports:
       - "8000:8000"
+    environment:
+      - STORE_WEB_HOST=http://localhost
     depends_on:
       store-db:
         condition: service_healthy
@@ -94,20 +96,32 @@ services:
     ports:
       - "3000:3000"
 
-  store-db-test:
-    image: mysql:8.3.0
-    container_name: store-db-test
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=password
-      - MYSQL_DATABASE=store
-    volumes:
-      - ./tearup/store:/docker-entrypoint-initdb.d/
+  nginx:
+    image: mynginx:0.1.0
+    container_name: nginx
+    build:
+      context: nginx
     ports:
-      - "3305:3306"
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: always
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+    
+
+  # store-db-test:
+  #   image: mysql:8.3.0
+  #   container_name: store-db-test
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=root
+  #     - MYSQL_USER=user
+  #     - MYSQL_PASSWORD=password
+  #     - MYSQL_DATABASE=store
+  #   volumes:
+  #     - ./tearup/store:/docker-entrypoint-initdb.d/
+  #   ports:
+  #     - "3305:3306"
+  #   restart: always
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+  #     timeout: 20s
+  #     retries: 10
