@@ -33,7 +33,7 @@ pipeline {
 
     stage('setup test fixtures') {
       steps {
-        sh 'docker compose up -d store-db bank-gateway shipping-gateway'
+        sh 'make setup_test_fixtures'
       }
     }
 
