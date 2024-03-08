@@ -73,7 +73,7 @@ pipeline {
   
   post {
     always {
-      robot outputPath: './atdd/ui/', passThreshold: 100.0
+      robot outputPath: './atdd/ui', passThreshold: 100.0
       sh 'make stop_test_suite'
       sh 'docker volume prune -f'
     }
