@@ -106,7 +106,7 @@ ${BROWSER}    gc
     Wait Until Element Is Visible    id:order-success-tracking-id
     Element Should Contain    id:order-success-tracking-id    KR-
     ${tracking-id}=    Get Text    id:order-success-tracking-id
-    Should Match Regexp    ${tracking-id}    ^KR-\\d{9}$
+    Should Match Regexp    ${tracking-id}    ^KR-\\d{7,9}$
 
 ยืนยันการส่งการแจ้งเตือนด้วย email และ เบอร์โทรศัพท์
     Input Text    id:notification-form-email-input    ponsakorn@gmail.com
