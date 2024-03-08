@@ -14,7 +14,7 @@ import (
 )
 
 func Test_CartRepository(t *testing.T) {
-	connection, err := sqlx.Connect("mysql", "user:password@(localhost:3305)/store")
+	connection, err := sqlx.Connect("mysql", "user:password@(localhost:3306)/store")
 	if err != nil {
 		t.Fatalf("cannot tearup data err %s", err)
 	}
