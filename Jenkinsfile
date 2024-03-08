@@ -65,7 +65,7 @@ pipeline {
         sh 'make start_test_suite'
         // sh 'make run_newman'
         sh 'make run_robot'
-        robot outputPath: './', passThreshold: 100.0
+        robot outputPath: './atdd/ui', passThreshold: 100.0
         sh 'make stop_test_suite'
       }
     }
