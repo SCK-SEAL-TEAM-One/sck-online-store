@@ -1,4 +1,4 @@
-version: "3.5"
+version: "3.8"
 
 services:
   store-service:
@@ -49,8 +49,16 @@ services:
     restart: always
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
+      interval: 3s
+      timeout: 5s
       retries: 10
+      start_period: 5s
+
+  helloworld:
+    image: hello-world
+    depends_on:
+      store-db:
+        condition: service_healthy
 
   point-db:
     image: mysql:8.3.0
@@ -67,8 +75,10 @@ services:
     restart: always
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
+      interval: 3s
+      timeout: 5s
       retries: 10
+      start_period: 5s
 
   bank-gateway:
     image: store-bank-gateway:0.0.1
