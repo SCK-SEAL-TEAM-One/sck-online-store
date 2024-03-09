@@ -39,6 +39,7 @@ backend_clear_test_cache:
 backend_test_all: backend_unit_test setup_test_fixtures backend_integration_test all_done
 
 backend_unit_test:
+	# cd store-service && go test ./...
 	cd store-service && go test -v 2>&1 ./... | go-junit-report -set-exit-code > report.xml
 
 setup_test_fixtures:
@@ -82,7 +83,7 @@ build_nginx:
 	docker compose build nginx
 
 start_test_suite:
-	docker compose up -d bank-gateway shipping-gateway point-service store-db store-service store-web nginx
+	docker compose up -d bank-gateway shipping-gateway point-service store-db store-service store-web nginx --build
 
 stop_test_suite:
 	docker compose down
@@ -98,5 +99,5 @@ run_robot:
 run_newman:
 	cd atdd/api \
 	&& newman run sck-online-store.postman_collection.json \
-	&& -e sck-online-store.local.postman_environment.json
+	 -e sck-online-store.local.postman_environment.json
 
