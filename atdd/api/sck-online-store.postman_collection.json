@@ -32,12 +32,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=Bicycle&offset=0&limit=20",
-					"protocol": "http",
 					"host": [
-						"10",
-						"141",
-						"1",
-						"135"
+						"{{STORE_SERVICE_URL}}"
 					],
 					"path": [
 						"api",
@@ -87,12 +83,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{STORE_SERVICE_URL}}/api/v1/product/1",
-					"protocol": "http",
 					"host": [
-						"10",
-						"141",
-						"1",
-						"135"
+						"{{STORE_SERVICE_URL}}"
 					],
 					"path": [
 						"api",
@@ -143,12 +135,8 @@
 				},
 				"url": {
 					"raw": "{{STORE_SERVICE_URL}}/api/v1/addCart",
-					"protocol": "http",
 					"host": [
-						"10",
-						"141",
-						"1",
-						"135"
+						"{{STORE_SERVICE_URL}}"
 					],
 					"path": [
 						"api",
@@ -194,12 +182,8 @@
 				},
 				"url": {
 					"raw": "{{STORE_SERVICE_URL}}/api/v1/order",
-					"protocol": "http",
 					"host": [
-						"10",
-						"141",
-						"1",
-						"135"
+						"{{STORE_SERVICE_URL}}"
 					],
 					"path": [
 						"api",
@@ -251,12 +235,8 @@
 				},
 				"url": {
 					"raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",
-					"protocol": "http",
 					"host": [
-						"10",
-						"141",
-						"1",
-						"135"
+						"{{STORE_SERVICE_URL}}"
 					],
 					"path": [
 						"api",
