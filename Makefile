@@ -45,7 +45,7 @@ backend_unit_test:
 setup_test_fixtures:
 	docker compose up -d store-db bank-gateway shipping-gateway helloworld
 
-backend_integration_test:
+backend_integration_test: setup_test_fixtures
 	cd store-service && go test -tags=integration ./...
 	docker compose down 
 
@@ -96,8 +96,7 @@ run_robot:
 	&& robot -v URL:http://localhost/product/list . \
 	&& deactivate
 
-run_newman:
+run_newman: 
 	cd atdd/api \
 	&& newman run sck-online-store.postman_collection.json \
 	 -e sck-online-store.local.postman_environment.json
-
