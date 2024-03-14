@@ -48,7 +48,7 @@ services:
       - "3306:3306"
     restart: always
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: ["CMD", "mysql", "-uroot", "-proot", "-e", "select * from store.users"]
       interval: 3s
       timeout: 5s
       retries: 10
