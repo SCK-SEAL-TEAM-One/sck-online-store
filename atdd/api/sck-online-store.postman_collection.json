@@ -1,0 +1,257 @@
+{
+	"info": {
+		"_postman_id": "c03da805-4d43-49ad-83d2-f1b71ea8aa40",
+		"name": "sck-online-store",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3572919"
+	},
+	"item": [
+		{
+			"name": "search-product",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"search product should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should contain product name 'Balance Training Bicycle'\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    const product = jsonData.products.find(it => it.product_name === \"Balance Training Bicycle\");",
+							"    pm.expect(product).not.undefined;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=Bicycle&offset=0&limit=20",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"product"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "Bicycle"
+						},
+						{
+							"key": "offset",
+							"value": "0"
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check product detail",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"check product detail should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"'Balance Training Bicycle' price should be 119.95\", function () {",
+							"    var product = pm.response.json();",
+							"    pm.expect(product.product_name).to.eql('Balance Training Bicycle');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/product/1",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"product",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add cart",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"add cart should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var cart = pm.response.json();",
+							"",
+							"pm.test(\"summary price should be 119.95\", function () {    ",
+							"    pm.expect(cart.summary.total_price).to.eql(119.95);",
+							"});",
+							"",
+							"pm.test(\"receive point should be 43\", function () {    ",
+							"    pm.expect(cart.summary.receive_point).to.eql(43);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_id\": 1,\n    \"quantity\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/addCart",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"addCart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"add cart should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"order id should not empty\", function () {  ",
+							"    var order = pm.response.json();  ",
+							"    pm.expect(order.order_id).not.undefined;",
+							"    pm.collectionVariables.set(\"order_id\", order.order_id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cart\": [\n        {\n            \"product_id\": 1,\n            \"quantity\": 1\n        }\n    ],\n    \"burn_point\": 0,\n    \"sub_total_price\": 4314.6,\n    \"discount_price\": 0,\n    \"total_price\": 4364.6,\n    \"shipping_method_id\": 1,\n    \"shipping_address\": \"189/413 หมู่ 2\",\n    \"shipping_sub_district\": \"แพรกษาใหม่\",\n    \"shipping_district\": \"เมืองสมุทรปราการ\",\n    \"shipping_province\": \"สมุทรปราการ\",\n    \"shipping_zip_code\": \"10280\",\n    \"recipient_first_name\": \"พงศกร\",\n    \"recipient_last_name\": \"รุ่งเรืองทรัพย์\",\n    \"recipient_phone_number\": \"090912799\",\n    \"payment_method_id\": 1,\n    \"payment_information\": {\n        \"card_name\": \"พงศกร รุ่งเรืองทรัพย์\",\n        \"card_number\": \"4719 7005 9159 0995\",\n        \"expire_date\": \"02/26\",\n        \"cvv\": \"75\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/order",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "confirm payment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"confirm payment should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var confirmedPayment = pm.response.json();",
+							"",
+							"pm.test(\"order id should not empty\", function () {    ",
+							"    const order_id = pm.collectionVariables.get(\"order_id\");",
+							"    pm.expect(confirmedPayment.order_id).not.undefined;",
+							"    pm.expect(confirmedPayment.order_id).to.eql(order_id);",
+							"});",
+							"",
+							"pm.test(\"tracking number should not empty\", function () {    ",
+							"    pm.expect(confirmedPayment.tracking_number).not.undefined;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"order_id\": {{order_id}},\n    \"otp\": 124532,\n    \"ref_otp\": \"AXYZ\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",
+					"host": [
+						"{{STORE_SERVICE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"confirmPayment"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "order_id",
+			"value": ""
+		}
+	]
+}
