@@ -4,7 +4,7 @@ Test Teardown   Close All Browsers
 
 *** Variables ***
 ${URL}    http://192.168.3.115:3000/product/list
-${BROWSER}    gc
+${BROWSER}    headlesschrome
 
 *** Test Cases ***
 ทดสอบ สั่งซื้อสินค้า Balance Training Bicycle จัดส่งด้วย Kerry ชำระเงินด้วยบัตรเครดิต Visa สำเร็จ และตรวจสอบการได้แต้มสะสม
@@ -22,10 +22,12 @@ ${BROWSER}    gc
     เลือกวิธีจัดส่งสินค้าเป็น    shipping-method-1-card
     ตรวจสอบค่าจัดส่งสินค้าของ Kerry เท่ากันกับ 50.00 บาท    shipping-method-1-fee    ฿50.00
     เลือกช่องทางการชำระเงินแบบ VISA Credit Card
-    ตรวจสอบราคารวมที่ต้องชำระเงิน ต้องเท่ากันกับ 8,679.20 บาท
+    ตรวจสอบราคารวมที่ต้องชำระเงิน ต้องเท่ากันกับ    ฿4,364.60
     ยืนยัน OTP
     ตรวจสอบหมายเลขพัสดุ
-    ยืนยันการส่งการแจ้งเตือนด้วย email และ เบอร์โทรศัพท์
+    ยืนยันการส่งการแจ้งเตือนด้วย email และ เบอร์โทรศัพท์    
+    ...    ponsakorn@gmail.com
+    ...    0909127991
 
 *** Keywords ***
 ค้นหาสินค้าด้วย คำค้นหา
@@ -79,7 +81,7 @@ ${BROWSER}    gc
 
 ตรวจสอบค่าจัดส่งสินค้าของ Kerry เท่ากันกับ 50.00 บาท
     [Arguments]    ${shipping-method-fee}    ${fee}
-    Element Text Should Be    id:shipping-method-1-fee    ฿50.00
+    Element Text Should Be    id:${shipping-method-fee}    ${fee}
 
 เลือกช่องทางการชำระเงินแบบ VISA Credit Card
     Click Element    id:payment-credit-input
@@ -92,8 +94,10 @@ ${BROWSER}    gc
     Input Text    id:payment-credit-form-cvv-input
     ...    752
 
-ตรวจสอบราคารวมที่ต้องชำระเงิน ต้องเท่ากันกับ 8,679.20 บาท
+ตรวจสอบราคารวมที่ต้องชำระเงิน ต้องเท่ากันกับ
+    [Arguments]    ${total-price}
     Element Should Be Visible    id:order-summary-total-payment-price
+    Element Text Should Be    id:order-summary-total-payment-price    ${total-price}
 
 ยืนยัน OTP
     Click Button    id:payment-now-btn
@@ -109,8 +113,9 @@ ${BROWSER}    gc
     Should Match Regexp    ${tracking-id}    ^KR-\\d{7,9}$
 
 ยืนยันการส่งการแจ้งเตือนด้วย email และ เบอร์โทรศัพท์
-    Input Text    id:notification-form-email-input    ponsakorn@gmail.com
-    Input Text    id:notification-form-mobile-input    0909127991
+    [Arguments]    ${email}    ${telphoneno}
+    Input Text    id:notification-form-email-input    ${email}
+    Input Text    id:notification-form-mobile-input    ${telphoneno}
     Click Button     id:send-notification-btn
     Handle Alert
     Location Should Be    ${URL}
