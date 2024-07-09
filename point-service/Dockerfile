@@ -9,8 +9,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY --chown=node:node . .
-RUN npx prisma generate \
-    && npm run build \
+RUN npm run build \
     && npm prune --omit=dev
 
 # ---
