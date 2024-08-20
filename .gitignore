@@ -29,3 +29,11 @@ yarn-error.log*
 
 #  
 .env
+
+# test report
+store-service/coverage.out
+store-service/coverage.xml
+store-service/report.xml
+
+# python
+.venv/

@@ -1,0 +1,5 @@
+vendor/
+
+**/coverage.out
+**/coverage.xml
+**/report.xml
