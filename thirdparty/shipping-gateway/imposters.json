@@ -1,5 +1,5 @@
 {
-  "port": 8882,
+  "port": 8883,
   "protocol": "http",
   "defaultResponse": {
     "statusCode": 400,
@@ -21,7 +21,7 @@
       ],
       "responses": [
         {
-          "inject": "<%-stringify(filename, 'response.js') %>"
+          "inject": "<%-stringify(filename, 'shipping-gateway/response.js') %>"
         }
       ]
     }

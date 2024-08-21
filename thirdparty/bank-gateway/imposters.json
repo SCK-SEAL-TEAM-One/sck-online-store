@@ -21,7 +21,7 @@
       ],
       "responses": [
         {
-          "inject": "<%-stringify(filename, 'response.js') %>"
+          "inject": "<%-stringify(filename, 'bank-gateway/response.js') %>"
         }
       ]
     },

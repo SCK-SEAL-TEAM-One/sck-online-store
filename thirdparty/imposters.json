@@ -1,0 +1,6 @@
+{
+  "imposters": [
+        <% include bank-gateway/imposters.json %>,
+        <% include shipping-gateway/imposters.json %>
+    ]
+}
