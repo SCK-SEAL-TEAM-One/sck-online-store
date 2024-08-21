@@ -26,8 +26,8 @@ import (
 
 func main() {
 
-	bankGatewayEndpoint := "bank-gateway:8882"
-	shippingGatewayEndpoint := "shipping-gateway:8882"
+	bankGatewayEndpoint := "thirdparty:8882"
+	shippingGatewayEndpoint := "thirdparty:8883"
 	pointGatewayEndpoint := "point-service:8001"
 	storeWebEndpoint := "http://localhost:3000"
 

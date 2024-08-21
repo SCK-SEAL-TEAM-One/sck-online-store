@@ -27,15 +27,15 @@ code_analysis_backend:
 	cd store-service && go vet ./...
 
 # run backend api include arrange system
-backend_start: store_service point_service bank shipping
+backend_start: store_service point_service thirdparty
 
 # run all arrange systems of backend
-backend_setup: store_db point_service bank shipping
+backend_setup: store_db point_service thirdparty
 
-# run all test of backend
 backend_clear_test_cache:
 	cd store-service && go clean --testcache
 
+# run all test of backend
 backend_test_all: backend_unit_test setup_test_fixtures backend_integration_test all_done
 
 backend_unit_test:
@@ -43,7 +43,7 @@ backend_unit_test:
 	cd store-service && go test 2>&1 ./... | go-junit-report -set-exit-code > report.xml
 
 setup_test_fixtures:
-	docker compose up -d db bank-gateway shipping-gateway
+	docker compose up -d db thirdparty
 
 backend_integration_test: setup_test_fixtures
 	cd store-service && go test -tags=integration ./...
@@ -61,11 +61,8 @@ point_service:
 store_web:
 	docker compose up -d store-web --build
 
-bank:
-	docker compose up -d bank-gateway --build
-
-shipping:
-	docker compose up -d shipping-gateway --build
+thirdparty:
+	docker compose up -d thirdparty --build
 
 down:
 	docker compose down
@@ -83,7 +80,7 @@ build_nginx:
 	docker compose build nginx
 
 start_test_suite:
-	docker compose up -d bank-gateway shipping-gateway point-service db store-service store-web nginx --build
+	docker compose up -d thirdparty point-service db store-service store-web nginx --build
 
 stop_test_suite:
 	docker compose down

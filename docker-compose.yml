@@ -53,23 +53,15 @@ services:
       retries: 10
       start_period: 5s
 
-  bank-gateway:
-    image: store-bank-gateway:0.0.1
+  thirdparty:
+    image: store-shipping-gateway:0.0.1
     build:
-      context: thirdparty/bank-gateway
-    container_name: bank-gateway
+      context: thirdparty/
+    container_name: thirdparty
     restart: always
     ports:
       - "8882:8882"
-
-  shipping-gateway:
-    image: store-shipping-gateway:0.0.1
-    build:
-      context: thirdparty/shipping-gateway
-    container_name: shipping-gateway
-    restart: always
-    ports:
-      - "8883:8882"
+      - "8883:8883"
 
   store-web:
     image: store-web:0.1.0
