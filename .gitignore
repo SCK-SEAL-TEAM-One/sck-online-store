@@ -37,3 +37,6 @@ store-service/report.xml
 
 # python
 .venv/
+
+# mountebank
+mb*.log
