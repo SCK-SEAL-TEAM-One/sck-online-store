@@ -44,14 +44,16 @@ func main() {
 		storeWebEndpoint = os.Getenv("STORE_WEB_HOST")
 	}
 
-	dbConnecton := "user:password@(db:3306)/store"
-	if os.Getenv("DBCONNECTION") != "" {
-		dbConnecton = os.Getenv("DBCONNECTION")
+	dbConnection := "user:password@(db:3306)/store"
+	if os.Getenv("DB_CONNECTION") != "" {
+		dbConnection = os.Getenv("DB_CONNECTION")
 	}
-	connection, err := sqlx.Connect("mysql", dbConnecton)
+
+	connection, err := sqlx.Connect("mysql", dbConnection)
 	if err != nil {
 		log.Fatalln("cannot connect to database", err)
 	}
+	defer connection.Close()
 
 	productRepository := product.ProductRepositoryMySQL{
 		DBConnection: connection,

@@ -7,7 +7,11 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - BANK_GATEWAY=thirdparty:8882
+      - SHIPPING_GATEWAY=thirdparty:8883
+      - POINT_GATEWAY=point-service:8001
       - STORE_WEB_HOST=http://localhost
+      - DB_CONNECTION=user:password@(db:3306)/store
     depends_on:
       db:
         condition: service_healthy
