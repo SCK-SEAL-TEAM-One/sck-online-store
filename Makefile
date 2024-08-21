@@ -40,17 +40,17 @@ backend_test_all: backend_unit_test setup_test_fixtures backend_integration_test
 
 backend_unit_test:
 	# cd store-service && go test ./...
-	cd store-service && go test -v 2>&1 ./... | go-junit-report -set-exit-code > report.xml
+	cd store-service && go test 2>&1 ./... | go-junit-report -set-exit-code > report.xml
 
 setup_test_fixtures:
-	docker compose up -d store-db bank-gateway shipping-gateway helloworld
+	docker compose up -d db bank-gateway shipping-gateway
 
 backend_integration_test: setup_test_fixtures
 	cd store-service && go test -tags=integration ./...
 	docker compose down 
 
 store_db:
-	docker compose up -d store-db 
+	docker compose up -d db 
 
 store_service_dev_mode:
 	cd ./store-service/cmd && DBCONNECTION=user:password@\(localhost:3306\)/store POINT_GATEWAY=localhost:8001 BANK_GATEWAY=localhost:8882 SHIPPING_GATEWAY=localhost:8883 go run main.go
@@ -83,7 +83,7 @@ build_nginx:
 	docker compose build nginx
 
 start_test_suite:
-	docker compose up -d bank-gateway shipping-gateway point-service store-db store-service store-web nginx --build
+	docker compose up -d bank-gateway shipping-gateway point-service db store-service store-web nginx --build
 
 stop_test_suite:
 	docker compose down
@@ -99,4 +99,6 @@ run_robot:
 run_newman: 
 	cd atdd/api \
 	&& newman run sck-online-store.postman_collection.json \
-	 -e sck-online-store.local.postman_environment.json
+	 -e sck-online-store.local.postman_environment.json \
+	 -r cli,junit,htmlextra
+
