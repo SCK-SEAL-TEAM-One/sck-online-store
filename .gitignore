@@ -34,6 +34,7 @@ yarn-error.log*
 store-service/coverage.out
 store-service/coverage.xml
 store-service/report.xml
+point-service/coverage
 
 # python
 .venv/
