@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HelloModule } from './hello/hello.module';
 import { PointModule } from './point/point.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Point } from './point/point.entity';
@@ -17,6 +18,7 @@ import { ConfigModule } from '@nestjs/config';
       entities: [Point],
       synchronize: true,
     }),
+    HelloModule,
     PointModule,
   ],
   controllers: [],
