@@ -1,0 +1,89 @@
+{
+  "port": 8880,
+  "protocol": "http",
+  "defaultResponse": {
+    "statusCode": 400,
+    "headers": {
+      "Connection": "Keep-Alive",
+      "Content-Length": 0
+    }
+  },
+  "stubs": [
+    {
+      "predicates": [
+        {
+          "equals": {
+            "method": "GET",
+            "path": "/sample/users"
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": { "Content-Types": "application/json" },
+            "body": [
+              {
+                "id": 1,
+                "name": "John",
+                "age": 36
+              },
+              {
+                "id": 2,
+                "name": "Jane",
+                "age": 23
+              }
+            ]
+          }
+        },
+        {
+          "is": {
+            "statusCode": 404,
+            "headers": { "Content-Types": "application/json" },
+            "body": {
+              "message": "Not found"
+            }
+          },
+          "_behaviors": {
+            "wait": 3000
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "equals": {
+            "method": "POST"
+          }
+        },
+        {
+          "equals": {
+            "path": "/sample/users"
+          }
+        },
+        {
+          "jsonpath": { "selector": "$.name" },
+          "caseSensitive": true,
+          "equals": { "body": "Meng" }
+        },
+        {
+          "jsonpath": { "selector": "$.age" },
+          "equals": { "body": 34 }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 201,
+            "headers": { "Content-Types": "application/json" },
+            "body": {
+              "message": "Success"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+{
+	"info": {
+		"_postman_id": "250d4154-4a89-4fbb-a002-27ffed7b2d85",
+		"name": "workshop",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9475914"
+	},
+	"item": [
+		{
+			"name": "hello",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response body is of type text/html\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response body contains the expected content 'Hello'\", function () {",
+							"    pm.expect(pm.response.text()).equal(\"Hello\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response schema validation for text/html format\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8001/api/v1/hello",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"api",
+						"v1",
+						"hello"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create point",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {",
+							"    pm.expect(pm.response.code).to.equal(201);",
+							"});",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('orgId');",
+							"    pm.expect(responseData).to.have.property('userId');",
+							"    pm.expect(responseData).to.have.property('amount');",
+							"    pm.expect(responseData).to.have.property('id');",
+							"    pm.expect(responseData).to.have.property('created');",
+							"    pm.expect(responseData).to.have.property('updated');",
+							"});",
+							"",
+							"",
+							"pm.test(\"OrgId, userId, amount, and id are non-negative integers\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.orgId).to.be.a('number').and.to.be.at.least(0);",
+							"    pm.expect(responseData.userId).to.be.a('number').and.to.be.at.least(0);",
+							"    pm.expect(responseData.amount).to.be.a('number').and.to.be.at.least(0);",
+							"    pm.expect(responseData.id).to.be.a('number').and.to.be.at.least(0);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Created and updated are in a valid date-time format\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.created).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/, \"Created should be in valid date-time format\");",
+							"    pm.expect(responseData.updated).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/, \"Updated should be in valid date-time format\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"orgId\": 1,\n  \"userId\": 1,\n  \"amount\": 200\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{POINT_URL}}/api/v1/point",
+					"host": [
+						"{{POINT_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"point"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get point",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has the required fields - id, orgId, userId, amount, created, and updated\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('array');",
+							"    responseData.forEach(function(data) {",
+							"        pm.expect(data).to.have.property('id');",
+							"        pm.expect(data).to.have.property('orgId');",
+							"        pm.expect(data).to.have.property('userId');",
+							"        pm.expect(data).to.have.property('amount');",
+							"        pm.expect(data).to.have.property('created');",
+							"        pm.expect(data).to.have.property('updated');",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Fields id, orgId, userId, and amount are non-negative integers\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+							"    ",
+							"    responseData.forEach(function(item) {",
+							"        pm.expect(item.id).to.be.a('number').that.is.greaterThan(-1);",
+							"        pm.expect(item.orgId).to.be.a('number').that.is.greaterThan(-1);",
+							"        pm.expect(item.userId).to.be.a('number').that.is.greaterThan(-1);",
+							"        pm.expect(item.amount).to.be.a('number').that.is.greaterThan(-1);",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Created and updated fields are in a valid date-time format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    responseData.forEach(function(item) {",
+							"        pm.expect(item.created).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/);",
+							"        pm.expect(item.updated).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/);",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{POINT_URL}}/api/v1/point",
+					"host": [
+						"{{POINT_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"point"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
