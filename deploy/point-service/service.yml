@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: point-service-deployment
+  labels:
+    app: point-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: point-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: point-service
+    spec:
+      containers:
+      - name: point-service
+        image: srank123/point-service
+        env:
+        - name: DB_HOST
+          value: host.docker.internal
+        - name: DB_PORT
+          value: "3308"
+        - name: DB_USERNAME
+          value: user
+        - name: DB_PASSWORD
+          value: password
+        ports:
+        - containerPort: 8001
+        livenessProbe:
+          httpGet:
+            path: /api/v1/point
+            port: 8001
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/point
+            port: 8001
+          initialDelaySeconds: 3
+          periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: point-service-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: point-service
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
