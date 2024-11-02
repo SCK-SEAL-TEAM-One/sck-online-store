@@ -34,6 +34,7 @@ pipeline {
     stage('setup test fixtures') {
       steps {
         sh 'make setup_test_fixtures'
+        sh 'sleep 8'
       }
     }
 
