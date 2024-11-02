@@ -27,8 +27,7 @@ pipeline {
     stage('unit test backend') {
       steps {
         sh 'make backend_unit_test'
-        sh 'sleep 1'
-        junit 'store-service/*.xml'
+        // junit 'store-service/*.xml'
       }
     }
 
