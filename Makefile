@@ -39,11 +39,12 @@ backend_clear_test_cache:
 backend_test_all: backend_unit_test setup_test_fixtures backend_integration_test all_done
 
 backend_unit_test:
-	# cd store-service && go test ./...
-	cd store-service && go test 2>&1 ./... | go-junit-report -set-exit-code > report.xml
+	# cd store-service && go test -v ./...
+	cd store-service && go test -v 2>&1 ./... | go-junit-report -set-exit-code > report.xml
 
 setup_test_fixtures:
 	docker compose up -d db thirdparty
+	sleep 7
 
 backend_integration_test: setup_test_fixtures
 	cd store-service && go test -tags=integration ./...
