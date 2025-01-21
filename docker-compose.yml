@@ -14,7 +14,7 @@ services:
       - DB_CONNECTION=user:password@(db:3306)/store
       - OTEL_EXPORTER_OTLP_ENDPOINT=lgtm:4317
       - INSECURE_MODE=true
-      - OTEL_RESOURCE_ATTRIBUTES= service.name=store-service
+      - OTEL_SERVICE_NAME=store-service
 
     depends_on:
       db:
@@ -98,9 +98,24 @@ services:
   lgtm:
     image: grafana/otel-lgtm
     container_name: lgtm
-    profiles:
-      - monitoring
     ports:
       - "4317:4317"
       - "4318:4318"
       - "3001:3000" # dashboard
+
+  beyla:
+    image: grafana/beyla:1.7.0
+    environment:
+      - BEYLA_OPEN_PORT=8000
+      - BEYLA_PROMETHEUS_PORT=8999
+      - BEYLA_TRACE_PRINTER=text
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=store-service
+    pid: "container:store-service"
+    privileged: true
+    ports:
+      - "8999:8999"
+    depends_on:
+      store-service:
+        condition: service_started
