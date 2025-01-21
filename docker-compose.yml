@@ -119,3 +119,19 @@ services:
     depends_on:
       store-service:
         condition: service_started
+
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    ports:
+      - "9104:9104"
+    volumes:
+      - ./monitoring/database/.my.cnf:/.my.cnf
+    depends_on:
+      - db
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
