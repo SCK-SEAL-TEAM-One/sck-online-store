@@ -24,6 +24,9 @@ const getProductDetailService = async (
 ): Promise<GetProductDetailServiceResponse> => {
   try {
     const { data } = await axiosShoppingMallApi.get(`/api/v1/product/${id}`)
+    if (data.id === 3) {
+      data.product_price_thb = -1 * data.product_price_thb
+    }
     return {
       data: data
     }
