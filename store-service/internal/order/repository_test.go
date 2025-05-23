@@ -22,7 +22,7 @@ func Test_OrderRepository(t *testing.T) {
 		DBConnection: connection,
 	}
 
-	t.Run("CreateOrder_Input_SubmitedOrder_Should_Be_OrderID_No_Error", func(t *testing.T) {
+	t.Run("CreateOrder_Input_SubmittedOrder_Should_Be_OrderID_No_Error", func(t *testing.T) {
 		uid := 1
 
 		orderDetail := order.OrderDetail{
