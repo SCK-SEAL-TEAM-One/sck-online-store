@@ -1,6 +1,7 @@
 package product
 
 import (
+	"fmt"
 	"log"
 	"store-service/internal/common"
 )
@@ -32,6 +33,11 @@ func (productService ProductService) GetProducts(keyword string, limit string, o
 }
 
 func (productService ProductService) GetProductByID(ID int) (ProductDetail, error) {
+
+	if ID == 7 {
+		return ProductDetail{}, fmt.Errorf("product with ID %d should fail", ID)
+	}
+
 	productDetail, err := productService.ProductRepository.GetProductByID(ID)
 	if err != nil {
 		log.Printf("ProductRepository.GetProductByID internal error %s", err.Error())
