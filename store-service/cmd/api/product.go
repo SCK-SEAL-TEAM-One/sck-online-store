@@ -12,6 +12,17 @@ type ProductAPI struct {
 	ProductService product.ProductInterface
 }
 
+// @Summary Search products
+// @Description Search for products with optional filtering
+// @Tags product
+// @Accept json
+// @Produce json
+// @Param q query string false "Search keyword"
+// @Param limit query string false "Number of items per page" default(30)
+// @Param offset query string false "Offset for pagination" default(0)
+// @Success 200 {array} product.Product
+// @Failure 500
+// @Router /api/v1/product [get]
 func (api ProductAPI) SearchHandler(context *gin.Context) {
 	keyword := context.DefaultQuery("q", "")
 	limit := context.DefaultQuery("limit", "30")
@@ -28,6 +39,16 @@ func (api ProductAPI) SearchHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, productResult)
 }
 
+// @Summary Get product by ID
+// @Description Get detailed information about a specific product
+// @Tags product
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {object} product.Product
+// @Failure 400 {object} string
+// @Failure 500
+// @Router /api/v1/product/{id} [get]
 func (api ProductAPI) GetProductHandler(context *gin.Context) {
 	idParam := context.Param("id")
 	id, err := strconv.Atoi(idParam)

@@ -13,6 +13,16 @@ type PointAPI struct {
 	PointService point.PointInterface
 }
 
+// @Summary Deduct points from user
+// @Description Deduct points from user's point balance
+// @Tags point
+// @Accept json
+// @Produce json
+// @Param request body point.SubmitedPoint true "Point deduction request"
+// @Success 200 {object} point.Point
+// @Failure 400 {string} string "Bad request error"
+// @Failure 500
+// @Router /api/v1/point [post]
 func (api PointAPI) DeductPointHandler(context *gin.Context) {
 	var request point.SubmitedPoint
 	if err := context.BindJSON(&request); err != nil {
@@ -32,6 +42,14 @@ func (api PointAPI) DeductPointHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, res)
 }
 
+// @Summary Get total points
+// @Description Get user's total point balance
+// @Tags point
+// @Accept json
+// @Produce json
+// @Success 200 {object} point.Point
+// @Failure 500
+// @Router /api/v1/point [get]
 func (api PointAPI) TotalPointHandler(context *gin.Context) {
 	uid := 1
 	res, err := api.PointService.TotalPoint(uid)

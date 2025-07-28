@@ -22,6 +22,10 @@ import (
 	"go.elastic.co/apm/module/apmgin"
 
 	"github.com/penglongli/gin-metrics/ginmetrics"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "store-service/cmd/docs"
 )
 
 var (
@@ -29,7 +33,7 @@ var (
 	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	insecure     = os.Getenv("INSECURE_MODE")
 )
-	
+
 func main() {
 
 	bankGatewayEndpoint := "thirdparty:8882"
@@ -50,7 +54,7 @@ func main() {
 		storeWebEndpoint = os.Getenv("STORE_WEB_HOST")
 	}
 
-	dbConnection := "user:password@(db:3306)/store"
+	dbConnection := "user:password@(localhost:3306)/store"
 	if os.Getenv("DB_CONNECTION") != "" {
 		dbConnection = os.Getenv("DB_CONNECTION")
 	}
@@ -123,13 +127,11 @@ func main() {
 		PointService: pointService,
 	}
 
-
 	route := gin.Default()
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{storeWebEndpoint}
 	route.Use(cors.New(config))
-
 
 	// get global Monitor object
 	m := ginmetrics.GetMonitor()
@@ -168,6 +170,9 @@ func main() {
 			"message": user,
 		})
 	})
+
+	//docs.SwaggerInfo.BasePath = "/api/v1"
+	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	log.Fatal(route.Run(":8000"))
 }
