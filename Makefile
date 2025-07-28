@@ -100,3 +100,8 @@ run_newman:
 	 -e sck-online-store.local.postman_environment.json \
 	 -r cli,junit,htmlextra
 
+code-coverage:
+	cd store-service && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
+
+gen-swagger:
+	cd store-service && swag init -g cmd/main.go -o cmd/docs 
