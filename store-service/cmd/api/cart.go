@@ -18,7 +18,7 @@ type CartAPI struct {
 // @Tags cart
 // @Accept json
 // @Produce json
-// @Success 200 {object} cart.Cart
+// @Success 200 {object} cart.CartResult
 // @Failure 500
 // @Router /api/v1/cart [get]
 func (api CartAPI) GetCartHandler(context *gin.Context) {
@@ -40,7 +40,7 @@ func (api CartAPI) GetCartHandler(context *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body cart.SubmitedCart true "Cart items to add"
-// @Success 200 {object} cart.Cart
+// @Success 200 {object} cart.CartResult
 // @Failure 400 {string} string "Bad request error"
 // @Failure 500
 // @Router /api/v1/cart [post]
@@ -69,7 +69,7 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body cart.SubmitedCart true "Updated cart items"
-// @Success 200 {object} cart.Cart
+// @Success 200 {object} cart.CartResult
 // @Failure 400 {string} string "Bad request error"
 // @Failure 500
 // @Router /api/v1/cart [put]
