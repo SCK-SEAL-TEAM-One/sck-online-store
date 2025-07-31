@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"store-service/internal/cart"
 
@@ -22,16 +23,20 @@ type CartAPI struct {
 // @Failure 500
 // @Router /api/v1/cart [get]
 func (api CartAPI) GetCartHandler(context *gin.Context) {
-	uid := 1
-	cart, err := api.CartService.GetCart(uid)
+	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
+	if uidErr != nil {
+		uid = 1
+	}
+
+	cartDetails, err := api.CartService.GetCart(uid)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"uidErr": err.Error(),
 		})
 		return
 	}
-	context.JSON(http.StatusOK, cart)
+	context.JSON(http.StatusOK, cartDetails)
 }
 
 // @Summary Add items to cart
@@ -52,15 +57,19 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 		return
 	}
 
-	uid := 1
-	cart, err := api.CartService.AddCart(uid, request)
+	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
+	if uidErr != nil {
+		uid = 1
+	}
+
+	addedCart, err := api.CartService.AddCart(uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	context.JSON(http.StatusOK, cart)
+	context.JSON(http.StatusOK, addedCart)
 }
 
 // @Summary Update cart
@@ -81,13 +90,17 @@ func (api CartAPI) UpdateCartHandler(context *gin.Context) {
 		return
 	}
 
-	uid := 1
-	cart, err := api.CartService.UpdateCart(uid, request)
+	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
+	if uidErr != nil {
+		uid = 1
+	}
+
+	updatedCart, err := api.CartService.UpdateCart(uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	context.JSON(http.StatusOK, cart)
+	context.JSON(http.StatusOK, updatedCart)
 }
