@@ -1,0 +1,8 @@
+{
+  "name": "db-seeder",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@faker-js/faker": "^9.9.0"
+  }
+}

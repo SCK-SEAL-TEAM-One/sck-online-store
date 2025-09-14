@@ -53,6 +53,10 @@ backend_integration_test: setup_test_fixtures
 store_db:
 	docker compose up -d db 
 
+store_db_with_seed_data:
+	docker compose up seed --build \
+	&& docker compose up -d db 
+
 store_service_dev_mode:
 	cd ./store-service/cmd && DBCONNECTION=user:password@\(localhost:3306\)/store POINT_GATEWAY=localhost:8001 BANK_GATEWAY=localhost:8882 SHIPPING_GATEWAY=localhost:8883 go run main.go
 
