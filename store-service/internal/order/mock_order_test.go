@@ -111,6 +111,11 @@ func (repo *mockCartRepository) DeleteCart(userID int, productID int) error {
 	return argument.Error(0)
 }
 
+func (repo *mockCartRepository) GetUserIDWithNoCart() (int, error) {
+	argument := repo.Called()
+	return argument.Int(0), argument.Error(1)
+}
+
 type mockShippingRepository struct {
 	mock.Mock
 }

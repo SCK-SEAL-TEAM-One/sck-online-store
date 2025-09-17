@@ -23,9 +23,10 @@ import (
 
 	"github.com/penglongli/gin-metrics/ginmetrics"
 
+	_ "store-service/cmd/docs"
+
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "store-service/cmd/docs"
 )
 
 var (
@@ -131,6 +132,8 @@ func main() {
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{storeWebEndpoint}
+	// allow uid in headers
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "uid"}
 	route.Use(cors.New(config))
 
 	// get global Monitor object

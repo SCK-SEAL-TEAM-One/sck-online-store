@@ -34,3 +34,8 @@ func (repo *mockCartRepository) DeleteCart(userID int, productID int) error {
 	argument := repo.Called(userID, productID)
 	return argument.Error(0)
 }
+
+func (repo *mockCartRepository) GetUserIDWithNoCart() (int, error) {
+	argument := repo.Called()
+	return argument.Int(0), argument.Error(1)
+}

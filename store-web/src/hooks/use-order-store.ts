@@ -130,9 +130,7 @@ const useOrderStore = create<OrderStoreType>()(
     },
     getProductListInCart: async () => {
       // Mock userId
-      const userId = 1
-
-      const productInCart = await GetProductInCartService(userId)
+      const productInCart = await GetProductInCartService()
 
       if (productInCart.data) {
         // const price = productInCart.data.map((item) => {

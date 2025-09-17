@@ -23,12 +23,22 @@ type CartAPI struct {
 // @Failure 500
 // @Router /api/v1/cart [get]
 func (api CartAPI) GetCartHandler(context *gin.Context) {
-	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
-	if uidErr != nil {
-		uid = 1
-	}
+	uidString := context.GetHeader("uid")
+	var cartDetails cart.CartResult
+	var err error
 
-	cartDetails, err := api.CartService.GetCart(uid)
+	if uidString == "" {
+		cartDetails, err = api.CartService.InitCart()
+	} else {
+		uid, uidErr := strconv.Atoi(uidString)
+		if uidErr != nil {
+			context.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid UID header",
+			})
+			return
+		}
+		cartDetails, err = api.CartService.GetCart(uid)
+	}
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -50,19 +60,33 @@ func (api CartAPI) GetCartHandler(context *gin.Context) {
 // @Failure 500
 // @Router /api/v1/cart [post]
 func (api CartAPI) AddCartHandler(context *gin.Context) {
+	uidString := context.GetHeader("uid")
+
 	var request cart.SubmitedCart
+	var addedCart cart.CartResult
+	var err error
+
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
 		log.Printf("bad request %s", err.Error())
 		return
 	}
 
-	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
-	if uidErr != nil {
-		uid = 1
+	if uidString == "" {
+		addedCart, err = api.CartService.AssignAndAddCart(request)
+
+	} else {
+		uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
+		if uidErr != nil {
+			context.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid UID header",
+			})
+			return
+		}
+
+		addedCart, err = api.CartService.AddCart(uid, request)
 	}
 
-	addedCart, err := api.CartService.AddCart(uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

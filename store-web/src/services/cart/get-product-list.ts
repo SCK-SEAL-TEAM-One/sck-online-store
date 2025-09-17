@@ -32,17 +32,16 @@ export type GetProductInCartServiceResponse = {
   message?: string
 }
 
-const GetProductInCartService = async (
-  userId: number
-): Promise<GetProductInCartServiceResponse> => {
-  try {
-    const { data } = await axiosShoppingMallApi.get(`/api/v1/cart`)
-    return {
-      data: data
+const GetProductInCartService =
+  async (): Promise<GetProductInCartServiceResponse> => {
+    try {
+      const { data } = await axiosShoppingMallApi.get(`/api/v1/cart`)
+      return {
+        data: data
+      }
+    } catch (error) {
+      return handleServiceError(error)
     }
-  } catch (error) {
-    return handleServiceError(error)
   }
-}
 
 export default GetProductInCartService

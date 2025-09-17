@@ -2,18 +2,30 @@ package cart
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"store-service/internal/common"
 )
 
 type CartInterface interface {
+	InitCart() (CartResult, error)
 	GetCart(uid int) (CartResult, error)
+	AssignAndAddCart(submitedCart SubmitedCart) (CartResult, error)
 	AddCart(uid int, submitedCart SubmitedCart) (CartResult, error)
 	UpdateCart(uid int, submitedCart SubmitedCart) (CartResult, error)
 }
 
 type CartService struct {
 	CartRepository CartRepository
+}
+
+func (cartService CartService) InitCart() (CartResult, error) {
+	availableUserId, err := cartService.CartRepository.GetUserIDWithNoCart()
+	if err == sql.ErrNoRows {
+		return CartResult{}, errors.New("no available anonymous user IDs")
+	}
+
+	return cartService.GetCart(availableUserId)
 }
 
 func (cartService CartService) GetCart(uid int) (CartResult, error) {
@@ -55,6 +67,15 @@ func (cartService CartService) GetCart(uid int) (CartResult, error) {
 			ReceivePoint:      common.CalculatePoint(totalPriceTHB),
 		},
 	}, err
+}
+
+func (cartService CartService) AssignAndAddCart(submitedCart SubmitedCart) (CartResult, error) {
+	availableUserId, err := cartService.CartRepository.GetUserIDWithNoCart()
+	if err == sql.ErrNoRows {
+		return CartResult{}, errors.New("no available anonymous user IDs")
+	}
+
+	return cartService.AddCart(availableUserId, submitedCart)
 }
 
 func (cartService CartService) AddCart(uid int, submitedCart SubmitedCart) (CartResult, error) {

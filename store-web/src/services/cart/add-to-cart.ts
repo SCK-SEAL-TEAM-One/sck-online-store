@@ -1,11 +1,16 @@
 import axiosShoppingMallApi from '@/utils/axios'
 import { handleServiceError } from '@/utils/helper'
+import {
+  ProductDetailInCart,
+  ProductDetailInCartSummary
+} from './get-product-list'
 
 // ------------------------------------------------
 
 export type AddToCartServiceResponse = {
   data?: {
-    status: string // added, updated
+    carts: ProductDetailInCart[] // added, updated
+    summary: ProductDetailInCartSummary
   }
   message?: string
 }
@@ -20,13 +25,10 @@ const addToCartService = async ({
   quantity
 }: AddToCartServiceRequest): Promise<AddToCartServiceResponse> => {
   try {
-    const { data } = await axiosShoppingMallApi.put(
-      `/api/v1/addCart`,
-      {
-        product_id: productId,
-        quantity: quantity
-      }
-    )
+    const { data } = await axiosShoppingMallApi.put(`/api/v1/addCart`, {
+      product_id: productId,
+      quantity: quantity
+    })
     return {
       data: data
     }

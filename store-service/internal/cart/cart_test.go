@@ -8,6 +8,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_InitCart_Should_be_Empty(t *testing.T) {
+	// Arrange
+	expected := cart.CartResult{
+		Carts:   []cart.CartDetail{},
+		Summary: cart.CartSummary{},
+	}
+	availableUserId := 2
+	mockCartRepository := new(mockCartRepository)
+	mockCartRepository.On("GetUserIDWithNoCart").Return(availableUserId, nil)
+	mockCartRepository.On("GetCartDetail", availableUserId).Return([]cart.CartDetail{}, nil)
+
+	cartService := cart.CartService{
+		CartRepository: mockCartRepository,
+	}
+
+	// Act
+	actual, err := cartService.InitCart()
+
+	// Assert
+	assert.Equal(t, expected, actual)
+	assert.Equal(t, nil, err)
+}
+
 func Test_GetCart_Should_be_Have_Data_and_Receive_Point_4(t *testing.T) {
 	expected := cart.CartResult{
 		Carts: []cart.CartDetail{
@@ -76,6 +99,71 @@ func Test_GetCart_Should_be_Empty(t *testing.T) {
 	}
 	actual, err := cartService.GetCart(uid)
 
+	assert.Equal(t, expected, actual)
+	assert.Equal(t, nil, err)
+}
+
+func Test_AssignAndAddCart_Input_Submitted_First_Product_Should_Have_1_Quantity_And_and_Receive_Point_43(t *testing.T) {
+	// Arrange
+	expected := cart.CartResult{
+		Carts: []cart.CartDetail{
+			{
+				ID:           1,
+				UserID:       2,
+				ProductID:    1,
+				Quantity:     1,
+				Name:         "Balance Training Bicycle",
+				Price:        119.95,
+				PriceTHB:     4314.6,
+				PriceFullTHB: 4314.597182,
+				Image:        "/Balance_Training_Bicycle.png",
+				Stock:        100,
+				Brand:        "SportsFun",
+			},
+		},
+		Summary: cart.CartSummary{
+			TotalPrice:        119.95,
+			TotalPriceTHB:     4314.6,
+			TotalPriceFullTHB: 4314.597182,
+			ReceivePoint:      43,
+		},
+	}
+	submittedCart := cart.SubmitedCart{
+		ProductID: 1,
+		Quantity:  1,
+	}
+	availableUserId := 2
+
+	mockCartRepository := new(mockCartRepository)
+	mockCartRepository.On("GetUserIDWithNoCart").Return(availableUserId, nil)
+	mockCartRepository.On("GetCartByProductID", availableUserId, submittedCart.ProductID).Return(cart.Cart{}, sql.ErrNoRows)
+	mockCartRepository.On("CreateCart", availableUserId, submittedCart.ProductID, submittedCart.Quantity).Return(1, nil)
+
+	res := []cart.CartDetail{
+		{
+			ID:           1,
+			UserID:       2,
+			ProductID:    1,
+			Quantity:     1,
+			Name:         "Balance Training Bicycle",
+			Price:        119.95,
+			PriceTHB:     0,
+			PriceFullTHB: 0,
+			Image:        "/Balance_Training_Bicycle.png",
+			Stock:        100,
+			Brand:        "SportsFun",
+		},
+	}
+	mockCartRepository.On("GetCartDetail", availableUserId).Return(res, nil)
+
+	cartService := cart.CartService{
+		CartRepository: mockCartRepository,
+	}
+
+	// Act
+	actual, err := cartService.AssignAndAddCart(submittedCart)
+
+	// Assert
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
 }
