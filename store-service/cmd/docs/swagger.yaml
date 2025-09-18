@@ -1,0 +1,408 @@
+definitions:
+  api.OrderConfirmation:
+    description: Order confirmation response containing order ID
+    properties:
+      order_id:
+        type: integer
+    type: object
+  cart.CartDetail:
+    properties:
+      id:
+        type: integer
+      product_brand:
+        type: string
+      product_id:
+        type: integer
+      product_image:
+        type: string
+      product_name:
+        type: string
+      product_price:
+        type: number
+      product_price_full_thb:
+        type: number
+      product_price_thb:
+        type: number
+      quantity:
+        type: integer
+      stock:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  cart.CartResult:
+    properties:
+      carts:
+        items:
+          $ref: '#/definitions/cart.CartDetail'
+        type: array
+      summary:
+        $ref: '#/definitions/cart.CartSummary'
+    type: object
+  cart.CartSummary:
+    properties:
+      receive_point:
+        type: integer
+      total_price:
+        type: number
+      total_price_full_thb:
+        type: number
+      total_price_thb:
+        type: number
+    type: object
+  cart.SubmitedCart:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  order.OrderProduct:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  order.SubmitedOrder:
+    properties:
+      burn_point:
+        type: integer
+      cart:
+        items:
+          $ref: '#/definitions/order.OrderProduct'
+        type: array
+      discount_price:
+        type: number
+      payment_method_id:
+        type: integer
+      recipient_first_name:
+        type: string
+      recipient_last_name:
+        type: string
+      recipient_phone_number:
+        type: string
+      shipping_address:
+        type: string
+      shipping_district:
+        type: string
+      shipping_method_id:
+        type: integer
+      shipping_province:
+        type: string
+      shipping_sub_disterict:
+        type: string
+      shipping_zip_code:
+        type: string
+      sub_total_price:
+        type: number
+      total_price:
+        type: number
+    type: object
+  payment.SubmitedPayment:
+    properties:
+      order_id:
+        type: integer
+      otp:
+        type: integer
+      ref_otp:
+        type: string
+    type: object
+  payment.SubmitedPaymentResponse:
+    properties:
+      order_id:
+        type: integer
+      payment_date:
+        type: string
+      shipping_method_id:
+        type: integer
+      tracking_number:
+        type: string
+    type: object
+  point.Point:
+    properties:
+      amount:
+        type: integer
+      orgId:
+        type: integer
+      userId:
+        type: integer
+    type: object
+  point.SubmitedPoint:
+    properties:
+      amount:
+        type: integer
+    type: object
+  product.Product:
+    properties:
+      id:
+        type: integer
+      product_image:
+        type: string
+      product_name:
+        type: string
+      product_price:
+        type: number
+      product_price_full_thb:
+        type: number
+      product_price_thb:
+        type: number
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/cart:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the shopping cart for a specific user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cart.CartResult'
+        "500":
+          description: Internal Server Error
+      summary: Get cart by user ID
+      tags:
+      - cart
+    post:
+      consumes:
+      - application/json
+      description: Add new items to user's shopping cart
+      parameters:
+      - description: Cart items to add
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cart.SubmitedCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cart.CartResult'
+        "400":
+          description: Bad request error
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      summary: Add items to cart
+      tags:
+      - cart
+    put:
+      consumes:
+      - application/json
+      description: Update items in user's shopping cart
+      parameters:
+      - description: Updated cart items
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cart.SubmitedCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cart.CartResult'
+        "400":
+          description: Bad request error
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      summary: Update cart
+      tags:
+      - cart
+  /api/v1/order:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new order from the submitted order details
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Order details
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/order.SubmitedOrder'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created order
+          schema:
+            $ref: '#/definitions/api.OrderConfirmation'
+        "400":
+          description: Bad Request - Invalid input
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Submit new order
+      tags:
+      - order
+  /api/v1/payment/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Process and confirm a payment for an order
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Payment details to confirm
+        in: body
+        name: payment
+        required: true
+        schema:
+          $ref: '#/definitions/payment.SubmitedPayment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment confirmation details
+          schema:
+            $ref: '#/definitions/payment.SubmitedPaymentResponse'
+        "400":
+          description: Bad Request - Invalid input
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Confirm payment
+      tags:
+      - payment
+  /api/v1/point:
+    get:
+      consumes:
+      - application/json
+      description: Get user's total point balance
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/point.Point'
+        "500":
+          description: Internal Server Error
+      summary: Get total points
+      tags:
+      - point
+    post:
+      consumes:
+      - application/json
+      description: Deduct points from user's point balance
+      parameters:
+      - description: Point deduction request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/point.SubmitedPoint'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/point.Point'
+        "400":
+          description: Bad request error
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      summary: Deduct points from user
+      tags:
+      - point
+  /api/v1/product:
+    get:
+      consumes:
+      - application/json
+      description: Search for products with optional filtering
+      parameters:
+      - description: Search keyword
+        in: query
+        name: q
+        type: string
+      - default: "30"
+        description: Number of items per page
+        in: query
+        name: limit
+        type: string
+      - default: "0"
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/product.Product'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Search products
+      tags:
+      - product
+  /api/v1/product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product.Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      summary: Get product by ID
+      tags:
+      - product
+swagger: "2.0"

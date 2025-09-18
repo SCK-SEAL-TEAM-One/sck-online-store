@@ -23,10 +23,9 @@ import (
 
 	"github.com/penglongli/gin-metrics/ginmetrics"
 
-	_ "store-service/cmd/docs"
-
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "store-service/cmd/docs"
 )
 
 var (
