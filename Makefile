@@ -50,12 +50,18 @@ backend_integration_test: setup_test_fixtures
 	cd store-service && go test -tags=integration ./...
 	docker compose down 
 
-store_db:
-	docker compose up -d db 
+seed_store_data:
+	docker build -t seed-store-data ./seed \
+	&& docker run --rm --name seed-store-data \
+	-v ./:/app/output \
+	-e SEED_USERS=1000 \
+	-e SEED_PRODUCTS=20000 \
+	-e SEED_SHIPPING_METHODS=4 \
+	-e SEED_PAYMENT_METHODS=4 \
+	seed-store-data
 
-store_db_with_seed_data:
-	docker compose up seed --build \
-	&& docker compose up -d db 
+store_db:
+	docker compose up -d db
 
 store_service_dev_mode:
 	cd ./store-service/cmd && DBCONNECTION=user:password@\(localhost:3306\)/store POINT_GATEWAY=localhost:8001 BANK_GATEWAY=localhost:8882 SHIPPING_GATEWAY=localhost:8883 go run main.go

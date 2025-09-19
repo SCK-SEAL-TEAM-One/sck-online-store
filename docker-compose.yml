@@ -61,18 +61,6 @@ services:
       retries: 10
       start_period: 5s
 
-  seed:
-    build:
-      context: seed/
-    container_name: seed
-    volumes:
-      - ./:/app/output
-    environment:
-      SEED_USERS: 1000 # Minimum 1 user
-      SEED_PRODUCTS: 20000 # Minimum 2 products
-      SEED_SHIPPING_METHODS: 4 # Minimum 1 and maximum 14 shipping methods
-      SEED_PAYMENT_METHODS: 4 # Minimum 1 and maximum 9 payment methods
-
   thirdparty:
     image: store-shipping-gateway:0.0.1
     build:
