@@ -9,7 +9,8 @@
     "lint": "next lint",
     "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,json}\"",
     "cy:open": "cypress open",
-    "cy:run": "cypress run --component"
+    "cy:run": "cypress run --component",
+    "test:component": " cypress run --component --spec \"**/*.cy.tsx\""
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
