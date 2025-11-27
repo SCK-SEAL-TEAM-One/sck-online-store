@@ -82,7 +82,7 @@ const PaymentView = () => {
             PAY NOW
           </Button>
           <Button size="sm" color="default" onClick={handleCancle}>
-            Cancle
+            Cancel
           </Button>
         </div>
       </div>
