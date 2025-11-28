@@ -7,6 +7,7 @@ import (
 	"store-service/cmd/api"
 	"store-service/internal/cart"
 	"store-service/internal/healthcheck"
+	"store-service/internal/middleware"
 	"store-service/internal/order"
 	"store-service/internal/payment"
 	"store-service/internal/shipping"
@@ -23,9 +24,10 @@ import (
 
 	"github.com/penglongli/gin-metrics/ginmetrics"
 
+	_ "store-service/cmd/docs"
+
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "store-service/cmd/docs"
 )
 
 var (
@@ -64,6 +66,11 @@ func main() {
 		log.Fatalln("cannot connect to database", err)
 	}
 	defer connection.Close()
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET is required")
+	}
 
 	productRepository := product.ProductRepositoryMySQL{
 		DBConnection: connection,
@@ -133,6 +140,8 @@ func main() {
 	config.AllowOrigins = []string{storeWebEndpoint}
 	// allow uid in headers
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "uid"}
+	// allow cookies
+	config.AllowCredentials = true
 	route.Use(cors.New(config))
 
 	// get global Monitor object
@@ -150,17 +159,12 @@ func main() {
 	m.Use(route)
 
 	route.Use(apmgin.Middleware(route))
-	route.GET("/api/v1/product", productAPI.SearchHandler)
-	route.GET("/api/v1/product/:id", productAPI.GetProductHandler)
-	route.GET("/api/v1/cart", cartAPI.GetCartHandler)
-	route.PUT("/api/v1/addCart", cartAPI.AddCartHandler)
-	route.PUT("/api/v1/updateCart", cartAPI.UpdateCartHandler)
-	route.POST("/api/v1/order", orderAPI.SubmitOrderHandler)
-	route.POST("/api/v1/confirmPayment", paymentAPI.ConfirmPaymentHandler)
-	route.GET("/api/v1/point", pointAPI.TotalPointHandler)
-	route.POST("/api/v1/point", pointAPI.DeductPointHandler)
 
-	route.GET("/api/v1/health", func(context *gin.Context) {
+	v1 := route.Group("/api/v1")
+	// -------------------------------------------
+	// Public /api/v1 endpoints
+	// -------------------------------------------
+	v1.GET("/health", func(context *gin.Context) {
 		user, err := healthcheck.GetUserNameFromDB(connection)
 		if err != nil {
 			context.JSON(500, gin.H{
@@ -172,6 +176,25 @@ func main() {
 			"message": user,
 		})
 	})
+
+	// -------------------------------------------
+	// Protected /api/v1 endpoints
+	// -------------------------------------------
+	protected := v1.Group("/")
+	protected.Use(middleware.AuthUser(jwtSecret))
+
+	protected.GET("/product", productAPI.SearchHandler)
+	protected.GET("/product/:id", productAPI.GetProductHandler)
+
+	protected.GET("/cart", cartAPI.GetCartHandler)
+	protected.PUT("/addCart", cartAPI.AddCartHandler)
+	protected.PUT("/updateCart", cartAPI.UpdateCartHandler)
+
+	protected.POST("/order", orderAPI.SubmitOrderHandler)
+	protected.POST("/confirmPayment", paymentAPI.ConfirmPaymentHandler)
+
+	protected.GET("/point", pointAPI.TotalPointHandler)
+	protected.POST("/point", pointAPI.DeductPointHandler)
 
 	//docs.SwaggerInfo.BasePath = "/api/v1"
 	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
