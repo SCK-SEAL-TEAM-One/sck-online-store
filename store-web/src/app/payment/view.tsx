@@ -79,7 +79,7 @@ const PaymentView = () => {
 
         <div className="flex gap-2 mt-12">
           <Button size="sm" color="primary" onClick={handlePaymentConfirm}>
-            PAY NOW
+            OK
           </Button>
           <Button size="sm" color="default" onClick={handleCancle}>
             Cancel
