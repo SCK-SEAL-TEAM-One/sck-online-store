@@ -1,6 +1,13 @@
 package user
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+)
+
+type PasswordHelperInterface interface {
+	CheckPasswordHash(password, hash string) bool
+	HashPassword(password string) (string, error)
+}
 
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))

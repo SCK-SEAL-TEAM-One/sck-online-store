@@ -2,7 +2,7 @@ package auth
 
 import (
 	"errors"
-	"store-service/internal/common"
+	"store-service/internal/user"
 	"time"
 )
 
@@ -16,6 +16,7 @@ type AuthInterface interface {
 type AuthService struct {
 	UserRepository  UserRepository
 	JWTTokenManager JWTTokenManagerInterface
+	HashHelper      user.PasswordHelperInterface
 }
 
 type TokenPair struct {
@@ -34,7 +35,7 @@ func (service AuthService) Login(username, password string) (TokenPair, error) {
 		return TokenPair{}, ErrUserNotFound
 	}
 
-	if !common.CheckPasswordHash(password, user.Password) {
+	if !service.HashHelper.CheckPasswordHash(password, user.Password) {
 		return TokenPair{}, ErrInvalidCredentials
 	}
 
