@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: changelogs/001-add-username-password-to-users.yaml
+      relativeToChangelogFile: true

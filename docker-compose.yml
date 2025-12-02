@@ -15,6 +15,7 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=lgtm:4317
       - INSECURE_MODE=true
       - OTEL_SERVICE_NAME=store-service
+      - JWT_SECRET=my-secret-key
 
     depends_on:
       db:
@@ -60,6 +61,53 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+
+  seed:
+    image: golang:1.24.5
+    container_name: seed-users
+    working_dir: /app/store-service
+    volumes:
+      - .:/app
+      - shared_data:/shared
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_CONNECTION=user:password@(db:3306)/store
+      - OUTPUT_DIR=/shared
+    command: ["go", "run", "./cmd/seed/main.go"]
+
+  liquibase:
+    build:
+      context: .
+      dockerfile: db/Dockerfile
+    container_name: liquibase
+    depends_on:
+      db:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+    working_dir: /liquibase/changelog
+    volumes:
+      - ./db:/liquibase/changelog
+      - shared_data:/liquibase/seed
+    command:
+      [
+        "update",
+        "--url=jdbc:mysql://db:3306/store?useSSL=false&allowPublicKeyRetrieval=true",
+        "--username=user",
+        "--password=password",
+        "--changelog-file=changelog-master.yaml",
+      ]
+
+  adminer:
+    image: adminer
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
 
   thirdparty:
     image: store-shipping-gateway:0.0.1
@@ -135,3 +183,6 @@ services:
       - 9090:9090
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+volumes:
+  shared_data:
