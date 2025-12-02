@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"store-service/cmd/api"
+	"store-service/internal/auth"
 	"store-service/internal/cart"
 	"store-service/internal/healthcheck"
 	"store-service/internal/middleware"
@@ -84,6 +85,12 @@ func main() {
 	shippingRepository := shipping.ShippingRepositoryMySQL{
 		DBConnection: connection,
 	}
+	userRepository := auth.UserRepositoryMySQL{
+		DBConnection: connection,
+	}
+	jwtManager := &auth.JWTTokenManager{
+		SecretKey: jwtSecret,
+	}
 
 	bankGateway := payment.BankGateway{
 		BankEndpoint: "http://" + bankGatewayEndpoint,
@@ -117,6 +124,10 @@ func main() {
 		ProductRepository:  productRepository,
 		ShippingRepository: shippingRepository,
 	}
+	authService := auth.AuthService{
+		UserRepository:  userRepository,
+		JWTTokenManager: jwtManager,
+	}
 
 	cartAPI := api.CartAPI{
 		CartService: &cartService,
@@ -132,6 +143,9 @@ func main() {
 	}
 	pointAPI := api.PointAPI{
 		PointService: pointService,
+	}
+	authAPI := api.AuthAPI{
+		AuthService: authService,
 	}
 
 	route := gin.Default()
@@ -176,6 +190,9 @@ func main() {
 			"message": user,
 		})
 	})
+
+	v1.GET("/refreshToken", authAPI.RefreshTokenHandler)
+	v1.POST("/login", authAPI.LoginHandler)
 
 	// -------------------------------------------
 	// Protected /api/v1 endpoints
