@@ -153,7 +153,7 @@ func main() {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{storeWebEndpoint}
 	// allow uid in headers
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "uid"}
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "uid", "Authorization"}
 	// allow cookies
 	config.AllowCredentials = true
 	route.Use(cors.New(config))
