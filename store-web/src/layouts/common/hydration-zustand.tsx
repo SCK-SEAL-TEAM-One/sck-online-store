@@ -12,7 +12,11 @@ const HydrationZustand = ({ children }: { children: React.ReactNode }) => {
   }, [])
 
   if (!isHydrated) {
-    return <p>Loading data ...</p> // #TODO: Full loading component
+    return (
+      <div className="w-screen h-screen flex justify-center items-center">
+        <span className="loading loading-spinner loading-xl"></span>
+      </div>
+    )
   }
 
   return <>{children}</>
