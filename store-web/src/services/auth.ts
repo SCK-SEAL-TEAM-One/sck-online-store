@@ -1,5 +1,5 @@
 import axiosShoppingMallApi from '@/utils/axios'
-import { handleServiceError } from '@/utils/helper'
+import { isAxiosError } from 'axios'
 
 export interface LoginPayload {
   username: string
@@ -12,6 +12,7 @@ export interface LoginSuccessResponse {
 }
 
 export type LoginResponse = {
+  status?: number
   data?: LoginSuccessResponse
   message?: string
 }
@@ -24,12 +25,45 @@ export const Login = async (payload: LoginPayload): Promise<LoginResponse> => {
       accessToken: accessToken,
       message: data.message
     }
-
     return {
       data: responseData
     }
   } catch (error) {
-    // #TODO: Adjust error handle logic
-    return handleServiceError(error)
+    if (isAxiosError(error)) {
+      return {
+        status: error.status,
+        message: error.message
+      }
+    }
+    return {
+      status: 500,
+      message: 'Unknown Error'
+    }
+  }
+}
+
+export const RefreshToken = async (): Promise<LoginResponse> => {
+  try {
+    const { data } = await axiosShoppingMallApi.get(`/api/v1/refreshToken`)
+    const accessToken = data.access_token
+    const responseData: LoginSuccessResponse = {
+      accessToken: accessToken,
+      message: data.message
+    }
+    return {
+      data: responseData
+    }
+  } catch (error) {
+    if (isAxiosError(error)) {
+      return {
+        status: error.status,
+        message: error.message
+      }
+    }
+
+    return {
+      status: 500,
+      message: 'Unknown Error'
+    }
   }
 }
