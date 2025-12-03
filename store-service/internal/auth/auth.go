@@ -16,6 +16,7 @@ type AuthInterface interface {
 type AuthService struct {
 	UserRepository  UserRepository
 	JWTTokenManager JWTTokenManagerInterface
+	PasswordHelper  user.PasswordHelper
 }
 
 type TokenPair struct {
@@ -34,7 +35,7 @@ func (service AuthService) Login(username, password string) (TokenPair, error) {
 		return TokenPair{}, ErrUserNotFound
 	}
 
-	if !user.CheckPasswordHash(password, userInfo.Password) {
+	if !service.PasswordHelper.CheckPasswordHash(password, userInfo.Password) {
 		return TokenPair{}, ErrInvalidCredentials
 	}
 

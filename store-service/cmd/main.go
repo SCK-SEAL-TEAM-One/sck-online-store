@@ -12,6 +12,7 @@ import (
 	"store-service/internal/order"
 	"store-service/internal/payment"
 	"store-service/internal/shipping"
+	"store-service/internal/user"
 
 	"store-service/internal/point"
 	"store-service/internal/product"
@@ -127,6 +128,7 @@ func main() {
 	authService := auth.AuthService{
 		UserRepository:  userRepository,
 		JWTTokenManager: jwtManager,
+		PasswordHelper:  user.BcryptPasswordChecker{},
 	}
 
 	cartAPI := api.CartAPI{
