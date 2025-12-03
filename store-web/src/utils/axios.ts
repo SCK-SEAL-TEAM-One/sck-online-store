@@ -1,4 +1,5 @@
 import { useUserStore } from '@/hooks/use-user-store'
+import { RefreshToken } from '@/services/auth'
 import axios from 'axios'
 
 // ----------------------------------------------------------------------------
@@ -30,13 +31,65 @@ axiosShoppingMallApi.interceptors.request.use(
   }
 )
 
+let isRefreshing = false
+let queue: Array<(token: string) => void> = []
+
+function addToQueue(callback: (token: string) => void) {
+  queue.push(callback)
+}
+
+function processQueue(newToken: string) {
+  queue.forEach((cb) => cb(newToken))
+  queue = []
+}
+
 axiosShoppingMallApi.interceptors.response.use(
   (response) => {
     return response
   },
-  (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = '/auth/login'
+  async (error) => {
+    const originalRequest = error.config
+    if (!originalRequest) return Promise.reject(error)
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Wait to retry if the token is already refreshed
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          addToQueue((token) => {
+            originalRequest.headers['Authorization'] = `Bearer ${token}`
+            resolve(axiosShoppingMallApi(originalRequest))
+          })
+        })
+      }
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const response = await RefreshToken()
+        if (!response?.data) {
+          window.location.href = '/auth/login'
+          return
+        }
+
+        const { accessToken } = response.data
+        localStorage.setItem('accessToken', accessToken)
+
+        axiosShoppingMallApi.defaults.headers.common['Authorization'] =
+          `Bearer ${accessToken}`
+
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          Authorization: `Bearer ${accessToken}`
+        }
+
+        // Run the queue of previously unauthorized requests
+        processQueue(accessToken)
+
+        return axiosShoppingMallApi(originalRequest)
+      } catch (error) {
+        window.location.href = '/auth/login'
+        return Promise.reject(error)
+      }
     }
     return Promise.reject(error)
   }
