@@ -15,7 +15,11 @@ type User struct {
 	ID int `json:"id" db:"id"`
 }
 
-func GenerateUpdateUserDataCSV(outputDir string, db *sqlx.DB) error {
+type SeedUserData struct {
+	PasswordHelper user.PasswordHelper
+}
+
+func (seed SeedUserData) GenerateUpdateUserDataCSV(outputDir string, db *sqlx.DB) error {
 	filePath := filepath.Join(outputDir, "001-users-with-username-password.csv")
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -42,7 +46,7 @@ func GenerateUpdateUserDataCSV(outputDir string, db *sqlx.DB) error {
 
 	defaultPassword := "P@ssw0rd"
 	for _, u := range users {
-		hashed, err := user.HashPassword(defaultPassword)
+		hashed, err := seed.PasswordHelper.HashPassword(defaultPassword)
 		if err != nil {
 			return err
 		}
