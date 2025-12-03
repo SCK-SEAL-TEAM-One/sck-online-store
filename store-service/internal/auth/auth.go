@@ -16,7 +16,6 @@ type AuthInterface interface {
 type AuthService struct {
 	UserRepository  UserRepository
 	JWTTokenManager JWTTokenManagerInterface
-	HashHelper      user.PasswordHelperInterface
 }
 
 type TokenPair struct {
@@ -30,12 +29,12 @@ var (
 )
 
 func (service AuthService) Login(username, password string) (TokenPair, error) {
-	user, err := service.UserRepository.FindByUsername(username)
+	userInfo, err := service.UserRepository.FindByUsername(username)
 	if err != nil {
 		return TokenPair{}, ErrUserNotFound
 	}
 
-	if !service.HashHelper.CheckPasswordHash(password, user.Password) {
+	if !user.CheckPasswordHash(password, userInfo.Password) {
 		return TokenPair{}, ErrInvalidCredentials
 	}
 
@@ -43,10 +42,10 @@ func (service AuthService) Login(username, password string) (TokenPair, error) {
 	refreshTokenTtl := 24 * time.Hour * 30 // 30 days
 
 	claims := Claims{
-		UserID:    user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Username:  user.Username,
+		UserID:    userInfo.ID,
+		FirstName: userInfo.FirstName,
+		LastName:  userInfo.LastName,
+		Username:  userInfo.Username,
 	}
 
 	accessToken, err := service.GetAccessToken(claims, accessTokenTtl)
