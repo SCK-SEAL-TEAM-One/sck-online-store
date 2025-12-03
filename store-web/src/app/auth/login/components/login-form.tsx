@@ -2,6 +2,7 @@
 
 import Button from '@/components/button/button'
 import InputField from '@/components/input-field'
+import { Login } from '@/services/auth'
 import { useState } from 'react'
 import { GoogleIcon } from './google-icon'
 
@@ -15,13 +16,21 @@ const LoginForm = () => {
     password: ''
   })
 
-  const handleLogin = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLogin = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
     const isValidInputs = validateInputs()
 
     if (!isValidInputs) return
-    console.log('form,', form)
+    const result = await Login(form)
+
+    if (result.data) {
+      const { accessToken } = result.data
+      localStorage.setItem('accessToken', accessToken)
+      window.location.href = `/product/list`
+    } else {
+      alert('Error Checkout, Please Try Again')
+    }
   }
 
   const handleChange = ({
