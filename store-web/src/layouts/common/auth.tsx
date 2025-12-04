@@ -1,9 +1,20 @@
 // ----------------------------------------------------------------------------
 
 import config from '@/config'
+import { useUserStore } from '@/hooks/use-user-store'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+  const user = useUserStore((state) => state.user)
+  const route = useRouter()
+  useEffect(() => {
+    if (user) {
+      route.push('/product/list')
+    }
+  }, [user, route])
+
   return (
     <div className="flex h-screen">
       <div className="basis-[51%] flex justify-center items-center">
