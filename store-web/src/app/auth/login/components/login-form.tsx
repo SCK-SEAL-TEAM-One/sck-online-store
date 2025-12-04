@@ -111,8 +111,8 @@ const LoginForm = () => {
               <button
                 id="forget-password-btn"
                 type="button"
-                className="text-[10px] font-medium text-indigo-600 hover:text-indigo-500 underline flex gap-1 items-center"
-                // onClick={onClick}
+                // className="text-[10px] font-medium text-indigo-600 hover:text-indigo-500 underline flex gap-1 items-center"
+                className="text-[10px] font-medium text-slate-500 hover:text-slate-700 underline flex gap-1 items-center pointer-events-none"
               >
                 Forget Password?
               </button>
@@ -138,7 +138,8 @@ const LoginForm = () => {
         </div>
         <button
           id="login-with-google-btn"
-          className="bg-white text-xs font-medium w-full px-3 py-2 text-gray-900 border border-gray-200 rounded-md hover:bg-slate-50"
+          // className="bg-white text-xs font-medium w-full px-3 py-2 text-gray-900 border border-gray-200 rounded-md hover:bg-slate-50"
+          className="bg-slate-100 text-xs font-medium w-full px-3 py-2 pointer-events-none text-gray-900 border border-gray-200 rounded-md hover:bg-slate-50"
         >
           <span className="flex justify-center items-center gap-2">
             <GoogleIcon />
@@ -150,8 +151,8 @@ const LoginForm = () => {
           <button
             id="register-btn"
             type="button"
-            className="text-indigo-600 hover:text-indigo-500 flex gap-1 items-center"
-            // onClick={onClick}
+            // className="text-indigo-600 hover:text-indigo-500 flex gap-1 items-center"
+            className="pointer-events-none text-slate-500 hover:text-slate-600 flex gap-1 items-center"
           >
             Register
           </button>
