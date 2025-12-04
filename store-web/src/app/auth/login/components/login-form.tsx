@@ -2,11 +2,14 @@
 
 import Button from '@/components/button/button'
 import InputField from '@/components/input-field'
+import { UserInfo, useUserStore } from '@/hooks/use-user-store'
 import { Login } from '@/services/auth'
+import { decodeJWT } from '@/utils/jwt'
 import { useEffect, useState } from 'react'
 import { GoogleIcon } from './google-icon'
 
 const LoginForm = () => {
+  const setUser = useUserStore((state) => state.setUser)
   const [form, setForm] = useState({
     username: '',
     password: ''
@@ -25,6 +28,16 @@ const LoginForm = () => {
     if (result.data) {
       const { accessToken } = result.data
       localStorage.setItem('accessToken', accessToken)
+
+      const payload = decodeJWT(accessToken)
+      const user: UserInfo = {
+        userId: payload.user_id,
+        firstName: payload.first_name,
+        lastName: payload.last_name,
+        username: payload.username
+      }
+      setUser(user)
+
       window.location.href = `/product/list`
     } else {
       alert('Can not login. Please try again')
