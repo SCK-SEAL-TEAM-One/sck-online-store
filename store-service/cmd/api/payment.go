@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"store-service/internal/payment"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,10 +27,7 @@ type PaymentAPI struct {
 // @Failure 500
 // @Router /api/v1/payment/confirm [post]
 func (api PaymentAPI) ConfirmPaymentHandler(context *gin.Context) {
-	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
-	if uidErr != nil {
-		uid = 1
-	}
+	uid := context.GetInt("userID")
 	var request payment.SubmitedPayment
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
