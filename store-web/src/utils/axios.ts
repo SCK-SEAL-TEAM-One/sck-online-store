@@ -70,7 +70,6 @@ axiosShoppingMallApi.interceptors.response.use(
           window.location.href = '/auth/login'
           return
         }
-
         const { accessToken } = response.data
         localStorage.setItem('accessToken', accessToken)
 

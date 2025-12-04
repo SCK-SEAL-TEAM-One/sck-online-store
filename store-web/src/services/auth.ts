@@ -1,5 +1,5 @@
 import axiosShoppingMallApi from '@/utils/axios'
-import { isAxiosError } from 'axios'
+import axios, { isAxiosError } from 'axios'
 
 export interface LoginPayload {
   username: string
@@ -42,13 +42,21 @@ export const Login = async (payload: LoginPayload): Promise<LoginResponse> => {
   }
 }
 
+const refreshTokenInstance = axios.create({
+  baseURL: process.env.storeServiceURL || 'http://localhost:3000',
+  headers: {
+    'Accept-Language': 'en'
+  },
+  withCredentials: true
+})
+
 export const RefreshToken = async (): Promise<LoginResponse> => {
   try {
-    const { data } = await axiosShoppingMallApi.get(`/api/v1/refreshToken`)
-    const accessToken = data.access_token
+    const response = await refreshTokenInstance.get(`/api/v1/refreshToken`)
+    const accessToken = response.data.access_token
     const responseData: LoginSuccessResponse = {
       accessToken: accessToken,
-      message: data.message
+      message: response.data.message
     }
     return {
       data: responseData
@@ -56,11 +64,10 @@ export const RefreshToken = async (): Promise<LoginResponse> => {
   } catch (error) {
     if (isAxiosError(error)) {
       return {
-        status: error.status,
+        status: error.response?.status,
         message: error.message
       }
     }
-
     return {
       status: 500,
       message: 'Unknown Error'
