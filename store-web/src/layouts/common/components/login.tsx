@@ -7,8 +7,8 @@ import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline'
 const Login = () => {
   return (
     <a
-      id='header-menu-login'
-      href="#"
+      id="header-menu-login"
+      href="/auth/login"
       className="text-sm font-semibold leading-6 text-gray-900 flex items-center gap-1"
     >
       Log in
