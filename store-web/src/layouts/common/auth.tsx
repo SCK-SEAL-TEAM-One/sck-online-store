@@ -8,12 +8,13 @@ import { useEffect } from 'react'
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   const user = useUserStore((state) => state.user)
+  const accessToken = localStorage.getItem('accessToken')
   const route = useRouter()
   useEffect(() => {
-    if (user) {
+    if (user && accessToken) {
       route.push('/product/list')
     }
-  }, [user, route])
+  }, [user, accessToken, route])
 
   return (
     <div className="flex h-screen">
