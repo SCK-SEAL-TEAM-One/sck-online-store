@@ -12,7 +12,6 @@ type CartRepository interface {
 	CreateCart(userID int, productID int, quantity int) (int, error)
 	UpdateCart(userID int, productID int, quantity int) error
 	DeleteCart(userID int, productID int) error
-	GetUserIDWithNoCart() (int, error)
 }
 
 type CartRepositoryMySQL struct {
@@ -58,16 +57,4 @@ func (repository CartRepositoryMySQL) DeleteCart(userID int, productID int) erro
 		return fmt.Errorf("no any row affected , delete not completed")
 	}
 	return err
-}
-
-func (repository CartRepositoryMySQL) GetUserIDWithNoCart() (int, error) {
-	var uid int
-	err := repository.DBConnection.Get(&uid, `
-        SELECT u.id
-        FROM users u
-        LEFT JOIN carts c ON u.id = c.user_id
-        WHERE c.id IS NULL
-        ORDER BY u.id ASC
-        LIMIT 1`)
-	return uid, err
 }

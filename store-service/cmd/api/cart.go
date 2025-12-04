@@ -3,7 +3,6 @@ package api
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"store-service/internal/cart"
 
@@ -23,22 +22,11 @@ type CartAPI struct {
 // @Failure 500
 // @Router /api/v1/cart [get]
 func (api CartAPI) GetCartHandler(context *gin.Context) {
-	uidString := context.GetHeader("uid")
 	var cartDetails cart.CartResult
 	var err error
 
-	if uidString == "" {
-		cartDetails, err = api.CartService.InitCart()
-	} else {
-		uid, uidErr := strconv.Atoi(uidString)
-		if uidErr != nil {
-			context.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid UID header",
-			})
-			return
-		}
-		cartDetails, err = api.CartService.GetCart(uid)
-	}
+	uid := context.GetInt("userID")
+	cartDetails, err = api.CartService.GetCart(uid)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -60,8 +48,7 @@ func (api CartAPI) GetCartHandler(context *gin.Context) {
 // @Failure 500
 // @Router /api/v1/cart [post]
 func (api CartAPI) AddCartHandler(context *gin.Context) {
-	uidString := context.GetHeader("uid")
-
+	// uidString := context.GetHeader("uid")
 	var request cart.SubmitedCart
 	var addedCart cart.CartResult
 	var err error
@@ -72,20 +59,8 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 		return
 	}
 
-	if uidString == "" {
-		addedCart, err = api.CartService.AssignAndAddCart(request)
-
-	} else {
-		uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
-		if uidErr != nil {
-			context.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid UID header",
-			})
-			return
-		}
-
-		addedCart, err = api.CartService.AddCart(uid, request)
-	}
+	uid := context.GetInt("userID")
+	addedCart, err = api.CartService.AddCart(uid, request)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -114,11 +89,7 @@ func (api CartAPI) UpdateCartHandler(context *gin.Context) {
 		return
 	}
 
-	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
-	if uidErr != nil {
-		uid = 1
-	}
-
+	uid := context.GetInt("userID")
 	updatedCart, err := api.CartService.UpdateCart(uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
