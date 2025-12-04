@@ -3,7 +3,6 @@ package api
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"store-service/internal/order"
 
@@ -39,11 +38,7 @@ type OrderConfirmation struct {
 // @Failure 500
 // @Router /api/v1/order [post]
 func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
-	uid, uidErr := strconv.Atoi(context.GetHeader("uid"))
-	if uidErr != nil {
-		uid = 1
-	}
-
+	uid := context.GetInt("userID")
 	var request order.SubmitedOrder
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
