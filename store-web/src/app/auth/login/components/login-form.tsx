@@ -3,7 +3,7 @@
 import Button from '@/components/button/button'
 import InputField from '@/components/input-field'
 import { Login } from '@/services/auth'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GoogleIcon } from './google-icon'
 
 const LoginForm = () => {
@@ -16,22 +16,31 @@ const LoginForm = () => {
     password: ''
   })
 
-  const handleLogin = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleLogin = async () => {
     const isValidInputs = validateInputs()
-
     if (!isValidInputs) return
-    const result = await Login(form)
 
+    const result = await Login(form)
     if (result.data) {
       const { accessToken } = result.data
       localStorage.setItem('accessToken', accessToken)
       window.location.href = `/product/list`
     } else {
-      alert('Error Checkout, Please Try Again')
+      alert('Can not login. Please try again')
     }
   }
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleLogin()
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [handleLogin])
 
   const handleChange = ({
     target: { name, value }
@@ -112,9 +121,9 @@ const LoginForm = () => {
           <Button
             id="login-btn"
             type="button"
-            onClick={handleLogin}
             isblock="true"
             size="sm"
+            onClick={() => handleLogin()}
           >
             <span id="login-btn-txt" className="font-bold">
               Login
