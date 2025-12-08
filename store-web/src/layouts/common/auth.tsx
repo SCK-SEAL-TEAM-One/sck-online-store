@@ -2,19 +2,31 @@
 
 import config from '@/config'
 import { useUserStore } from '@/hooks/use-user-store'
+import { decodeJWT } from '@/utils/jwt'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
-  const user = useUserStore((state) => state.user)
+  const { user, setUser } = useUserStore()
   const accessToken = localStorage.getItem('accessToken')
   const route = useRouter()
+
   useEffect(() => {
-    if (user && accessToken) {
-      route.push('/product/list')
+    if (!accessToken) return
+
+    if (!user) {
+      const payload = decodeJWT(accessToken)
+      setUser({
+        userId: payload.user_id,
+        firstName: payload.first_name,
+        lastName: payload.last_name,
+        username: payload.username
+      })
     }
-  }, [user, accessToken, route])
+
+    return route.push('/product/list')
+  }, [user, accessToken, route, setUser])
 
   return (
     <div className="flex h-screen">
