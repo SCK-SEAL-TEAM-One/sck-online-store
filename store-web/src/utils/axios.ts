@@ -1,4 +1,3 @@
-import { useUserStore } from '@/hooks/use-user-store'
 import { RefreshToken } from '@/services/auth'
 import axios from 'axios'
 
@@ -14,14 +13,9 @@ const axiosShoppingMallApi = axios.create({
 
 axiosShoppingMallApi.interceptors.request.use(
   (config) => {
-    const userId = useUserStore.getState().userId
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
-    }
-
-    if (userId) {
-      config.headers['uid'] = userId
     }
 
     return config

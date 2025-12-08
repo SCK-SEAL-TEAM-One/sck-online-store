@@ -5,7 +5,6 @@ import InputQuantity from '@/components/input-quantity'
 import Header1 from '@/components/typography/header1'
 import Text from '@/components/typography/text'
 import useOrderStore from '@/hooks/use-order-store'
-import { useUserStore } from '@/hooks/use-user-store'
 import addToCartService from '@/services/cart/add-to-cart'
 import { ProductDetailType } from '@/services/product-detail'
 import { converNumber, convertCurrency, isNumber } from '@/utils/format'
@@ -17,7 +16,6 @@ import { useState } from 'react'
 const ProductContent = (product: ProductDetailType) => {
   const [quantity, setQuantity] = useState(1)
   const { getProductListInCart } = useOrderStore()
-  const { setUserId } = useUserStore()
 
   const handleQuantityChange = (e: { target: { value: string } }) => {
     if (isNumber(e.target.value)) {
@@ -55,9 +53,6 @@ const ProductContent = (product: ProductDetailType) => {
 
       // Add to cart is Success
       if (result.data) {
-        const { carts } = result.data
-        const { user_id } = carts[0]
-        setUserId(user_id)
         getProductListInCart()
       }
     } else {
