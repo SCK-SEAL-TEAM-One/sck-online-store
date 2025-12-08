@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	ErrNoAuthHeader = errors.New("no authorization header")
-	ErrInvalidAuth  = errors.New("invalid authorization header format")
-	ErrInvalidToken = errors.New("invalid or expired token")
+	ErrNoAuthHeader = errors.New("No authorization header provided.")
+	ErrInvalidAuth  = errors.New("Invalid authorization header format.")
+	ErrInvalidToken = errors.New("Invalid or expired token.")
 )
 
 func ParseAndValidateAuthToken(signature, authHeader string) (*auth.Claims, error) {

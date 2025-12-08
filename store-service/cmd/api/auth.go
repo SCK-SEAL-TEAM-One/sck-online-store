@@ -105,6 +105,6 @@ func (api AuthAPI) LoginHandler(context *gin.Context) {
 	context.SetCookie("refreshToken", tokens.RefreshToken, 24*3600*30, "/", "", false, true)
 	context.JSON(http.StatusOK, gin.H{
 		"access_token": tokens.AccessToken,
-		"message":      "Access token refreshed successfully.",
+		"message":      "Logged in successfully.",
 	})
 }
