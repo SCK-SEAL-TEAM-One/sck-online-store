@@ -1,4 +1,3 @@
-import axiosShoppingMallApi from '@/utils/axios'
 import axios, { isAxiosError } from 'axios'
 
 export interface LoginPayload {
@@ -14,12 +13,21 @@ export interface LoginSuccessResponse {
 export type LoginResponse = {
   status?: number
   data?: LoginSuccessResponse
+  error?: string
   message?: string
 }
 
+const authAxiosInstance = axios.create({
+  baseURL: process.env.storeServiceURL || 'http://localhost:3000',
+  headers: {
+    'Accept-Language': 'en'
+  },
+  withCredentials: true
+})
+
 export const Login = async (payload: LoginPayload): Promise<LoginResponse> => {
   try {
-    const { data } = await axiosShoppingMallApi.post(`/api/v1/login`, payload)
+    const { data } = await authAxiosInstance.post(`/api/v1/login`, payload)
     const accessToken = data.access_token
     const responseData: LoginSuccessResponse = {
       accessToken: accessToken,
@@ -30,9 +38,11 @@ export const Login = async (payload: LoginPayload): Promise<LoginResponse> => {
     }
   } catch (error) {
     if (isAxiosError(error)) {
-      return {
-        status: error.status,
-        message: error.message
+      if (error.response) {
+        return {
+          status: error.response?.status,
+          message: error.response?.data?.message
+        }
       }
     }
     return {
@@ -42,17 +52,9 @@ export const Login = async (payload: LoginPayload): Promise<LoginResponse> => {
   }
 }
 
-const refreshTokenInstance = axios.create({
-  baseURL: process.env.storeServiceURL || 'http://localhost:3000',
-  headers: {
-    'Accept-Language': 'en'
-  },
-  withCredentials: true
-})
-
 export const RefreshToken = async (): Promise<LoginResponse> => {
   try {
-    const response = await refreshTokenInstance.get(`/api/v1/refreshToken`)
+    const response = await authAxiosInstance.get(`/api/v1/refreshToken`)
     const accessToken = response.data.access_token
     const responseData: LoginSuccessResponse = {
       accessToken: accessToken,
@@ -63,9 +65,11 @@ export const RefreshToken = async (): Promise<LoginResponse> => {
     }
   } catch (error) {
     if (isAxiosError(error)) {
-      return {
-        status: error.response?.status,
-        message: error.message
+      if (error.response) {
+        return {
+          status: error.response?.status,
+          message: error.response?.data?.message
+        }
       }
     }
     return {
