@@ -40,7 +40,12 @@ const LoginForm = () => {
 
       window.location.href = `/product/list`
     } else {
-      alert('Can not login. Please try again')
+      if (result.status === 401) {
+        const errorMassage = result.message
+        return alert(errorMassage)
+      } else {
+        alert("Can't login. Please try again")
+      }
     }
   }
 
