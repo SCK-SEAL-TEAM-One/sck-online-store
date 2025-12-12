@@ -100,6 +100,40 @@ run_newman:
 	 -e sck-online-store.local.postman_environment.json \
 	 -r cli,junit,htmlextra
 
+run_newman_authentication:
+	cd atdd/api \
+	&& newman run collections/001-Authentication.postman_collection.json \
+	  --folder "TSS-AUTH-001" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/001-Authentication/TSS-AUTH-001.json \
+		-r cli,junit,htmlextra \
+	&& newman run collections/001-Authentication.postman_collection.json \
+	  --folder "TSS-AUTH-002" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/001-Authentication/TSS-AUTH-002.json \
+		-r cli,junit,htmlextra \
+	&& newman run collections/001-Authentication.postman_collection.json \
+	  --folder "TSS-AUTH-003" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/001-Authentication/TSS-AUTH-003.json \
+		-r cli,junit,htmlextra \
+	&& newman run collections/001-Authentication.postman_collection.json \
+	  --folder "TSA-AUTH-001" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/001-Authentication/TSA-AUTH-001.json \
+		-r cli,junit,htmlextra \
+	&& newman run collections/001-Authentication.postman_collection.json \
+	  --folder "TSA-AUTH-002" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/001-Authentication/TSA-AUTH-002.json \
+		-r cli,junit,htmlextra \
+	&& newman run collections/001-Authentication.postman_collection.json \
+	  --folder "TSA-AUTH-003" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/001-Authentication/TSA-AUTH-003.json \
+		-r cli,junit,htmlextra \
+
+
 code-coverage:
 	cd store-service && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
 
