@@ -94,6 +94,14 @@ run_robot:
 	&& robot -v URL:http://localhost/product/list . \
 	&& deactivate
 
+run_robot_authentication:
+	cd atdd/ui \
+	&& python3 -m venv .venv \
+	&& source .venv/bin/activate \
+	&& pip install -r requirements.txt \
+	&& robot -v URL:http://localhost/product/list ./001-Authentication \
+	&& deactivate
+
 run_newman: 
 	cd atdd/api \
 	&& newman run sck-online-store.postman_collection.json \
@@ -131,8 +139,7 @@ run_newman_authentication:
 	  --folder "TSA-AUTH-003" \
 		-e sck-online-store.local.postman_environment.json \
 		-d data/001-Authentication/TSA-AUTH-003.json \
-		-r cli,junit,htmlextra \
-
+		-r cli,junit,htmlextra
 
 code-coverage:
 	cd store-service && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
