@@ -35,6 +35,7 @@ store-service/coverage.out
 store-service/coverage.xml
 store-service/report.xml
 point-service/coverage
+atdd/api/newman
 
 # python
 .venv/
