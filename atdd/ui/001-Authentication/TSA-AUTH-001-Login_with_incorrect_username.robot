@@ -9,7 +9,7 @@ ${BROWSER}    headlesschrome
 
 *** Test Cases ***
 ทดสอบ เข้าสู่ระบบไม่สำเร็จ ด้วย username ที่ไม่ถูกต้อง
-    เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่    /auth/login    login-form-container
+    เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่    /auth/login    login-page
     เข้าสู่ระบบไม่สำเร็จ    login-username-input    user_100    login-password-input    P@ssw0rd
 
 *** Keywords ***

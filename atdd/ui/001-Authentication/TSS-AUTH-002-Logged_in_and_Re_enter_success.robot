@@ -8,8 +8,8 @@ ${BROWSER}    headlesschrome
 
 *** Test Cases ***
 ทดสอบ เคยข้าสู่ระบบและออกจากเว็บไซต์ แล้วกลับมาอีกครั้งเพื่อสั่งซื้อสินค้า Balance Training Bicycle จัดส่งด้วย Thai Post ชำระเงินด้วยบัตรเครดิต Visa สำเร็จ และตรวจสอบการได้แต้มสะสม
-    เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่    /auth/login    login-form-container
-    เข้าสู่ระบบ    login-username-input    user_1    login-password-input    P@ssw0rd
+    เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่    /auth/login    login-page
+    เข้าสู่ระบบ    login-username-input    user_2    login-password-input    P@ssw0rd
     ออกจากเว็บไซต์ และเข้าสู่เว็บไซต์มาอีกครั้ง และตรวจสอบว่าไม่ redirect มาหน้า Login
     ค้นหาสินค้าด้วย คำค้นหา    Bicycle
     ตรวจสอบผลการค้นหา    product-card-name-1    Balance Training Bicycle

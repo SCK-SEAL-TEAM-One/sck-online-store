@@ -9,7 +9,7 @@ ${BROWSER}    headlesschrome
 
 *** Test Cases ***
 ทดสอบ เข้าสู่ระบบครั้งแรกเพื่อสั่งซื้อสินค้า Balance Training Bicycle จัดส่งด้วย Kerry ชำระเงินด้วยบัตรเครดิต Visa สำเร็จ และตรวจสอบการได้แต้มสะสม
-    เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่    /auth/login    login-form-container
+    เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่    /auth/login    login-page
     เข้าสู่ระบบ    login-username-input    user_1    login-password-input    P@ssw0rd
     เลือกดูสินค้า    product-card-name-1    Balance Training Bicycle
     ตรวจสอบรายละเอียดสินค้า    Balance Training Bicycle    SportsFun    4,314.60    43
