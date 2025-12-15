@@ -80,7 +80,10 @@ const LoginForm = () => {
   }
 
   return (
-    <div className="max-w-[424px] w-full px-3 flex flex-col gap-8">
+    <div
+      id="login-form"
+      className="max-w-[424px] w-full px-3 flex flex-col gap-8"
+    >
       <h1 id="login-form-header" className="font-bold text-3xl">
         Login
       </h1>
