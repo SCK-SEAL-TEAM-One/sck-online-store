@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-add-tracking-no-to-orders
+      author: developer
+      description: Add tracking_no column to Orders table
+      changes:
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: tracking_no
+                  type: VARCHAR(255)
+
+      rollback:
+        - dropColumn:
+            tableName: orders
+            columnName: tracking_no

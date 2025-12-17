@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: changelogs/001-add-username-password-to-users.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changelogs/002-add-tracking-no-to-orders.yaml
+      relativeToChangelogFile: true
