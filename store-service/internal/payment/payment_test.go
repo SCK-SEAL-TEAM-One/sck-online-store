@@ -12,18 +12,19 @@ import (
 )
 
 func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_TrackingNumber_KR_307676366_No_Error(t *testing.T) {
-	expected := payment.SubmitedPaymentResponse{
-		OrderID:          8004359103,
-		PaymentDate:      time.Now(),
-		ShippingMethodID: 1,
-		TrackingNumber:   "KR-307676366",
-	}
-
 	uid := 1
 	oid := 8004359103
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
+	trackingNumber := "KR-307676366"
+
+	expected := payment.SubmitedPaymentResponse{
+		OrderID:          8004359103,
+		PaymentDate:      time.Now(),
+		ShippingMethodID: 1,
+		TrackingNumber:   trackingNumber,
+	}
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
@@ -75,7 +76,8 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_TrackingNumbe
 	mockShippingGateway := new(mockShippingGateway)
 	mockShippingGateway.On("GetTrackingNumber", shipping.ShippingGatewaySubmit{
 		ShippingMethodID: shippingMethodID,
-	}).Return("KR-307676366", nil)
+	}).Return(trackingNumber, nil)
+	mockOrderRepository.On("UpdateOrderTrackingNumber", oid, trackingNumber).Return(nil)
 
 	paymentService := payment.PaymentService{
 		BankGateway:       mockBankGateway,

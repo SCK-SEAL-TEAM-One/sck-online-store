@@ -43,6 +43,11 @@ func (repo *mockOrderRepository) GetOrderByID(ID int) (order.OrderDetail, error)
 	return argument.Get(0).(order.OrderDetail), argument.Error(1)
 }
 
+func (repo *mockOrderRepository) GetOrderWithTrackingNumberByID(ID int) (order.OrderDetailWithTrackingNumber, error) {
+	argument := repo.Called(ID)
+	return argument.Get(0).(order.OrderDetailWithTrackingNumber), argument.Error(1)
+}
+
 func (repo *mockOrderRepository) CreateOrderProduct(orderID, productID, quantity int, productPrice float64) error {
 	argument := repo.Called(orderID, productID, quantity, productPrice)
 	return argument.Error(0)
@@ -53,6 +58,11 @@ func (repo *mockOrderRepository) GetOrderProduct(orderID int) ([]order.OrderProd
 	return argument.Get(0).([]order.OrderProduct), argument.Error(1)
 }
 
+func (repo *mockOrderRepository) GetOrderProductWithPrice(orderID int) ([]order.OrderProductWithPrice, error) {
+	argument := repo.Called(orderID)
+	return argument.Get(0).([]order.OrderProductWithPrice), argument.Error(1)
+}
+
 func (repo *mockOrderRepository) CreateShipping(userID int, orderID int, shippingInfo order.ShippingInfo) (int, error) {
 	argument := repo.Called(userID, orderID, shippingInfo)
 	return argument.Int(0), argument.Error(1)
@@ -60,6 +70,11 @@ func (repo *mockOrderRepository) CreateShipping(userID int, orderID int, shippin
 
 func (repo *mockOrderRepository) UpdateOrderTransaction(orderID int, transactionID string) error {
 	argument := repo.Called(orderID, transactionID)
+	return argument.Error(1)
+}
+
+func (repo *mockOrderRepository) UpdateOrderTrackingNumber(orderID int, trackingNumber string) error {
+	argument := repo.Called(orderID, trackingNumber)
 	return argument.Error(1)
 }
 

@@ -90,6 +90,12 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 		return SubmitedPaymentResponse{}, err
 	}
 
+	err = service.OrderRepository.UpdateOrderTrackingNumber(orderID, trackingNumber)
+	if err != nil {
+		log.Printf("OrderRepository.UpdateOrderTrackingNumber internal error %s", err.Error())
+		return SubmitedPaymentResponse{}, err
+	}
+
 	return SubmitedPaymentResponse{
 		OrderID:          orderID,
 		PaymentDate:      now,
