@@ -36,6 +36,20 @@ type OrderProduct struct {
 	Quantity  int `json:"quantity" db:"quantity"`
 }
 
+type OrderProductWithPrice struct {
+	ProductBrand string  `json:"product_brand" db:"product_brand"`
+	ProductName  string  `json:"product_name" db:"product_name"`
+	Quantity     int     `json:"quantity" db:"quantity"`
+	Price        float64 `json:"price" db:"product_price"`
+}
+
+type OrderSummaryProduct struct {
+	ProductBrand string  `json:"product_brand"`
+	ProductName  string  `json:"product_name"`
+	Quantity     int     `json:"quantity"`
+	PriceTHB     float64 `json:"price_thb" `
+}
+
 type Order struct {
 	OrderID int
 }
@@ -53,4 +67,36 @@ type OrderDetail struct {
 	EarnPoint        int     `json:"earn_point" db:"earn_point"`
 	TransactionID    string  `json:"transaction_id" db:"transaction_id"`
 	Status           string  `json:"status" db:"status"`
+}
+
+type OrderDetailWithTrackingNumber struct {
+	ID               int     `json:"id"  db:"id"`
+	UserID           int     `json:"user_id"  db:"user_id"`
+	ShippingMethodID int     `json:"shipping_method_id"  db:"shipping_method_id"`
+	PaymentMethodID  int     `json:"payment_method_id"  db:"payment_method_id"`
+	SubTotalPrice    float64 `json:"sub_total_price" db:"sub_total_price"`
+	DiscountPrice    float64 `json:"discount_price" db:"discount_price"`
+	TotalPrice       float64 `json:"total_price" db:"total_price"`
+	ShippingFee      float64 `json:"shipping_fee" db:"shipping_fee"`
+	BurnPoint        int     `json:"burn_point" db:"burn_point"`
+	EarnPoint        int     `json:"earn_point" db:"earn_point"`
+	TransactionID    string  `json:"transaction_id" db:"transaction_id"`
+	Status           string  `json:"status" db:"status"`
+	TrackingNumber   string  `json:"tracking_no" db:"tracking_no"`
+}
+
+type OrderSummary struct {
+	OrderID          int                   `json:"id"`
+	FirstName        string                `json:"first_name"`
+	LastName         string                `json:"last_name"`
+	TrackingNumber   string                `json:"tracking_no"`
+	ShippingMethod   string                `json:"shipping_method"`
+	PaymentMethod    string                `json:"payment_method"`
+	OrderProductList []OrderSummaryProduct `json:"products"`
+	SubTotalPrice    float64               `json:"sub_total_price"`
+	DiscountPrice    float64               `json:"discount_price"`
+	TotalPrice       float64               `json:"total_price"`
+	ShippingFee      float64               `json:"shipping_fee"`
+	BurnPoint        int                   `json:"burn_point"`
+	EarnPoint        int                   `json:"earn_point"`
 }
