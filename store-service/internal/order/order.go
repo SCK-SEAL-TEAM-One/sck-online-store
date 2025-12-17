@@ -3,6 +3,7 @@ package order
 import (
 	"fmt"
 	"log"
+	"store-service/internal/auth"
 	"store-service/internal/cart"
 	"store-service/internal/common"
 	"store-service/internal/point"
@@ -13,6 +14,7 @@ import (
 type OrderInterface interface {
 	CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error)
 	OrderBurnPoint(uid int, burn int) (point.TotalPoint, error)
+	GetOrderSummaryPDF(orderID int) ([]byte, error)
 }
 
 type OrderService struct {
@@ -21,12 +23,13 @@ type OrderService struct {
 	PointService       point.PointInterface
 	ProductRepository  product.ProductRepository
 	ShippingRepository shipping.ShippingRepository
+	UserRepository     auth.UserRepository
+	PDFHelper          PDFHelper
 }
 
 type CartRepository interface {
 	DeleteCart(userID int, productID int)
 }
-
 type PointService interface {
 	DeductPoint(uid int, submitedPoint point.SubmitedPoint) (point.TotalPoint, error)
 }
@@ -37,6 +40,17 @@ type ProductRepository interface {
 
 type ShippingRepository interface {
 	GetShippingMethodByID(id int) (shipping.ShippingMethodDetail, error)
+}
+
+var PaymentMethod = map[int]string{
+	1: "Credit Card / Debit Card",
+	2: "Line Pay",
+}
+
+var ShippingMethod = map[int]string{
+	1: "Kerry",
+	2: "Thai Post",
+	3: "Lineman",
 }
 
 func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error) {
@@ -125,4 +139,61 @@ func (orderService OrderService) OrderBurnPoint(uid int, burn int) (point.TotalP
 		return point.TotalPoint{}, err
 	}
 	return totalPoint, nil
+}
+
+func (orderService OrderService) GetOrderSummaryPDF(orderID int) ([]byte, error) {
+	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByID(orderID)
+	if err != nil {
+		log.Printf("OrderRepository.GetOrderByID internal error for orderID %d: %s", orderID, err.Error())
+		return nil, err
+	}
+
+	orderedProducts, err := orderService.OrderRepository.GetOrderProductWithPrice(orderID)
+	if err != nil {
+		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
+		return nil, err
+	}
+
+	var productList []OrderSummaryProduct
+	for _, orderProduct := range orderedProducts {
+		priceTHB := common.ConvertToThb(orderProduct.Price)
+		product := OrderSummaryProduct{
+			ProductBrand: orderProduct.ProductBrand,
+			ProductName:  orderProduct.ProductName,
+			Quantity:     orderProduct.Quantity,
+			PriceTHB:     priceTHB.ShortDecimal,
+		}
+		productList = append(productList, product)
+	}
+
+	paymentMethod := PaymentMethod[orderDetail.PaymentMethodID]
+	shippingMethod := ShippingMethod[orderDetail.ShippingMethodID]
+
+	userDetail, err := orderService.UserRepository.FindByID(orderDetail.UserID)
+	if err != nil {
+		log.Printf("UserRepository.FindByID internal error %s", err.Error())
+		return nil, err
+	}
+
+	orderSummary := OrderSummary{
+		OrderID:          orderID,
+		FirstName:        userDetail.FirstName,
+		LastName:         userDetail.LastName,
+		TrackingNumber:   orderDetail.TrackingNumber,
+		ShippingMethod:   shippingMethod,
+		PaymentMethod:    paymentMethod,
+		OrderProductList: productList,
+		SubTotalPrice:    orderDetail.SubTotalPrice,
+		TotalPrice:       orderDetail.TotalPrice,
+		ShippingFee:      orderDetail.ShippingFee,
+		EarnPoint:        orderDetail.EarnPoint,
+	}
+
+	pdfBytes, err := orderService.PDFHelper.GenerateOrderSummaryPDF(orderSummary)
+	if err != nil {
+		log.Printf("PDFHelper.GenerateOrderSummaryPDF internal error %s", err.Error())
+		return []byte(""), err
+	}
+
+	return pdfBytes, nil
 }
