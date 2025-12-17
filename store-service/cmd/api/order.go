@@ -1,8 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"store-service/internal/order"
 
@@ -57,4 +59,35 @@ func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, OrderConfirmation{
 		OrderID: createdOrder.OrderID,
 	})
+}
+
+func (api OrderAPI) GetOrderSummaryPDFHandler(context *gin.Context) {
+	orderIDParam := context.Param("id")
+	orderID, err := strconv.Atoi(orderIDParam)
+	if err != nil {
+		log.Printf("orderID is not integer")
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": "orderID is not integer",
+		})
+		return
+	}
+
+	pdfData, err := api.OrderService.GetOrderSummaryPDF(orderID)
+	if err != nil {
+		log.Printf("OrderService.GetOrderSummaryPDF internal error %s", err.Error())
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	filename := fmt.Sprintf("order-summary_%d.pdf", orderID)
+	contentDisposition := fmt.Sprintf("attachment; filename=\"%s\"", filename)
+
+	context.Header(
+		"Content-Disposition",
+		contentDisposition,
+	)
+
+	context.Data(http.StatusOK, "application/pdf", pdfData)
 }

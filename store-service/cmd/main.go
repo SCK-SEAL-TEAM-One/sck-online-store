@@ -124,6 +124,8 @@ func main() {
 		PointService:       pointService,
 		ProductRepository:  productRepository,
 		ShippingRepository: shippingRepository,
+		UserRepository:     userRepository,
+		PDFHelper:          order.OrderSummaryPDFGenerator{},
 	}
 	authService := auth.AuthService{
 		UserRepository:  userRepository,
@@ -210,6 +212,7 @@ func main() {
 	protected.PUT("/updateCart", cartAPI.UpdateCartHandler)
 
 	protected.POST("/order", orderAPI.SubmitOrderHandler)
+	protected.GET("/order/:id/summary/pdf", orderAPI.GetOrderSummaryPDFHandler)
 	protected.POST("/confirmPayment", paymentAPI.ConfirmPaymentHandler)
 
 	protected.GET("/point", pointAPI.TotalPointHandler)
