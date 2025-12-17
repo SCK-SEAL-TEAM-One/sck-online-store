@@ -30,6 +30,11 @@ func (repo *mockUserRepository) FindByUsername(username string) (auth.User, erro
 	return args.Get(0).(auth.User), args.Error(1)
 }
 
+func (repo *mockUserRepository) FindByID(uid int) (auth.User, error) {
+	args := repo.Called(uid)
+	return args.Get(0).(auth.User), args.Error(1)
+}
+
 type MockPasswordHelper struct {
 	mock.Mock
 }
