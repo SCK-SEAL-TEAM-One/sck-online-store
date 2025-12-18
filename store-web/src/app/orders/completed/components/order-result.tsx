@@ -1,8 +1,10 @@
 'use client'
 
+import Button from '@/components/button/button'
 import Header1 from '@/components/typography/header1'
 import Header3 from '@/components/typography/header3'
 import Text from '@/components/typography/text'
+import { getOrderSummary } from '@/services/order-checkout'
 import { getShippingMethodById } from '@/utils/shipping'
 import dayjs from 'dayjs'
 import { useSearchParams } from 'next/navigation'
@@ -38,6 +40,24 @@ const OrderResult = () => {
     }
   }, [shippingMethodId])
 
+  const handleDownLoadOrderSummary = async () => {
+    console.log('click')
+    if (!orderId) {
+      return
+    }
+
+    const pdfData = await getOrderSummary(parseInt(orderId))
+    if (pdfData) {
+      const { blob, fileName } = pdfData
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
   return (
     <div className="text-gray-800 border-b border-gray-200 mb-4">
       <Header3 className="text-green-600">Payment successful</Header3>
@@ -45,7 +65,7 @@ const OrderResult = () => {
         Thank you for your order
       </Header1>
 
-      <Text id="order-success-text" size="md" className="text-gray-600 my-10">
+      <Text id="order-success-text" size="md" className="text-gray-600 my-5">
         {`Date and time of payment `}
         <span id="order-success-order-payment-date" className="font-semibold">
           {dayjs(paymentDate).format('DD/MM/YYYY HH:mm:ss')}
@@ -76,6 +96,14 @@ const OrderResult = () => {
           </div>
         ) : null}
       </Text>
+      <Button
+        id="download-order-summary-btn"
+        type="button"
+        onClick={() => handleDownLoadOrderSummary()}
+        className="mb-5"
+      >
+        Download Order Summary
+      </Button>
     </div>
   )
 }

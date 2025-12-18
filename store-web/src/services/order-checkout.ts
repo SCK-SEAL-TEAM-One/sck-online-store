@@ -1,4 +1,3 @@
-import { mockOrderCheckoutResponse } from '@/mock'
 import axiosShoppingMallApi from '@/utils/axios'
 import { handleServiceError } from '@/utils/helper'
 
@@ -52,6 +51,30 @@ const orderCheckoutService = async (
     }
   } catch (error) {
     return handleServiceError(error)
+  }
+}
+
+export const getOrderSummary = async (orderId: number) => {
+  try {
+    const { data, headers } = await axiosShoppingMallApi.get(
+      `/api/v1/order/${orderId}/summary/pdf`,
+      { responseType: 'blob' }
+    )
+
+    const disposition = headers['content-disposition']
+    let fileName = `Order_Summary_${orderId}.pdf`
+
+    if (disposition) {
+      const match = disposition.match(/filename="?([^";]+)"?/)
+      if (match && match[1]) {
+        fileName = match[1]
+      }
+    }
+
+    const blob = new Blob([data], { type: 'application/pdf' })
+    return { blob, fileName }
+  } catch (error) {
+    return null
   }
 }
 
