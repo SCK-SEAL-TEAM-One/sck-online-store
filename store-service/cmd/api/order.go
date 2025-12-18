@@ -81,9 +81,10 @@ func (api OrderAPI) GetOrderSummaryPDFHandler(context *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("order-summary_%d.pdf", orderID)
+	filename := fmt.Sprintf("Order_Summary_%d.pdf", orderID)
 	contentDisposition := fmt.Sprintf("attachment; filename=\"%s\"", filename)
 
+	context.Header("Access-Control-Expose-Headers", "Content-Disposition")
 	context.Header(
 		"Content-Disposition",
 		contentDisposition,
