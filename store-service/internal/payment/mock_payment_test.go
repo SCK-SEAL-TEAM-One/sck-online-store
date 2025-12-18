@@ -78,7 +78,7 @@ func (repo *mockOrderRepository) UpdateOrderTransaction(orderID int, transaction
 
 func (repo *mockOrderRepository) UpdateOrderTrackingNumber(orderID int, trackingNumber string) error {
 	argument := repo.Called(orderID, trackingNumber)
-	return argument.Error(1)
+	return argument.Error(0)
 }
 
 type mockProductRepository struct {
