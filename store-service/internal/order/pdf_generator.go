@@ -124,7 +124,7 @@ func (orderSummaryPDF OrderSummaryPDFGenerator) GenerateOrderSummaryPDF(orderSum
 		col.New(7), // Spacer
 		text.NewCol(3, "Receiving Point", rowTextBold).WithStyle(boxStyle),
 		col.New(2).Add(
-			text.New(formatter.Sprintf("%d", orderSummary.EarnPoint), props.Text{
+			text.New(fmt.Sprintf("%d", orderSummary.ReceivingPoint), props.Text{
 				Family: fontfamily.Helvetica, Style: fontstyle.Bold, Align: align.Right, Right: 2, Top: 2,
 			}),
 		).WithStyle(boxStyle),
