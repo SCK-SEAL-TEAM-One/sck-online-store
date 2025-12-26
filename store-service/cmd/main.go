@@ -212,7 +212,7 @@ func main() {
 	protected.PUT("/updateCart", cartAPI.UpdateCartHandler)
 
 	protected.POST("/order", orderAPI.SubmitOrderHandler)
-	protected.GET("/order/:id/summary/pdf", orderAPI.GetOrderSummaryPDFHandler)
+	protected.POST("/order/:id/summary", orderAPI.GetOrderSummaryHandler)
 	protected.POST("/confirmPayment", paymentAPI.ConfirmPaymentHandler)
 
 	protected.GET("/point", pointAPI.TotalPointHandler)
