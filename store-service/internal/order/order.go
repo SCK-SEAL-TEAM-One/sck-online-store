@@ -3,6 +3,7 @@ package order
 import (
 	"fmt"
 	"log"
+	"math"
 	"store-service/internal/auth"
 	"store-service/internal/cart"
 	"store-service/internal/common"
@@ -14,7 +15,8 @@ import (
 type OrderInterface interface {
 	CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error)
 	OrderBurnPoint(uid int, burn int) (point.TotalPoint, error)
-	GetOrderSummaryPDF(orderID int) ([]byte, error)
+	GetOrderSummary(orderID int) (OrderSummary, error)
+	GeneratePDFFromData(orderDetail OrderSummary) ([]byte, error)
 }
 
 type OrderService struct {
@@ -141,17 +143,17 @@ func (orderService OrderService) OrderBurnPoint(uid int, burn int) (point.TotalP
 	return totalPoint, nil
 }
 
-func (orderService OrderService) GetOrderSummaryPDF(orderID int) ([]byte, error) {
+func (orderService OrderService) GetOrderSummary(orderID int) (OrderSummary, error) {
 	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByID(orderID)
 	if err != nil {
 		log.Printf("OrderRepository.GetOrderByID internal error for orderID %d: %s", orderID, err.Error())
-		return nil, err
+		return OrderSummary{}, err
 	}
 
 	orderedProducts, err := orderService.OrderRepository.GetOrderProductWithPrice(orderID)
 	if err != nil {
 		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
-		return nil, err
+		return OrderSummary{}, err
 	}
 
 	var productList []OrderSummaryProduct
@@ -172,8 +174,13 @@ func (orderService OrderService) GetOrderSummaryPDF(orderID int) ([]byte, error)
 	userDetail, err := orderService.UserRepository.FindByID(orderDetail.UserID)
 	if err != nil {
 		log.Printf("UserRepository.FindByID internal error %s", err.Error())
-		return nil, err
+		return OrderSummary{}, err
 	}
+
+	factor2 := math.Pow(10, 2)
+	subTotal := math.Round(orderDetail.SubTotalPrice*factor2) / factor2
+	totalPrice := math.Round(orderDetail.TotalPrice*factor2) / factor2
+	shippingFee := math.Round(orderDetail.ShippingFee*factor2) / factor2
 
 	orderSummary := OrderSummary{
 		OrderID:          orderID,
@@ -183,12 +190,16 @@ func (orderService OrderService) GetOrderSummaryPDF(orderID int) ([]byte, error)
 		ShippingMethod:   shippingMethod,
 		PaymentMethod:    paymentMethod,
 		OrderProductList: productList,
-		SubTotalPrice:    orderDetail.SubTotalPrice,
-		TotalPrice:       orderDetail.TotalPrice,
-		ShippingFee:      orderDetail.ShippingFee,
-		EarnPoint:        orderDetail.EarnPoint,
+		SubTotalPrice:    subTotal,
+		TotalPrice:       totalPrice,
+		ShippingFee:      shippingFee,
+		ReceivingPoint:   orderDetail.EarnPoint,
 	}
 
+	return orderSummary, nil
+}
+
+func (orderService OrderService) GeneratePDFFromData(orderSummary OrderSummary) ([]byte, error) {
 	pdfBytes, err := orderService.PDFHelper.GenerateOrderSummaryPDF(orderSummary)
 	if err != nil {
 		log.Printf("PDFHelper.GenerateOrderSummaryPDF internal error %s", err.Error())
