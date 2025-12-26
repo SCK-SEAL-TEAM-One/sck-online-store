@@ -54,7 +54,7 @@ store_db:
 	docker compose up -d db 
 
 store_service_dev_mode:
-	cd ./store-service/cmd && DBCONNECTION=user:password@\(localhost:3306\)/store POINT_GATEWAY=localhost:8001 BANK_GATEWAY=localhost:8882 SHIPPING_GATEWAY=localhost:8883 go run main.go
+	cd ./store-service/cmd && DBCONNECTION=user:password@\(localhost:3306\)/store POINT_GATEWAY=localhost:8001 BANK_GATEWAY=localhost:8882 SHIPPING_GATEWAY=localhost:8883 JWT_SECRET=my-secret-key go run main.go
 
 point_service:
 	docker compose up -d point-service
@@ -91,7 +91,8 @@ run_robot:
 	&& python3 -m venv .venv \
 	&& source .venv/bin/activate \
 	&& pip install -r requirements.txt \
-	&& robot -v URL:http://localhost/product/list . \
+	&& robot -v URL:http://localhost/product/list ./001-Authentication \
+	&& robot -v URL:http://localhost/product/list ./002-Order-Summary-PDF \
 	&& deactivate
 
 run_robot_authentication:
@@ -102,11 +103,23 @@ run_robot_authentication:
 	&& robot -v URL:http://localhost/product/list ./001-Authentication \
 	&& deactivate
 
-run_newman: 
-	cd atdd/api \
-	&& newman run sck-online-store.postman_collection.json \
-	 -e sck-online-store.local.postman_environment.json \
-	 -r cli,junit,htmlextra
+run_robot_order_summary_pdf:
+	cd atdd/ui \
+	&& python3 -m venv .venv \
+	&& source .venv/bin/activate \
+	&& pip install -r requirements.txt \
+	&& robot -v URL:http://localhost/product/list ./002-Order-Summary-PDF \
+	&& deactivate
+
+# run_newman: 
+# 	cd atdd/api \
+# 	&& newman run sck-online-store.postman_collection.json \
+# 	 -e sck-online-store.local.postman_environment.json \
+# 	 -r cli,junit,htmlextra
+
+run_newman:
+	$(MAKE) run_newman_authentication
+	$(MAKE) run_newman_order_summary_pdf
 
 run_newman_authentication:
 	cd atdd/api \
@@ -139,6 +152,19 @@ run_newman_authentication:
 	  --folder "TSA-AUTH-003" \
 		-e sck-online-store.local.postman_environment.json \
 		-d data/001-Authentication/TSA-AUTH-003.json \
+		-r cli,junit,htmlextra
+
+run_newman_order_summary_pdf:
+	cd atdd/api \
+	&& newman run collections/002-Order-Summary-PDF.postman_collection.json \
+	  --folder "TSS-OSP-001" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/002-Order-Summary-PDF/TSS-OSP-001.json \
+		-r cli,junit,htmlextra \
+	&& newman run collections/002-Order-Summary-PDF.postman_collection.json \
+	  --folder "TSS-OSP-002" \
+		-e sck-online-store.local.postman_environment.json \
+		-d data/002-Order-Summary-PDF/TSS-OSP-002.json \
 		-r cli,junit,htmlextra
 
 code-coverage:
