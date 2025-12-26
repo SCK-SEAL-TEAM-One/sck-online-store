@@ -3,6 +3,7 @@ package order_test
 import (
 	"errors"
 	"fmt"
+	"store-service/internal/auth"
 	"store-service/internal/order"
 	"store-service/internal/point"
 	"store-service/internal/product"
@@ -503,4 +504,170 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Totol_Point_Erro
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
+}
+
+func Test_GetOrderSummary_Should_Return_One_Product_If_OrderID_is_1(t *testing.T) {
+	userID := 4
+	orderID := 1
+	trackingNumber := "KR-443947172"
+
+	orderDetail := order.OrderDetailWithTrackingNumber{
+		ID:               orderID,
+		UserID:           userID,
+		ShippingMethodID: 1,
+		PaymentMethodID:  1,
+		SubTotalPrice:    4314.6,
+		DiscountPrice:    0,
+		TotalPrice:       4364.6,
+		ShippingFee:      50,
+		BurnPoint:        0,
+		EarnPoint:        43,
+		TransactionID:    "TXN202512250934",
+		Status:           "paid",
+		TrackingNumber:   trackingNumber,
+	}
+
+	orderProduct := []order.OrderProductWithPrice{
+		{
+			ProductBrand: "SportsFun",
+			ProductName:  "Balance Training Bicycle",
+			Quantity:     1,
+			Price:        119.95,
+		},
+	}
+
+	userDetail := auth.UserPayload{
+		UserID:    userID,
+		FirstName: "Noppadon",
+		LastName:  "Sookwattana",
+		Username:  "noppadon.s",
+	}
+
+	expected := order.OrderSummary{
+		OrderID:        1,
+		FirstName:      userDetail.FirstName,
+		LastName:       userDetail.LastName,
+		TrackingNumber: trackingNumber,
+		ShippingMethod: "Kerry",
+		PaymentMethod:  "Credit Card / Debit Card",
+		OrderProductList: []order.OrderSummaryProduct{
+			{
+				ProductBrand: "SportsFun",
+				ProductName:  "Balance Training Bicycle",
+				Quantity:     1,
+				PriceTHB:     4314.6,
+			},
+		},
+		SubTotalPrice:  orderDetail.SubTotalPrice,
+		DiscountPrice:  orderDetail.DiscountPrice,
+		TotalPrice:     orderDetail.TotalPrice,
+		ShippingFee:    orderDetail.ShippingFee,
+		BurnPoint:      orderDetail.BurnPoint,
+		ReceivingPoint: orderDetail.EarnPoint,
+	}
+
+	mockOrderRepository := new(mockOrderRepository)
+	mockOrderRepository.On("GetOrderWithTrackingNumberByID", orderID).Return(orderDetail, nil)
+	mockOrderRepository.On("GetOrderProductWithPrice", orderID).Return(orderProduct, nil)
+
+	mockUserRepository := new(mockUserRepository)
+	mockUserRepository.On("FindByID", userID).Return(userDetail, nil)
+
+	orderService := order.OrderService{
+		OrderRepository: mockOrderRepository,
+		UserRepository:  mockUserRepository,
+	}
+
+	actual, err := orderService.GetOrderSummary(orderID)
+	assert.Equal(t, expected, actual)
+	assert.Nil(t, err)
+}
+
+func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderID_is_2(t *testing.T) {
+	userID := 5
+	orderID := 2
+	trackingNumber := "KR-304590466"
+
+	orderDetail := order.OrderDetailWithTrackingNumber{
+		ID:               orderID,
+		UserID:           userID,
+		ShippingMethodID: 1,
+		PaymentMethodID:  1,
+		SubTotalPrice:    5246.22,
+		DiscountPrice:    0,
+		TotalPrice:       5256.22,
+		ShippingFee:      50,
+		BurnPoint:        0,
+		EarnPoint:        52,
+		TransactionID:    "TXN202512251028",
+		Status:           "paid",
+		TrackingNumber:   trackingNumber,
+	}
+
+	orderProduct := []order.OrderProductWithPrice{
+		{
+			ProductBrand: "SportsFun",
+			ProductName:  "Balance Training Bicycle",
+			Quantity:     1,
+			Price:        119.95,
+		},
+		{
+			ProductBrand: "CoolKidz",
+			ProductName:  "43 Piece dinner Set",
+			Quantity:     2,
+			Price:        12.95,
+		},
+	}
+
+	userDetail := auth.UserPayload{
+		UserID:    userID,
+		FirstName: "Pimmida",
+		LastName:  "Katethong",
+		Username:  "pimmida.k",
+	}
+
+	expected := order.OrderSummary{
+		OrderID:        orderID,
+		FirstName:      userDetail.FirstName,
+		LastName:       userDetail.LastName,
+		TrackingNumber: trackingNumber,
+		ShippingMethod: "Kerry",
+		PaymentMethod:  "Credit Card / Debit Card",
+		OrderProductList: []order.OrderSummaryProduct{
+			{
+				ProductBrand: "SportsFun",
+				ProductName:  "Balance Training Bicycle",
+				Quantity:     1,
+				PriceTHB:     4314.6,
+			},
+			{
+				ProductBrand: "CoolKidz",
+				ProductName:  "43 Piece dinner Set",
+				Quantity:     2,
+				PriceTHB:     465.81,
+			},
+		},
+		SubTotalPrice:  orderDetail.SubTotalPrice,
+		DiscountPrice:  orderDetail.DiscountPrice,
+		TotalPrice:     orderDetail.TotalPrice,
+		ShippingFee:    orderDetail.ShippingFee,
+		BurnPoint:      orderDetail.BurnPoint,
+		ReceivingPoint: orderDetail.EarnPoint,
+	}
+
+	mockOrderRepository := new(mockOrderRepository)
+	mockOrderRepository.On("GetOrderWithTrackingNumberByID", orderID).Return(orderDetail, nil)
+	mockOrderRepository.On("GetOrderProductWithPrice", orderID).Return(orderProduct, nil)
+
+	mockUserRepository := new(mockUserRepository)
+	mockUserRepository.On("FindByID", userID).Return(userDetail, nil)
+
+	orderService := order.OrderService{
+		OrderRepository: mockOrderRepository,
+		UserRepository:  mockUserRepository,
+	}
+
+	actual, err := orderService.GetOrderSummary(orderID)
+	assert.Equal(t, expected, actual)
+	assert.Nil(t, err)
 }

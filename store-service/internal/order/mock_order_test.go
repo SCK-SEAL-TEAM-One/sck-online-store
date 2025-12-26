@@ -1,6 +1,7 @@
 package order_test
 
 import (
+	"store-service/internal/auth"
 	"store-service/internal/cart"
 	"store-service/internal/order"
 	"store-service/internal/point"
@@ -133,4 +134,18 @@ type mockShippingRepository struct {
 func (repo *mockShippingRepository) GetShippingMethodByID(ID int) (shipping.ShippingMethodDetail, error) {
 	argument := repo.Called(ID)
 	return argument.Get(0).(shipping.ShippingMethodDetail), argument.Error(1)
+}
+
+type mockUserRepository struct {
+	mock.Mock
+}
+
+func (repo *mockUserRepository) FindByID(uid int) (auth.UserPayload, error) {
+	args := repo.Called(uid)
+	return args.Get(0).(auth.UserPayload), args.Error(1)
+}
+
+func (repo *mockUserRepository) FindByUsername(username string) (auth.User, error) {
+	args := repo.Called(username)
+	return args.Get(0).(auth.User), args.Error(1)
 }
