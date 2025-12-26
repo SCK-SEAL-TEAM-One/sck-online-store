@@ -1,0 +1,2826 @@
+{
+  "info": {
+    "_postman_id": "8378db4c-10e2-4ac7-a9da-35d671c5b814",
+    "name": "002-Order-Summary-PDF",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "34653954",
+    "_collection_link": "https://sck444.postman.co/workspace/SCK-online-store~d410d8c3-2e89-4ae6-af34-88bbd9012d2b/collection/34653954-8378db4c-10e2-4ac7-a9da-35d671c5b814?action=share&source=collection_link&creator=34653954"
+  },
+  "item": [
+    {
+      "name": "TSS-OSP-001",
+      "item": [
+        {
+          "name": "Get Products without Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message should be 'unauthorized'\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.eql(\"unauthorized\");",
+                  "    pm.expect(jsonData.message).to.eql(\"No authorization header provided.\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=&offset=0&limit=20",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Set-Cookie is present\", function () {",
+                  "    pm.response.to.have.header(\"Set-Cookie\");",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"access_token\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"message\": {",
+                  "        \"type\": \"string\"",
+                  "    }",
+                  "};",
+                  "",
+                  "const jsonData = pm.response.json()",
+                  "const refreshToken = pm.cookies.get(\"refreshToken\")",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Response message should be 'Logged in successfully.'\", function () {",
+                  "    pm.expect(jsonData.message).to.eql(\"Logged in successfully.\");",
+                  "});",
+                  "",
+                  "pm.variables.set(\"access_token\", jsonData.access_token);",
+                  "pm.variables.set(\"refresh_token\", refreshToken);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/login",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Products after Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const target_products = JSON.parse(pm.variables.get(\"order_product_list\"));",
+                  "const total_products =  parseFloat(pm.variables.get(\"total_products\"));",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "  \"type\": \"object\",",
+                  "  \"properties\": {",
+                  "    \"total\": {",
+                  "      \"type\": \"integer\"",
+                  "    },",
+                  "    \"products\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": {",
+                  "        \"type\": \"object\",",
+                  "        \"properties\": {",
+                  "          \"id\": {",
+                  "            \"type\": \"integer\"",
+                  "          },",
+                  "          \"product_name\": {",
+                  "            \"type\": \"string\"",
+                  "          },",
+                  "          \"product_price\": {",
+                  "            \"type\": \"number\"",
+                  "          },",
+                  "          \"product_price_thb\": {",
+                  "            \"type\": \"number\"",
+                  "          },",
+                  "          \"product_price_full_thb\": {",
+                  "            \"type\": \"number\"",
+                  "          },",
+                  "          \"product_image\": {",
+                  "            \"type\": \"string\"",
+                  "          }",
+                  "        },",
+                  "        \"required\": [",
+                  "          \"id\",",
+                  "          \"product_name\",",
+                  "          \"product_price\",",
+                  "          \"product_price_thb\",",
+                  "          \"product_price_full_thb\",",
+                  "          \"product_image\"",
+                  "        ]",
+                  "      }",
+                  "    }",
+                  "  },",
+                  "  \"required\": [\"total\", \"products\"]",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(`Total products should be ${total_products}`, function () {",
+                  "    pm.expect(jsonData.total).to.eql(total_products)",
+                  "});",
+                  "",
+                  "const products = jsonData.products",
+                  "pm.test(`Product list should contains the target product list`, function () {",
+                  "    target_products.forEach((expected_product) => {",
+                  "        const product = products.find((product) => product.product_name === expected_product.product_name);",
+                  "        pm.expect(product).not.undefined;",
+                  "    })",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const access_token = (pm.variables.get(\"access_token\"));",
+                  "console.log('access_token', access_token)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=&offset=0&limit=20",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "View Product Detail - Balance Training Bicycle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "const product_name = first_product.product_name",
+                  "const product_price = first_product.product_price",
+                  "const product_price_thb = first_product.product_price_thb",
+                  "const product_price_full_thb = first_product.product_price_full_thb",
+                  "const product_brand = first_product.product_brand",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_name}`, function () {",
+                  "    pm.expect(jsonData.product_name).to.eql(product_name);",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_price_thb}`, function () {",
+                  "    pm.expect(jsonData.product_price_thb).to.eql(product_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_price_full_thb}`, function () {",
+                  "    pm.expect(jsonData.product_price_full_thb).to.eql(product_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product brand is ${product_brand}`, function () {",
+                  "    pm.expect(jsonData.product_brand).to.eql(product_brand);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "pm.variables.set(\"product_id\", first_product.id)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product/{{product_id}}",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add to Cart - Balance Training Bicycle",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "pm.variables.set(\"product_id\", first_product.id)",
+                  "pm.variables.set(\"quantity\", first_product.quantity)",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "const product_name = first_product.product_name",
+                  "const product_price = first_product.product_price",
+                  "const product_price_thb = first_product.product_price_thb",
+                  "const product_price_full_thb = first_product.product_price_full_thb",
+                  "const product_brand = first_product.product_brand",
+                  "",
+                  "const product_id = first_product.id",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "const quantity = first_product.quantity",
+                  "",
+                  "const receive_point = first_product.receiving_point",
+                  "",
+                  "const total_price = parseFloat(pm.variables.get(\"total_price\"));",
+                  "const total_price_thb = parseFloat(pm.variables.get(\"total_price_thb\"));",
+                  "const total_price_full_thb = parseFloat(pm.variables.get(\"total_price_full_thb\"));",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"carts\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"user_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_price\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_full_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"stock\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_image\": {",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"summary\": {",
+                  "      \"type\": \"object\",",
+                  "      \"properties\": {",
+                  "        \"total_price\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_full_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"receive_point\": {",
+                  "            \"type\": \"integer\"",
+                  "        }",
+                  "        },",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Should contains only 1 product in cart\", function () {",
+                  "    pm.expect(jsonData.carts.length).to.eql(1);",
+                  "});",
+                  "",
+                  "const cart = jsonData.carts[0]",
+                  "const summary = jsonData.summary",
+                  "pm.test(`User ID should be ${user_id}`, function () {",
+                  "    pm.expect(cart.user_id).to.eql(user_id);",
+                  "});",
+                  "",
+                  "pm.test(`Product ID should be ${product_id}`, function () {",
+                  "    pm.expect(cart.product_id).to.eql(product_id);",
+                  "});",
+                  "",
+                  "pm.test(`Quantity in cart should be ${quantity}`, function () {",
+                  "    pm.expect(cart.quantity).to.eql(quantity);",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_name}`, function () {",
+                  "    pm.expect(cart.product_name).to.eql(product_name);",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_price_thb}`, function () {",
+                  "    pm.expect(cart.product_price_thb).to.eql(product_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_price_full_thb}`, function () {",
+                  "    pm.expect(cart.product_price_full_thb).to.eql(product_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product brand is ${product_brand}`, function () {",
+                  "    pm.expect(cart.product_brand).to.eql(product_brand);",
+                  "});",
+                  "",
+                  "pm.test(`Total receive point is ${receive_point}`, function () {",
+                  "    pm.expect(summary.receive_point).to.eql(receive_point);",
+                  "});",
+                  "",
+                  "pm.test(`Total price is ${total_price}`, function () {",
+                  "    pm.expect(summary.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Total price in THB is ${total_price_thb}`, function () {",
+                  "    pm.expect(summary.total_price_thb).to.eql(total_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Total full price in THB is ${total_price_full_thb}`, function () {",
+                  "    pm.expect(summary.total_price_full_thb).to.eql(total_price_full_thb);",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": {{product_id}},\n    \"quantity\": {{quantity}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/addCart",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "addCart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cart",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "pm.variables.set(\"product_id\", first_product.id)",
+                  "pm.variables.set(\"quantity\", first_product.id)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "const product_name = first_product.product_name",
+                  "const product_price = first_product.product_price",
+                  "const product_price_thb = first_product.product_price_thb",
+                  "const product_price_full_thb = first_product.product_price_full_thb",
+                  "const product_brand = first_product.product_brand",
+                  "",
+                  "const product_id = first_product.id",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "const quantity = first_product.quantity",
+                  "",
+                  "const receive_point = first_product.receiving_point",
+                  "",
+                  "const total_price = parseFloat(pm.variables.get(\"total_price\"));",
+                  "const total_price_thb = parseFloat(pm.variables.get(\"total_price_thb\"));",
+                  "const total_price_full_thb = parseFloat(pm.variables.get(\"total_price_full_thb\"));",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"carts\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"user_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_price\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_full_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"stock\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_image\": {",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"summary\": {",
+                  "      \"type\": \"object\",",
+                  "      \"properties\": {",
+                  "        \"total_price\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_full_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"receive_point\": {",
+                  "            \"type\": \"integer\"",
+                  "        }",
+                  "        },",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Should contains only 1 product in cart\", function () {",
+                  "    pm.expect(jsonData.carts.length).to.eql(1);",
+                  "});",
+                  "",
+                  "const cart = jsonData.carts[0]",
+                  "const summary = jsonData.summary",
+                  "pm.test(`User ID should be ${user_id}`, function () {",
+                  "    pm.expect(cart.user_id).to.eql(user_id);",
+                  "});",
+                  "",
+                  "pm.test(`Product ID should be ${product_id}`, function () {",
+                  "    pm.expect(cart.product_id).to.eql(product_id);",
+                  "});",
+                  "",
+                  "pm.test(`Quantity in cart should be ${quantity}`, function () {",
+                  "    pm.expect(cart.quantity).to.eql(quantity);",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_name}`, function () {",
+                  "    pm.expect(cart.product_name).to.eql(product_name);",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_price_thb}`, function () {",
+                  "    pm.expect(cart.product_price_thb).to.eql(product_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_price_full_thb}`, function () {",
+                  "    pm.expect(cart.product_price_full_thb).to.eql(product_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product brand is ${product_brand}`, function () {",
+                  "    pm.expect(cart.product_brand).to.eql(product_brand);",
+                  "});",
+                  "",
+                  "pm.test(`Total receive point is ${receive_point}`, function () {",
+                  "    pm.expect(summary.receive_point).to.eql(receive_point);",
+                  "});",
+                  "",
+                  "pm.test(`Total price is ${total_price}`, function () {",
+                  "    pm.expect(summary.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Total price in THB is ${total_price_thb}`, function () {",
+                  "    pm.expect(summary.total_price_thb).to.eql(total_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Total full price in THB is ${total_price_full_thb}`, function () {",
+                  "    pm.expect(summary.total_price_full_thb).to.eql(total_price_full_thb);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/cart",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "cart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Order",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const orderProductList = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "",
+                  "const cart = orderProductList.map(p => ({",
+                  "  product_id: p.id,",
+                  "  quantity: p.quantity",
+                  "}));",
+                  "",
+                  "pm.variables.set(\"cart\", JSON.stringify(cart));"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json()",
+                  "const order_id = jsonData.order_id",
+                  "pm.variables.set(\"order_id\", order_id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cart\": {{cart}},\n    \"burn_point\": 0,\n    \"sub_total_price\": {{order_subtotal_price}},\n    \"discount_price\": 0,\n    \"total_price\": {{order_total_price}},\n    \"shipping_method_id\": {{shipping_method_id}},\n    \"shipping_address\": \"{{address}}\",\n    \"shipping_sub_district\": \"{{sub_district}}\",\n    \"shipping_district\": \"{{district}}\",\n    \"shipping_province\": \"{{province}}\",\n    \"shipping_zip_code\": \"{{zipcode}}\",\n    \"recipient_first_name\": \"{{first_name}}\",\n    \"recipient_last_name\": \"{{last_name}}\",\n    \"recipient_phone_number\": \"{{phone_number}}\",\n    \"payment_method_id\": {{payment_method_id}},\n    \"payment_information\": {\n        \"card_name\": \"{{credit_card_name}}\",\n        \"card_number\": \"{{credit_card_number}}\",\n        \"expire_date\": \"{{credit_card_expired_date}}\",\n        \"cvv\": \"{{credit_card_cvv}}\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/order",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "order"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
+                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
+                  "",
+                  "const schema = {",
+                  "    \"order_id\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"payment_date\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"shipping_method\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"tracking_number\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "};",
+                  "",
+                  "const jsonData = pm.response.json()",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(`Shipping Method ID should be ${shipping_method_id}`, function () {",
+                  "    pm.expect(jsonData.shipping_method_id).to.eql(shipping_method_id);",
+                  "});",
+                  "",
+                  "pm.test(`Order ID should be ${order_id}`, function () {",
+                  "    pm.expect(jsonData.order_id).to.eql(order_id);",
+                  "});",
+                  "",
+                  "pm.test(`Tracking Number should start with ${shipping_method_prefix}`, function () {",
+                  "    const prefix = jsonData.tracking_number.split(\"-\")[0]",
+                  "    pm.expect(prefix).to.eql(shipping_method_prefix)",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"order_id\": {{order_id}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "confirmPayment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order Summary Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
+                  "const shipping_method = pm.variables.get(\"shipping_method\");",
+                  "const payment_method = pm.variables.get(\"payment_method\");",
+                  "",
+                  "const products = product_list.map((product) => ({",
+                  "    \"product_brand\": product.product_brand,",
+                  "    \"product_name\": product.product_name,",
+                  "    \"quantity\": product.quantity,",
+                  "    \"price_thb\": product.product_price_thb",
+                  "}))",
+                  "",
+                  "const subtotal_price = parseFloat(pm.variables.get(\"order_subtotal_price\"));",
+                  "const total_price = parseFloat(pm.variables.get(\"order_total_price\"));",
+                  "const shipping_fee = parseFloat(pm.variables.get(\"shipping_fee\"));",
+                  "const receiving_point = parseFloat(pm.variables.get(\"receiving_point\"));",
+                  "",
+                  "const schema = {",
+                  "    \"id\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"first_name\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"last_name\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"tracking_no\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"shipping_method\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"payment_method\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"products\": {",
+                  "        \"type\": \"array\",",
+                  "        \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"product_brand\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"price_thb\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"subtotal_price\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"discount_price\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"total_price\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"shipping_fee\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"burn_point\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"receiving_point\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "}",
+                  "",
+                  "const jsonData = pm.response.json()",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(`Tracking Number should start with ${shipping_method_prefix}`, function () {",
+                  "    const prefix = jsonData.tracking_no.split(\"-\")[0]",
+                  "    pm.expect(prefix).to.eql(shipping_method_prefix)",
+                  "});",
+                  "",
+                  "pm.test(`Payment Method should be '${payment_method}'`, function () {",
+                  "    pm.expect(jsonData.payment_method).to.eql(payment_method);",
+                  "});",
+                  "",
+                  "pm.test(`Product list should contain 2 products`, function () {",
+                  "    jsonData.products.forEach((product, index) => {",
+                  "        pm.expect(product.product_brand).to.eql(products[index].product_brand);",
+                  "        pm.expect(product.product_name).to.eql(products[index].product_name);",
+                  "        pm.expect(product.quantity).to.eql(products[index].quantity);",
+                  "        pm.expect(product.price_thb).to.eql(products[index].price_thb);",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Subtotal Price should be ${subtotal_price}`, function () {",
+                  "    pm.expect(jsonData.subtotal_price).to.eql(subtotal_price);",
+                  "});",
+                  "",
+                  "pm.test(`Discount Price should be 0`, function () {",
+                  "    pm.expect(jsonData.discount_price).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test(`Total Price should be ${total_price}`, function () {",
+                  "    pm.expect(jsonData.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Shipping Fee should be ${shipping_fee}`, function () {",
+                  "    pm.expect(jsonData.shipping_fee).to.eql(shipping_fee);",
+                  "});",
+                  "",
+                  "pm.test(`Burn Point should be 0`, function () {",
+                  "    pm.expect(jsonData.burn_point).to.eql(0);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(`Receiving Point should be ${receiving_point}`, function () {",
+                  "    pm.expect(jsonData.receiving_point).to.eql(receiving_point);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "accept": true
+            }
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/order/{{order_id}}/summary/",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "order", "{{order_id}}", "summary", ""]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [""]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [""]
+          }
+        }
+      ]
+    },
+    {
+      "name": "TSS-OSP-002",
+      "item": [
+        {
+          "name": "Get Products without Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message should be 'unauthorized'\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.eql(\"unauthorized\");",
+                  "    pm.expect(jsonData.message).to.eql(\"No authorization header provided.\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=&offset=0&limit=20",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Set-Cookie is present\", function () {",
+                  "    pm.response.to.have.header(\"Set-Cookie\");",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"access_token\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"message\": {",
+                  "        \"type\": \"string\"",
+                  "    }",
+                  "};",
+                  "",
+                  "const jsonData = pm.response.json()",
+                  "const refreshToken = pm.cookies.get(\"refreshToken\")",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Response message should be 'Logged in successfully.'\", function () {",
+                  "    pm.expect(jsonData.message).to.eql(\"Logged in successfully.\");",
+                  "});",
+                  "",
+                  "pm.variables.set(\"access_token\", jsonData.access_token);",
+                  "pm.variables.set(\"refresh_token\", refreshToken);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/login",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Products after Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const target_products = JSON.parse(pm.variables.get(\"order_product_list\"));",
+                  "const total_products = parseFloat(pm.variables.get(\"total_products\"));",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"total\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"products\": {",
+                  "        \"type\": \"array\",",
+                  "        \"items\": [",
+                  "            {",
+                  "                \"type\": \"object\",",
+                  "                \"properties\": {",
+                  "                    \"id\": {",
+                  "                        \"type\": \"integer\"",
+                  "                    },",
+                  "                    \"product_name\": {",
+                  "                        \"type\": \"string\"",
+                  "                    },",
+                  "                    \"product_price\": {",
+                  "                        \"type\": \"number\"",
+                  "                    },",
+                  "                    \"product_price_thb\": {",
+                  "                        \"type\": \"number\"",
+                  "                    },",
+                  "                    \"product_price_full_thb\": {",
+                  "                        \"type\": \"number\"",
+                  "                    },",
+                  "                    \"product_image\": {",
+                  "                        \"type\": \"string\"",
+                  "                    }",
+                  "                },",
+                  "                \"required\": [",
+                  "                    \"id\",",
+                  "                    \"product_name\",",
+                  "                    \"product_price\",",
+                  "                    \"product_price_thb\",",
+                  "                    \"product_price_full_thb\",",
+                  "                    \"product_image\"",
+                  "                ]",
+                  "            }",
+                  "        ]",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(`Total products should be ${total_products}`, function () {",
+                  "    pm.expect(jsonData.total).to.eql(total_products)",
+                  "});",
+                  "",
+                  "const products = jsonData.products",
+                  "pm.test(`Product list should contains the target product list`, function () {",
+                  "    target_products.forEach((expected_product) => {",
+                  "        const product = products.find((product) => product.product_name === expected_product.product_name);",
+                  "        pm.expect(product).not.undefined;",
+                  "    })",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=&offset=0&limit=20",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "View Product Detail - Balance Training Bicycle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "const product_name = first_product.product_name",
+                  "const product_price = first_product.product_price",
+                  "const product_price_thb = first_product.product_price_thb",
+                  "const product_price_full_thb = first_product.product_price_full_thb",
+                  "const product_brand = first_product.product_brand",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_name}`, function () {",
+                  "    pm.expect(jsonData.product_name).to.eql(product_name);",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_price_thb}`, function () {",
+                  "    pm.expect(jsonData.product_price_thb).to.eql(product_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_price_full_thb}`, function () {",
+                  "    pm.expect(jsonData.product_price_full_thb).to.eql(product_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product brand is ${product_brand}`, function () {",
+                  "    pm.expect(jsonData.product_brand).to.eql(product_brand);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "pm.variables.set(\"product_id\", first_product.id)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product/{{product_id}}",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add to Cart - Balance Training Bicycle",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "pm.variables.set(\"product_id\", first_product.id)",
+                  "pm.variables.set(\"quantity\", first_product.quantity)",
+                  "pm.variables.set(\"total_price\", 119.95)",
+                  "pm.variables.set(\"total_price_thb\", 4314.6)",
+                  "pm.variables.set(\"total_price_full_thb\", 4314.597182)",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "const product_name = first_product.product_name",
+                  "const product_price = first_product.product_price",
+                  "const product_price_thb = first_product.product_price_thb",
+                  "const product_price_full_thb = first_product.product_price_full_thb",
+                  "const product_brand = first_product.product_brand",
+                  "",
+                  "const product_id = first_product.id",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "const quantity = first_product.quantity",
+                  "",
+                  "const receive_point = first_product.receiving_point",
+                  "",
+                  "const total_price = parseFloat(pm.variables.get(\"total_price\"));",
+                  "const total_price_thb = parseFloat(pm.variables.get(\"total_price_thb\"));",
+                  "const total_price_full_thb = parseFloat(pm.variables.get(\"total_price_full_thb\"));",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"carts\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"user_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_price\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_full_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"stock\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_image\": {",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"summary\": {",
+                  "      \"type\": \"object\",",
+                  "      \"properties\": {",
+                  "        \"total_price\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_full_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"receive_point\": {",
+                  "            \"type\": \"integer\"",
+                  "        }",
+                  "        },",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Should contains only 1 product in cart\", function () {",
+                  "    pm.expect(jsonData.carts.length).to.eql(1);",
+                  "});",
+                  "",
+                  "const cart = jsonData.carts[0]",
+                  "const summary = jsonData.summary",
+                  "pm.test(`User ID should be ${user_id}`, function () {",
+                  "    pm.expect(cart.user_id).to.eql(user_id);",
+                  "});",
+                  "",
+                  "pm.test(`Product ID should be ${product_id}`, function () {",
+                  "    pm.expect(cart.product_id).to.eql(product_id);",
+                  "});",
+                  "",
+                  "pm.test(`Quantity in cart should be ${quantity}`, function () {",
+                  "    pm.expect(cart.quantity).to.eql(quantity);",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_name}`, function () {",
+                  "    pm.expect(cart.product_name).to.eql(product_name);",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_price_thb}`, function () {",
+                  "    pm.expect(cart.product_price_thb).to.eql(product_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_price_full_thb}`, function () {",
+                  "    pm.expect(cart.product_price_full_thb).to.eql(product_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product brand is ${product_brand}`, function () {",
+                  "    pm.expect(cart.product_brand).to.eql(product_brand);",
+                  "});",
+                  "",
+                  "pm.test(`Total receive point is ${receive_point}`, function () {",
+                  "    pm.expect(summary.receive_point).to.eql(receive_point);",
+                  "});",
+                  "",
+                  "pm.test(`Total price is ${total_price}`, function () {",
+                  "    pm.expect(summary.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Total price in THB is ${total_price_thb}`, function () {",
+                  "    pm.expect(summary.total_price_thb).to.eql(total_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Total full price in THB is ${total_price_full_thb}`, function () {",
+                  "    pm.expect(summary.total_price_full_thb).to.eql(total_price_full_thb);",
+                  "});",
+                  "",
+                  "",
+                  "pm.variables.unset(\"total_price\")",
+                  "pm.variables.unset(\"total_price_thb\")",
+                  "pm.variables.unset(\"total_price_full_thb\")",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": {{product_id}},\n    \"quantity\": {{quantity}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/addCart",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "addCart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cart",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "pm.variables.set(\"product_id\", first_product.id)",
+                  "pm.variables.set(\"quantity\", first_product.id)",
+                  "pm.variables.set(\"total_price\", 119.95)",
+                  "pm.variables.set(\"total_price_thb\", 4314.6)",
+                  "pm.variables.set(\"total_price_full_thb\", 4314.597182)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[0]",
+                  "",
+                  "const product_name = first_product.product_name",
+                  "const product_price = first_product.product_price",
+                  "const product_price_thb = first_product.product_price_thb",
+                  "const product_price_full_thb = first_product.product_price_full_thb",
+                  "const product_brand = first_product.product_brand",
+                  "",
+                  "const product_id = first_product.id",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "const quantity = first_product.quantity",
+                  "",
+                  "const receive_point = first_product.receiving_point",
+                  "",
+                  "const total_price = parseFloat(pm.variables.get(\"total_price\"));",
+                  "const total_price_thb = parseFloat(pm.variables.get(\"total_price_thb\"));",
+                  "const total_price_full_thb = parseFloat(pm.variables.get(\"total_price_full_thb\"));",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"carts\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"user_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_price\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_full_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"stock\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_image\": {",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"summary\": {",
+                  "      \"type\": \"object\",",
+                  "      \"properties\": {",
+                  "        \"total_price\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_full_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"receive_point\": {",
+                  "            \"type\": \"integer\"",
+                  "        }",
+                  "        },",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Should contains only 1 product in cart\", function () {",
+                  "    pm.expect(jsonData.carts.length).to.eql(1);",
+                  "});",
+                  "",
+                  "const cart = jsonData.carts[0]",
+                  "const summary = jsonData.summary",
+                  "pm.test(`User ID should be ${user_id}`, function () {",
+                  "    pm.expect(cart.user_id).to.eql(user_id);",
+                  "});",
+                  "",
+                  "pm.test(`Product ID should be ${product_id}`, function () {",
+                  "    pm.expect(cart.product_id).to.eql(product_id);",
+                  "});",
+                  "",
+                  "pm.test(`Quantity in cart should be ${quantity}`, function () {",
+                  "    pm.expect(cart.quantity).to.eql(quantity);",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_name}`, function () {",
+                  "    pm.expect(cart.product_name).to.eql(product_name);",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_price_thb}`, function () {",
+                  "    pm.expect(cart.product_price_thb).to.eql(product_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_price_full_thb}`, function () {",
+                  "    pm.expect(cart.product_price_full_thb).to.eql(product_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product brand is ${product_brand}`, function () {",
+                  "    pm.expect(cart.product_brand).to.eql(product_brand);",
+                  "});",
+                  "",
+                  "pm.test(`Total receive point is ${receive_point}`, function () {",
+                  "    pm.expect(summary.receive_point).to.eql(receive_point);",
+                  "});",
+                  "",
+                  "pm.test(`Total price is ${total_price}`, function () {",
+                  "    pm.expect(summary.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Total price in THB is ${total_price_thb}`, function () {",
+                  "    pm.expect(summary.total_price_thb).to.eql(total_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Total full price in THB is ${total_price_full_thb}`, function () {",
+                  "    pm.expect(summary.total_price_full_thb).to.eql(total_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.variables.unset(\"total_price\")",
+                  "pm.variables.unset(\"total_price_thb\")",
+                  "pm.variables.unset(\"total_price_full_thb\")",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/cart",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "cart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Products again",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const target_products = JSON.parse(pm.variables.get(\"order_product_list\"));",
+                  "const total_products =  parseFloat(pm.variables.get(\"total_products\"));",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"total\": {",
+                  "      \"type\": \"integer\"",
+                  "    },",
+                  "    \"products\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": [",
+                  "        {",
+                  "          \"type\": \"object\",",
+                  "          \"properties\": {",
+                  "            \"id\": {",
+                  "              \"type\": \"integer\"",
+                  "            },",
+                  "            \"product_name\": {",
+                  "              \"type\": \"string\"",
+                  "            },",
+                  "            \"product_price\": {",
+                  "              \"type\": \"number\"",
+                  "            },",
+                  "            \"product_price_th\": {",
+                  "              \"type\": \"number\"",
+                  "            },",
+                  "            \"product_price_full_thb\": {",
+                  "              \"type\": \"number\"",
+                  "            },",
+                  "            \"product_image\": {",
+                  "              \"type\": \"string\"",
+                  "            }",
+                  "          },",
+                  "        }",
+                  "      ]",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(`Total products should be ${total_products}`, function () {",
+                  "    pm.expect(jsonData.total).to.eql(total_products)",
+                  "});",
+                  "",
+                  "const products = jsonData.products",
+                  "pm.test(`Product list should contains the target product list`, function () {",
+                  "    target_products.forEach((expected_product) => {",
+                  "        const product = products.find((product) => product.product_name === expected_product.product_name);",
+                  "        pm.expect(product).not.undefined;",
+                  "    })",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product?q=&offset=0&limit=20",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "View Product Detail - 43 Piece dinner Set",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const first_product = product_list[1]",
+                  "",
+                  "pm.variables.set(\"product_id\", first_product.id)"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const second_product = product_list[1]",
+                  "",
+                  "const product_name = second_product.product_name",
+                  "const product_price = second_product.product_price",
+                  "const product_price_thb = second_product.product_price_thb",
+                  "const product_price_full_thb = second_product.product_price_full_thb",
+                  "const product_brand = second_product.product_brand",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_name}`, function () {",
+                  "    pm.expect(jsonData.product_name).to.eql(product_name);",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_price_thb}`, function () {",
+                  "    pm.expect(jsonData.product_price_thb).to.eql(product_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_price_full_thb}`, function () {",
+                  "    pm.expect(jsonData.product_price_full_thb).to.eql(product_price_full_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Product brand is ${product_brand}`, function () {",
+                  "    pm.expect(jsonData.product_brand).to.eql(product_brand);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/product/{{product_id}}",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "product", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add to Cart - 43 Piece diner Set",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const second_product = product_list[1]",
+                  "",
+                  "pm.variables.set(\"product_id\", second_product.id)",
+                  "pm.variables.set(\"quantity\", second_product.quantity)",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "",
+                  "const total_price = parseFloat(pm.variables.get(\"total_price\"));",
+                  "const total_price_thb = parseFloat(pm.variables.get(\"total_price_thb\"));",
+                  "const total_price_full_thb = parseFloat(pm.variables.get(\"total_price_full_thb\"));",
+                  "const receiving_point = parseFloat(pm.variables.get(\"receiving_point\"));",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"carts\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"user_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_price\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_full_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"stock\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_image\": {",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"summary\": {",
+                  "      \"type\": \"object\",",
+                  "      \"properties\": {",
+                  "        \"total_price\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_full_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"receive_point\": {",
+                  "            \"type\": \"integer\"",
+                  "        }",
+                  "        },",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Should contains 2 products in cart\", function () {",
+                  "    pm.expect(jsonData.carts.length).to.eql(2);",
+                  "});",
+                  "",
+                  "const carts = jsonData.carts",
+                  "const summary = jsonData.summary",
+                  "pm.test(`User ID should be ${user_id}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        pm.expect(cart.user_id).to.eql(user_id);",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product ID should be ${product_list[0].id} and ${product_list[1].id}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_id = product_list.find(product => product.id === cart.product_id)",
+                  "         pm.expect(product_id).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Quantity in cart should be ${product_list[0].quantity} and ${product_list[1].quantity}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const quantity = product_list.find(product => product.quantity === cart.quantity)",
+                  "        pm.expect(quantity).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_list[0].product_name} and ${product_list[1].product_name}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_name = product_list.find(product => product.product_name === cart.product_name)",
+                  "        pm.expect(product_name).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_list[0].product_price} and ${product_list[1].product_price}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_price = product_list.find(product => product.product_price === cart.product_price)",
+                  "        pm.expect(product_price).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_list[0].product_price_thb} and ${product_list[1].product_price_thb}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_price_thb = product_list.find(product => product.product_price_thb === cart.product_price_thb)",
+                  "        pm.expect(product_price_thb).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_list[0].product_price_full_thb} and ${product_list[1].product_price_full_thb}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_price_full_thb = product_list.find(product => product.product_price_full_thb === cart.product_price_full_thb)",
+                  "        pm.expect(product_price_full_thb).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_list[0].product_brand} and ${product_list[1].product_brand}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_brand = product_list.find(product => product.product_brand === cart.product_brand)",
+                  "        pm.expect(product_brand).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Total receive point is ${receiving_point}`, function () {",
+                  "    pm.expect(summary.receive_point).to.eql(receiving_point);",
+                  "});",
+                  "",
+                  "pm.test(`Total price is ${total_price}`, function () {",
+                  "    pm.expect(summary.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Total price in THB is ${total_price_thb}`, function () {",
+                  "    pm.expect(summary.total_price_thb).to.eql(total_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Total full price in THB is ${total_price_full_thb}`, function () {",
+                  "    pm.expect(summary.total_price_full_thb).to.eql(total_price_full_thb);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": {{product_id}},\n    \"quantity\": {{quantity}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/addCart",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "addCart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "",
+                  "const total_price = parseFloat(pm.variables.get(\"total_price\"));",
+                  "const total_price_thb = parseFloat(pm.variables.get(\"total_price_thb\"));",
+                  "const total_price_full_thb = parseFloat(pm.variables.get(\"total_price_full_thb\"));",
+                  "const receiving_point = parseFloat(pm.variables.get(\"receiving_point\"));",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const schema = {",
+                  "    \"carts\": {",
+                  "      \"type\": \"array\",",
+                  "      \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"user_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_id\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_price\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_price_full_thb\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"stock\": {",
+                  "                    \"type\": \"number\"",
+                  "                },",
+                  "                \"product_image\": {",
+                  "                    \"type\": \"string\"",
+                  "                }",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"summary\": {",
+                  "      \"type\": \"object\",",
+                  "      \"properties\": {",
+                  "        \"total_price\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"total_price_full_thb\": {",
+                  "            \"type\": \"number\"",
+                  "        },",
+                  "        \"receive_point\": {",
+                  "            \"type\": \"integer\"",
+                  "        }",
+                  "        },",
+                  "    }",
+                  "};",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Should contains 2 products in cart\", function () {",
+                  "    pm.expect(jsonData.carts.length).to.eql(2);",
+                  "});",
+                  "",
+                  "const carts = jsonData.carts",
+                  "const summary = jsonData.summary",
+                  "pm.test(`User ID should be ${user_id}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        pm.expect(cart.user_id).to.eql(user_id);",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product ID should be ${product_list[0].id} and ${product_list[1].id}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_id = product_list.find(product => product.id === cart.product_id)",
+                  "         pm.expect(product_id).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Quantity in cart should be ${product_list[0].quantity} and ${product_list[1].quantity}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const quantity = product_list.find(product => product.quantity === cart.quantity)",
+                  "        pm.expect(quantity).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product name is ${product_list[0].product_name} and ${product_list[1].product_name}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_name = product_list.find(product => product.product_name === cart.product_name)",
+                  "        pm.expect(product_name).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_list[0].product_price} and ${product_list[1].product_price}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_price = product_list.find(product => product.product_price === cart.product_price)",
+                  "        pm.expect(product_price).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_list[0].product_price_thb} and ${product_list[1].product_price_thb}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_price_thb = product_list.find(product => product.product_price_thb === cart.product_price_thb)",
+                  "        pm.expect(product_price_thb).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product full price in THB is ${product_list[0].product_price_full_thb} and ${product_list[1].product_price_full_thb}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_price_full_thb = product_list.find(product => product.product_price_full_thb === cart.product_price_full_thb)",
+                  "        pm.expect(product_price_full_thb).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Product price in THB is ${product_list[0].product_brand} and ${product_list[1].product_brand}`, function () {",
+                  "    carts.forEach((cart) => {",
+                  "        const product_brand = product_list.find(product => product.product_brand === cart.product_brand)",
+                  "        pm.expect(product_brand).not.undefined;",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Total receive point is ${receiving_point}`, function () {",
+                  "    pm.expect(summary.receive_point).to.eql(receiving_point);",
+                  "});",
+                  "",
+                  "pm.test(`Total price is ${total_price}`, function () {",
+                  "    pm.expect(summary.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Total price in THB is ${total_price_thb}`, function () {",
+                  "    pm.expect(summary.total_price_thb).to.eql(total_price_thb);",
+                  "});",
+                  "",
+                  "pm.test(`Total full price in THB is ${total_price_full_thb}`, function () {",
+                  "    pm.expect(summary.total_price_full_thb).to.eql(total_price_full_thb);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/cart",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "cart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Order",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const orderProductList = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "",
+                  "const cart = orderProductList.map(p => ({",
+                  "  product_id: p.id,",
+                  "  quantity: p.quantity",
+                  "}));",
+                  "",
+                  "pm.variables.set(\"cart\", JSON.stringify(cart));"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json()",
+                  "const order_id = jsonData.order_id",
+                  "pm.variables.set(\"order_id\", order_id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cart\": {{cart}},\n    \"burn_point\": 0,\n    \"sub_total_price\": {{order_subtotal_price}},\n    \"discount_price\": 0,\n    \"total_price\": {{order_total_price}},\n    \"shipping_method_id\": {{shipping_method_id}},\n    \"shipping_address\": \"{{address}}\",\n    \"shipping_sub_district\": \"{{sub_district}}\",\n    \"shipping_district\": \"{{district}}\",\n    \"shipping_province\": \"{{province}}\",\n    \"shipping_zip_code\": \"{{zipcode}}\",\n    \"recipient_first_name\": \"{{first_name}}\",\n    \"recipient_last_name\": \"{{last_name}}\",\n    \"recipient_phone_number\": \"{{phone_number}}\",\n    \"payment_method_id\": {{payment_method_id}},\n    \"payment_information\": {\n        \"card_name\": \"{{credit_card_name}}\",\n        \"card_number\": \"{{credit_card_number}}\",\n        \"expire_date\": \"{{credit_card_expired_date}}\",\n        \"cvv\": \"{{credit_card_cvv}}\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/order",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "order"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
+                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
+                  "",
+                  "const schema = {",
+                  "    \"order_id\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"payment_date\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"shipping_method\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"tracking_number\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "};",
+                  "",
+                  "const jsonData = pm.response.json()",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(`Shipping Method ID should be ${shipping_method_id}`, function () {",
+                  "    pm.expect(jsonData.shipping_method_id).to.eql(shipping_method_id);",
+                  "});",
+                  "",
+                  "pm.test(`Order ID should be ${order_id}`, function () {",
+                  "    pm.expect(jsonData.order_id).to.eql(order_id);",
+                  "});",
+                  "",
+                  "pm.test(`Tracking Number should start with ${shipping_method_prefix}`, function () {",
+                  "    const prefix = jsonData.tracking_number.split(\"-\")[0]",
+                  "    pm.expect(prefix).to.eql(shipping_method_prefix)",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"order_id\": {{order_id}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "confirmPayment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order Summary Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
+                  "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
+                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
+                  "const shipping_method = pm.variables.get(\"shipping_method\");",
+                  "const payment_method = pm.variables.get(\"payment_method\");",
+                  "",
+                  "const products = product_list.map((product) => ({",
+                  "    \"product_brand\": product.product_brand,",
+                  "    \"product_name\": product.product_name,",
+                  "    \"quantity\": product.quantity,",
+                  "    \"price_thb\": product.product_price_thb",
+                  "}))",
+                  "",
+                  "const subtotal_price = parseFloat(pm.variables.get(\"order_subtotal_price\"));",
+                  "const total_price = parseFloat(pm.variables.get(\"order_total_price\"));",
+                  "const shipping_fee = parseFloat(pm.variables.get(\"shipping_fee\"));",
+                  "const receiving_point = parseFloat(pm.variables.get(\"receiving_point\"));",
+                  "",
+                  "const schema = {",
+                  "    \"id\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"first_name\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"last_name\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"tracking_no\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"shipping_method\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"payment_method\": {",
+                  "        \"type\": \"string\"",
+                  "    },",
+                  "    \"products\": {",
+                  "        \"type\": \"array\",",
+                  "        \"items\": [",
+                  "        {",
+                  "            \"type\": \"object\",",
+                  "            \"properties\": {",
+                  "                \"product_brand\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"product_name\": {",
+                  "                    \"type\": \"string\"",
+                  "                },",
+                  "                \"quantity\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "                \"price_thb\": {",
+                  "                    \"type\": \"integer\"",
+                  "                },",
+                  "            }",
+                  "        }",
+                  "      ]",
+                  "    },",
+                  "    \"subtotal_price\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"discount_price\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"total_price\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"shipping_fee\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"burn_point\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "    \"receiving_point\": {",
+                  "        \"type\": \"integer\"",
+                  "    },",
+                  "}",
+                  "",
+                  "const jsonData = pm.response.json()",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response body schema is valid', function () {",
+                  "    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(`Tracking Number should start with ${shipping_method_prefix}`, function () {",
+                  "    const prefix = jsonData.tracking_no.split(\"-\")[0]",
+                  "    pm.expect(prefix).to.eql(shipping_method_prefix)",
+                  "});",
+                  "",
+                  "pm.test(`Payment Method should be '${payment_method}'`, function () {",
+                  "    pm.expect(jsonData.payment_method).to.eql(payment_method);",
+                  "});",
+                  "",
+                  "pm.test(`Product list should contain 2 products`, function () {",
+                  "    jsonData.products.forEach((product, index) => {",
+                  "        pm.expect(product.product_brand).to.eql(products[index].product_brand);",
+                  "        pm.expect(product.product_name).to.eql(products[index].product_name);",
+                  "        pm.expect(product.quantity).to.eql(products[index].quantity);",
+                  "        pm.expect(product.price_thb).to.eql(products[index].price_thb);",
+                  "    })",
+                  "});",
+                  "",
+                  "pm.test(`Subtotal Price should be ${subtotal_price}`, function () {",
+                  "    pm.expect(jsonData.subtotal_price).to.eql(subtotal_price);",
+                  "});",
+                  "",
+                  "pm.test(`Discount Price should be 0`, function () {",
+                  "    pm.expect(jsonData.discount_price).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test(`Total Price should be ${total_price}`, function () {",
+                  "    pm.expect(jsonData.total_price).to.eql(total_price);",
+                  "});",
+                  "",
+                  "pm.test(`Shipping Fee should be ${shipping_fee}`, function () {",
+                  "    pm.expect(jsonData.shipping_fee).to.eql(shipping_fee);",
+                  "});",
+                  "",
+                  "pm.test(`Burn Point should be 0`, function () {",
+                  "    pm.expect(jsonData.burn_point).to.eql(0);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(`Receiving Point should be ${receiving_point}`, function () {",
+                  "    pm.expect(jsonData.receiving_point).to.eql(receiving_point);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "accept": true
+            }
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/order/{{order_id}}/summary/",
+              "host": ["{{STORE_SERVICE_URL}}"],
+              "path": ["api", "v1", "order", "{{order_id}}", "summary", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"product_id\": 2,\n    \"quantity\": 0\n}"
+        },
+        "url": {
+          "raw": "{{STORE_SERVICE_URL}}/api/v1/updateCart",
+          "host": ["{{STORE_SERVICE_URL}}"],
+          "path": ["api", "v1", "updateCart"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "username",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "order_product_list",
+      "value": ""
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "total_products",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "order_subtotal_price",
+      "value": ""
+    },
+    {
+      "key": "order_total_price",
+      "value": ""
+    },
+    {
+      "key": "shipping_fee",
+      "value": ""
+    },
+    {
+      "key": "receiving_point",
+      "value": ""
+    },
+    {
+      "key": "product_id",
+      "value": ""
+    },
+    {
+      "key": "quantity",
+      "value": ""
+    },
+    {
+      "key": "total_price",
+      "value": ""
+    },
+    {
+      "key": "total_price_thb",
+      "value": ""
+    },
+    {
+      "key": "total_price_full_thb",
+      "value": ""
+    },
+    {
+      "key": "shipping_method_id",
+      "value": ""
+    },
+    {
+      "key": "address",
+      "value": ""
+    },
+    {
+      "key": "sub_district",
+      "value": ""
+    },
+    {
+      "key": "district",
+      "value": ""
+    },
+    {
+      "key": "province",
+      "value": ""
+    },
+    {
+      "key": "zipcode",
+      "value": ""
+    },
+    {
+      "key": "first_name",
+      "value": ""
+    },
+    {
+      "key": "last_name",
+      "value": ""
+    },
+    {
+      "key": "phone_number",
+      "value": ""
+    },
+    {
+      "key": "payment_method_id",
+      "value": ""
+    },
+    {
+      "key": "credit_card_name",
+      "value": ""
+    },
+    {
+      "key": "credit_card_number",
+      "value": ""
+    },
+    {
+      "key": "credit_card_expired_date",
+      "value": ""
+    },
+    {
+      "key": "credit_card_cvv",
+      "value": ""
+    },
+    {
+      "key": "otp",
+      "value": ""
+    },
+    {
+      "key": "ref_otp",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "shipping_method_prefix",
+      "value": ""
+    },
+    {
+      "key": "payment_method",
+      "value": ""
+    },
+    {
+      "key": "shipping_method",
+      "value": ""
+    },
+    {
+      "key": "cart",
+      "value": ""
+    }
+  ]
+}
