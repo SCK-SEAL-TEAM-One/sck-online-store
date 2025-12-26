@@ -42,8 +42,6 @@ func (seed SeedUserData) GenerateUpdateUserDataCSV(outputDir string, db *sqlx.DB
 		return err
 	}
 
-	log.Printf("Users found in DB: %d", len(users))
-
 	defaultPassword := "P@ssw0rd"
 	for _, u := range users {
 		hashed, err := seed.PasswordHelper.HashPassword(defaultPassword)
@@ -52,7 +50,6 @@ func (seed SeedUserData) GenerateUpdateUserDataCSV(outputDir string, db *sqlx.DB
 		}
 
 		username := fmt.Sprintf("user_%d", u.ID)
-		log.Printf("username: %s", username)
 
 		record := []string{
 			fmt.Sprintf("%d", u.ID),
