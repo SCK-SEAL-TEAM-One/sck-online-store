@@ -4,7 +4,7 @@ import Button from '@/components/button/button'
 import Header1 from '@/components/typography/header1'
 import Header3 from '@/components/typography/header3'
 import Text from '@/components/typography/text'
-import { getOrderSummary } from '@/services/order-checkout'
+import { getOrderSummary } from '@/services/download-pdf'
 import { getShippingMethodById } from '@/utils/shipping'
 import dayjs from 'dayjs'
 import { useSearchParams } from 'next/navigation'
@@ -41,7 +41,6 @@ const OrderResult = () => {
   }, [shippingMethodId])
 
   const handleDownLoadOrderSummary = async () => {
-    console.log('click')
     if (!orderId) {
       return
     }
