@@ -61,7 +61,23 @@ func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
 	})
 }
 
-func (api OrderAPI) GetOrderSummaryPDFHandler(context *gin.Context) {
+func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
+	acceptHeader := context.GetHeader("Accept")
+	allowedHeaders := []string{"application/pdf", "", "*/*", "application/json"}
+	isAllowed := false
+	for _, header := range allowedHeaders {
+		if header == acceptHeader {
+			isAllowed = true
+			break
+		}
+	}
+
+	if !isAllowed {
+		// 406 Not Acceptable
+		context.AbortWithStatus(http.StatusNotAcceptable)
+		return
+	}
+
 	orderIDParam := context.Param("id")
 	orderID, err := strconv.Atoi(orderIDParam)
 	if err != nil {
@@ -72,9 +88,23 @@ func (api OrderAPI) GetOrderSummaryPDFHandler(context *gin.Context) {
 		return
 	}
 
-	pdfData, err := api.OrderService.GetOrderSummaryPDF(orderID)
+	orderSummary, err := api.OrderService.GetOrderSummary(orderID)
 	if err != nil {
-		log.Printf("OrderService.GetOrderSummaryPDF internal error %s", err.Error())
+		log.Printf("OrderService.GetOrderSummary internal error %s", err.Error())
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if acceptHeader == "application/json" {
+		context.JSON(http.StatusOK, orderSummary)
+		return
+	}
+
+	pdfData, err := api.OrderService.GeneratePDFFromData(orderSummary)
+	if err != nil {
+		log.Printf("OrderService.GeneratePDFFromData internal error %s", err.Error())
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
