@@ -93,10 +93,10 @@ type OrderSummary struct {
 	ShippingMethod   string                `json:"shipping_method"`
 	PaymentMethod    string                `json:"payment_method"`
 	OrderProductList []OrderSummaryProduct `json:"products"`
-	SubTotalPrice    float64               `json:"sub_total_price"`
+	SubTotalPrice    float64               `json:"subtotal_price"`
 	DiscountPrice    float64               `json:"discount_price"`
 	TotalPrice       float64               `json:"total_price"`
 	ShippingFee      float64               `json:"shipping_fee"`
 	BurnPoint        int                   `json:"burn_point"`
-	EarnPoint        int                   `json:"earn_point"`
+	ReceivingPoint   int                   `json:"receiving_point"`
 }
