@@ -3,13 +3,13 @@ package payment
 import "time"
 
 type SubmitedPayment struct {
-	OrderID int    `json:"order_id"`
-	OTP     int    `json:"otp"`
-	RefOTP  string `json:"ref_otp"`
+	OrderNumber string `json:"order_number"`
+	OTP         int    `json:"otp"`
+	RefOTP      string `json:"ref_otp"`
 }
 
 type SubmitedPaymentResponse struct {
-	OrderID          int       `json:"order_id"`
+	OrderNumber      string    `json:"order_number"`
 	PaymentDate      time.Time `json:"payment_date"`
 	ShippingMethodID int       `json:"shipping_method_id"`
 	TrackingNumber   string    `json:"tracking_number"`
