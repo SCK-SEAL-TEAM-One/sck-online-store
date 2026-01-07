@@ -1,5 +1,7 @@
 package order
 
+import "time"
+
 type SubmitedOrder struct {
 	Cart                 []OrderProduct `json:"cart"`
 	ShippingMethodID     int            `json:"shipping_method_id"`
@@ -44,18 +46,20 @@ type OrderProductWithPrice struct {
 }
 
 type OrderSummaryProduct struct {
-	ProductBrand string  `json:"product_brand"`
-	ProductName  string  `json:"product_name"`
-	Quantity     int     `json:"quantity"`
-	PriceTHB     float64 `json:"price_thb" `
+	ProductBrand  string  `json:"product_brand"`
+	ProductName   string  `json:"product_name"`
+	Quantity      int     `json:"quantity"`
+	PriceTHB      float64 `json:"price_thb"`
+	TotalPriceTHB float64 `json:"total_price_thb"`
 }
 
 type Order struct {
-	OrderID int
+	OrderNumber string
 }
 
 type OrderDetail struct {
 	ID               int     `json:"id"  db:"id"`
+	OrderNumber      string  `json:"order_number" db:"order_number"`
 	UserID           int     `json:"user_id"  db:"user_id"`
 	ShippingMethodID int     `json:"shipping_method_id"  db:"shipping_method_id"`
 	PaymentMethodID  int     `json:"payment_method_id"  db:"payment_method_id"`
@@ -70,23 +74,25 @@ type OrderDetail struct {
 }
 
 type OrderDetailWithTrackingNumber struct {
-	ID               int     `json:"id"  db:"id"`
-	UserID           int     `json:"user_id"  db:"user_id"`
-	ShippingMethodID int     `json:"shipping_method_id"  db:"shipping_method_id"`
-	PaymentMethodID  int     `json:"payment_method_id"  db:"payment_method_id"`
-	SubTotalPrice    float64 `json:"sub_total_price" db:"sub_total_price"`
-	DiscountPrice    float64 `json:"discount_price" db:"discount_price"`
-	TotalPrice       float64 `json:"total_price" db:"total_price"`
-	ShippingFee      float64 `json:"shipping_fee" db:"shipping_fee"`
-	BurnPoint        int     `json:"burn_point" db:"burn_point"`
-	EarnPoint        int     `json:"earn_point" db:"earn_point"`
-	TransactionID    string  `json:"transaction_id" db:"transaction_id"`
-	Status           string  `json:"status" db:"status"`
-	TrackingNumber   string  `json:"tracking_no" db:"tracking_no"`
+	ID               int       `json:"id"  db:"id"`
+	OrderNumber      string    `json:"order_number" db:"order_number"`
+	UserID           int       `json:"user_id"  db:"user_id"`
+	ShippingMethodID int       `json:"shipping_method_id"  db:"shipping_method_id"`
+	PaymentMethodID  int       `json:"payment_method_id"  db:"payment_method_id"`
+	SubTotalPrice    float64   `json:"sub_total_price" db:"sub_total_price"`
+	DiscountPrice    float64   `json:"discount_price" db:"discount_price"`
+	TotalPrice       float64   `json:"total_price" db:"total_price"`
+	ShippingFee      float64   `json:"shipping_fee" db:"shipping_fee"`
+	BurnPoint        int       `json:"burn_point" db:"burn_point"`
+	EarnPoint        int       `json:"earn_point" db:"earn_point"`
+	TransactionID    string    `json:"transaction_id" db:"transaction_id"`
+	Status           string    `json:"status" db:"status"`
+	TrackingNumber   string    `json:"tracking_no" db:"tracking_no"`
+	Updated          time.Time `json:"updated" db:"updated"`
 }
 
 type OrderSummary struct {
-	OrderID          int                   `json:"id"`
+	OrderNumber      string                `json:"order_number"`
 	FirstName        string                `json:"first_name"`
 	LastName         string                `json:"last_name"`
 	TrackingNumber   string                `json:"tracking_no"`
@@ -99,4 +105,5 @@ type OrderSummary struct {
 	ShippingFee      float64               `json:"shipping_fee"`
 	BurnPoint        int                   `json:"burn_point"`
 	ReceivingPoint   int                   `json:"receiving_point"`
+	IssuedDate       string                `json:"issued_date"`
 }
