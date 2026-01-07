@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-add-order-number-to-orders
+      author: developer
+      description: Add order_number column to Orders table
+      changes:
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: order_number
+                  type: VARCHAR(20)
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: uq_orders_order_number
+
+      rollback:
+        - dropColumn:
+            tableName: orders
+            columnName: order_number

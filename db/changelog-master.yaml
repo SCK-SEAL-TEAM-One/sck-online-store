@@ -5,3 +5,6 @@ databaseChangeLog:
   - include:
       file: changelogs/002-add-tracking-no-to-orders.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changelogs/003-add-order-number-to-orders.yaml
+      relativeToChangelogFile: true
