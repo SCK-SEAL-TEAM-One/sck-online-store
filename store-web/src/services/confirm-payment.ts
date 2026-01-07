@@ -4,13 +4,13 @@ import { handleServiceError } from '@/utils/helper'
 // ------------------------------------------------
 
 type OrderConfirmPaymentServiceRequest = {
-  orderId: number
+  order_number: string
   otp: number
   otpRef: string
 }
 
 export type OrderConfirmPaymentDetailType = {
-  order_id: number
+  order_number: string
   payment_date: string
   shipping_method_id: number
   tracking_number: string
@@ -22,13 +22,13 @@ export type OrderConfirmPaymentServiceResponse = {
 }
 
 const orderConfirmPaymentService = async ({
-  orderId,
+  order_number,
   otp,
   otpRef
 }: OrderConfirmPaymentServiceRequest): Promise<OrderConfirmPaymentServiceResponse> => {
   try {
     const { data } = await axiosShoppingMallApi.post(`/api/v1/confirmPayment`, {
-      order_id: orderId,
+      order_number: order_number,
       otp: otp,
       ref_otp: otpRef
     })

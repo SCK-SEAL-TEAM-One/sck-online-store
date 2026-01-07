@@ -15,7 +15,7 @@ import { useState } from 'react'
 
 const PaymentView = () => {
   const searchParams = useSearchParams()
-  const orderId = searchParams.get('id')
+  const orderNumber = searchParams.get('id')
   const total = Number(searchParams.get('total')) || 0
   const cardNumber = searchParams.get('card')
 
@@ -31,16 +31,16 @@ const PaymentView = () => {
   }
 
   const handlePaymentConfirm = async () => {
-    if (otp.length === 6) {
+    if (otp.length === 6 && orderNumber) {
       const result = await orderConfirmPaymentService({
-        orderId: Number(orderId),
+        order_number: orderNumber,
         otp: Number(otp),
         otpRef: otpRef
       })
 
       if (result.data) {
         const convertResultToObject = {
-          order: result.data.order_id.toString(),
+          order: result.data.order_number,
           shipping: result.data.shipping_method_id.toString(),
           payment: result.data.payment_date,
           tracking: result.data.tracking_number
