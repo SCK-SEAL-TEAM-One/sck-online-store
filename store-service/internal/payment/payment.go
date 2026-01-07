@@ -30,13 +30,13 @@ type ShippingGatewayInterface interface {
 
 func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error) {
 	orgID := 1
-	orderID := submitedPayment.OrderID
+	orderNumber := submitedPayment.OrderNumber
 	currency := "USD"
 	now := time.Now()
 
-	orderDetail, err := service.OrderRepository.GetOrderByID(orderID)
+	orderDetail, err := service.OrderRepository.GetOrderByOrderNumber(orderNumber)
 	if err != nil {
-		log.Printf("OrderRepository.GetOrderByID internal error %s", err.Error())
+		log.Printf("OrderRepository.GetOrderByOrderNumber internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
 	}
 
@@ -62,7 +62,7 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 		return SubmitedPaymentResponse{}, err
 	}
 
-	orderProductList, err := service.OrderRepository.GetOrderProduct(orderID)
+	orderProductList, err := service.OrderRepository.GetOrderProduct(orderDetail.ID)
 	if err != nil {
 		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
@@ -75,7 +75,7 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 		}
 	}
 
-	err = service.OrderRepository.UpdateOrderTransaction(orderID, transactionId)
+	err = service.OrderRepository.UpdateOrderTransaction(orderDetail.ID, transactionId)
 	if err != nil {
 		log.Printf("OrderRepository.UpdateOrderTransaction internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
@@ -90,14 +90,14 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 		return SubmitedPaymentResponse{}, err
 	}
 
-	err = service.OrderRepository.UpdateOrderTrackingNumber(orderID, trackingNumber)
+	err = service.OrderRepository.UpdateOrderTrackingNumber(orderDetail.ID, trackingNumber)
 	if err != nil {
 		log.Printf("OrderRepository.UpdateOrderTrackingNumber internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
 	}
 
 	return SubmitedPaymentResponse{
-		OrderID:          orderID,
+		OrderNumber:      orderDetail.OrderNumber,
 		PaymentDate:      now,
 		ShippingMethodID: orderDetail.ShippingMethodID,
 		TrackingNumber:   trackingNumber,
