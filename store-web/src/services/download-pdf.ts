@@ -22,17 +22,17 @@ downloadFileAxiosInstance.interceptors.request.use(
   }
 )
 
-export const getOrderSummary = async (orderId: number) => {
+export const getOrderSummary = async (orderNumber: string) => {
   try {
     const { data, headers } = await downloadFileAxiosInstance.post(
-      `/api/v1/order/${orderId}/summary`,
+      `/api/v1/order/${orderNumber}/summary`,
       {
         responseType: 'blob'
       }
     )
 
     const disposition = headers['content-disposition']
-    let fileName = `Order_Summary_${orderId}.pdf`
+    let fileName = `Order_Summary_${orderNumber}.pdf`
 
     if (disposition) {
       const match = disposition.match(/filename="?([^";]+)"?/)

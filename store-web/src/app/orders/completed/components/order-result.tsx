@@ -22,7 +22,7 @@ type ShippingType = {
 
 const OrderResult = () => {
   const search = useSearchParams()
-  const orderId = search.get('order')
+  const orderNumber = search.get('order')
   const paymentDate = search.get('payment')
   const shippingMethodId = search.get('shipping')
   const trackingNumber = search.get('tracking')
@@ -41,11 +41,11 @@ const OrderResult = () => {
   }, [shippingMethodId])
 
   const handleDownLoadOrderSummary = async () => {
-    if (!orderId) {
+    if (!orderNumber) {
       return
     }
 
-    const pdfData = await getOrderSummary(parseInt(orderId))
+    const pdfData = await getOrderSummary(orderNumber)
     if (pdfData) {
       const { blob, fileName } = pdfData
       const link = document.createElement('a')
@@ -69,13 +69,13 @@ const OrderResult = () => {
         <span id="order-success-order-payment-date" className="font-semibold">
           {dayjs(paymentDate).format('DD/MM/YYYY HH:mm:ss')}
         </span>
-        {` Order number `}
+        {` Order number: `}
         <a
           id="order-success-order-id"
           className="text-sm font-medium text-indigo-600"
-          href="#?order_id=102323"
+          href={`#?order_number=${orderNumber}`}
         >
-          {orderId}
+          {orderNumber}
         </a>
         {shipping ? (
           <div>
