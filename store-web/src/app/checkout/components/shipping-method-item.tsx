@@ -12,6 +12,7 @@ type ShippingMethodItemProps = {
   price: number
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
   shippingMethodSelected: number
+  disabled?: boolean
 }
 
 const ShippingMethodItem = ({
@@ -21,7 +22,8 @@ const ShippingMethodItem = ({
   condition,
   price,
   onChange,
-  shippingMethodSelected
+  shippingMethodSelected,
+  disabled = false
 }: ShippingMethodItemProps) => {
   return (
     <li id={`shipping-method-${id}-card`}>
@@ -35,10 +37,11 @@ const ShippingMethodItem = ({
         data-fee={price}
         checked={shippingMethodSelected === id}
         required
+        disabled={disabled}
       />
       <label
         htmlFor={`shipping-method-${id}-input`}
-        className="inline-flex items-center justify-between w-full p-5 text-gray-700 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-gray-600 hover:bg-gray-100"
+        className={`${disabled ? 'bg-gray-200 pointer-events-none' : 'cursor-pointer bg-white hover:text-gray-600 hover:bg-gray-100'} inline-flex items-center justify-between w-full p-5 text-gray-700 border border-gray-200 rounded-lg peer-checked:border-blue-600 peer-checked:text-blue-600`}
       >
         <div className="block">
           <div
