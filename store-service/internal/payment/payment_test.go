@@ -11,8 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_TrackingNumber_KR_307676366_No_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_TrackingNumber_KR_307676366_No_Error(t *testing.T) {
 	uid := 1
+	orderNumber := "2603159522001"
 	oid := 8004359103
 	orgID := 1
 	shippingMethodID := 1
@@ -20,15 +21,16 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_TrackingNumbe
 	trackingNumber := "KR-307676366"
 
 	expected := payment.SubmitedPaymentResponse{
-		OrderID:          8004359103,
+		OrderNumber:      "2603159522001",
 		PaymentDate:      time.Now(),
 		ShippingMethodID: 1,
 		TrackingNumber:   trackingNumber,
 	}
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
 		ID:               oid,
+		OrderNumber:      orderNumber,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
 		PaymentMethodID:  paymentMethodID,
@@ -87,35 +89,35 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_TrackingNumbe
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
-	assert.Equal(t, expected.OrderID, actual.OrderID)
+	assert.Equal(t, expected.OrderNumber, actual.OrderNumber)
 	assert.Equal(t, expected.ShippingMethodID, actual.ShippingMethodID)
 	assert.Equal(t, expected.TrackingNumber, actual.TrackingNumber)
 	assert.Equal(t, nil, err)
 }
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderRepository_GetOrderByID_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159533002_Should_Be_Return_OrderRepository_GetOrderByOrderNumber_Error(t *testing.T) {
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
-	oid := 8004359103
+	orderNumber := "2603159533002"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{}, errors.New("GetOrderByID Error"))
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{}, errors.New("GetOrderByOrderNumber Error"))
 
 	paymentService := payment.PaymentService{
 		OrderRepository: mockOrderRepository,
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
@@ -124,7 +126,7 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderReposito
 	assert.NotNil(t, err)
 }
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_GetCardDetail_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159544003_Should_Be_Return_BankGateway_GetCardDetail_Error(t *testing.T) {
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
@@ -132,10 +134,12 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_G
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
+	orderNumber := "2603159544003"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
 		ID:               oid,
+		OrderNumber:      orderNumber,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
 		PaymentMethodID:  paymentMethodID,
@@ -156,9 +160,9 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_G
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
@@ -167,7 +171,7 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_G
 	assert.NotNil(t, err)
 }
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_Payment_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159822004_Should_Be_Return_BankGateway_Payment_Error(t *testing.T) {
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
@@ -175,10 +179,12 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_P
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
+	orderNumber := "2603159822004"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
 		ID:               oid,
+		OrderNumber:      orderNumber,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
 		PaymentMethodID:  paymentMethodID,
@@ -217,9 +223,9 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_P
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
@@ -228,7 +234,7 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_BankGateway_P
 	assert.NotNil(t, err)
 }
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderRepository_GetOrderProduct_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159833005_Should_Be_Return_OrderRepository_GetOrderProduct_Error(t *testing.T) {
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
@@ -236,10 +242,12 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderReposito
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
+	orderNumber := "2603159833005"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
 		ID:               oid,
+		OrderNumber:      orderNumber,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
 		PaymentMethodID:  paymentMethodID,
@@ -280,9 +288,9 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderReposito
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
@@ -291,7 +299,7 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderReposito
 	assert.NotNil(t, err)
 }
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_ProductRepository_UpdateStock_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159844006_Should_Be_Return_ProductRepository_UpdateStock_Error(t *testing.T) {
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
@@ -299,10 +307,12 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_ProductReposi
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
+	orderNumber := "2603159844006"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
 		ID:               oid,
+		OrderNumber:      orderNumber,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
 		PaymentMethodID:  paymentMethodID,
@@ -352,9 +362,9 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_ProductReposi
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
@@ -363,7 +373,7 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_ProductReposi
 	assert.NotNil(t, err)
 }
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderRepository_UpdateOrderTransaction_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159522179_Should_Be_Return_OrderRepository_UpdateOrderTransaction_Error(t *testing.T) {
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
@@ -371,9 +381,10 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderReposito
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
+	orderNumber := "2603159522179"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
@@ -426,9 +437,9 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderReposito
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
@@ -437,7 +448,7 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_OrderReposito
 	assert.NotNil(t, err)
 }
 
-func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_ShippingGateway_GetTrackingNumber_Error(t *testing.T) {
+func Test_ConfirmPayment_Input_OrderNumber_2603159533899_Should_Be_Return_ShippingGateway_GetTrackingNumber_Error(t *testing.T) {
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
@@ -445,10 +456,12 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_ShippingGatew
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
+	orderNumber := "2603159533899"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByID", oid).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
 		ID:               oid,
+		OrderNumber:      orderNumber,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
 		PaymentMethodID:  paymentMethodID,
@@ -506,9 +519,9 @@ func Test_ConfirmPayment_Input_OrderID_8004359103_Should_Be_Return_ShippingGatew
 	}
 
 	submitedPayment := payment.SubmitedPayment{
-		OrderID: oid,
-		OTP:     123456,
-		RefOTP:  "REF_OTP",
+		OrderNumber: orderNumber,
+		OTP:         123456,
+		RefOTP:      "REF_OTP",
 	}
 
 	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
