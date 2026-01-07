@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"store-service/internal/order"
 
@@ -21,9 +20,9 @@ type OrderAPI struct {
 }
 
 // OrderConfirmation represents the response after order submission
-// @Description Order confirmation response containing order ID
+// @Description Order confirmation response containing order number
 type OrderConfirmation struct {
-	OrderID int `json:"order_id"`
+	OrderNumber string `json:"order_number"`
 }
 
 // @Summary Submit new order
@@ -57,7 +56,7 @@ func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, OrderConfirmation{
-		OrderID: createdOrder.OrderID,
+		OrderNumber: createdOrder.OrderNumber,
 	})
 }
 
@@ -78,17 +77,9 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 		return
 	}
 
-	orderIDParam := context.Param("id")
-	orderID, err := strconv.Atoi(orderIDParam)
-	if err != nil {
-		log.Printf("orderID is not integer")
-		context.JSON(http.StatusBadRequest, gin.H{
-			"error": "orderID is not integer",
-		})
-		return
-	}
+	orderNumber := context.Param("id")
 
-	orderSummary, err := api.OrderService.GetOrderSummary(orderID)
+	orderSummary, err := api.OrderService.GetOrderSummary(orderNumber)
 	if err != nil {
 		log.Printf("OrderService.GetOrderSummary internal error %s", err.Error())
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -111,7 +102,7 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("Order_Summary_%d.pdf", orderID)
+	filename := fmt.Sprintf("Order_Summary_%s.pdf", orderNumber)
 	contentDisposition := fmt.Sprintf("attachment; filename=\"%s\"", filename)
 
 	context.Header("Access-Control-Expose-Headers", "Content-Disposition")
