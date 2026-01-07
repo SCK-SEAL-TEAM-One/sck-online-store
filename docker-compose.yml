@@ -11,7 +11,7 @@ services:
       - SHIPPING_GATEWAY=thirdparty:8883
       - POINT_GATEWAY=point-service:8001
       - STORE_WEB_HOST=http://localhost
-      - DB_CONNECTION=user:password@(db:3306)/store
+      - DB_CONNECTION=user:password@(db:3306)/store?parseTime=true
       - OTEL_EXPORTER_OTLP_ENDPOINT=lgtm:4317
       - INSECURE_MODE=true
       - OTEL_SERVICE_NAME=store-service
