@@ -7,6 +7,7 @@ import (
 	"store-service/internal/point"
 	"store-service/internal/product"
 	"store-service/internal/shipping"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 )
@@ -30,6 +31,20 @@ func (service *mockPointInterface) CheckBurnPoint(uid int, amount int) (bool, er
 	return argument.Bool(0), argument.Error(1)
 }
 
+type mockOrderHelper struct {
+	mock.Mock
+}
+
+func (m *mockOrderHelper) GenerateOrderNumber(paymentMethodID, shippingMethodID, seq int, now time.Time) (string, error) {
+	args := m.Called(paymentMethodID, shippingMethodID, seq, now)
+	return args.String(0), args.Error(1)
+}
+
+func (m *mockOrderHelper) GetNextSequence(yearPrefix string) (int, error) {
+	args := m.Called(yearPrefix)
+	return args.Int(0), args.Error(1)
+}
+
 type mockOrderRepository struct {
 	mock.Mock
 }
@@ -39,13 +54,18 @@ func (repo *mockOrderRepository) CreateOrder(userID int, orderDetail order.Order
 	return argument.Int(0), argument.Error(1)
 }
 
-func (repo *mockOrderRepository) GetOrderByID(ID int) (order.OrderDetail, error) {
-	argument := repo.Called(ID)
+func (repo *mockOrderRepository) GetOrderByOrderNumber(orderNumber string) (order.OrderDetail, error) {
+	argument := repo.Called(orderNumber)
 	return argument.Get(0).(order.OrderDetail), argument.Error(1)
 }
 
-func (repo *mockOrderRepository) GetOrderWithTrackingNumberByID(ID int) (order.OrderDetailWithTrackingNumber, error) {
-	argument := repo.Called(ID)
+func (repo *mockOrderRepository) GetLastOrderNumber(yearPrefix string) (string, error) {
+	argument := repo.Called(yearPrefix)
+	return argument.Get(0).(string), argument.Error(1)
+}
+
+func (repo *mockOrderRepository) GetOrderWithTrackingNumberByOrderNumber(orderNumber string) (order.OrderDetailWithTrackingNumber, error) {
+	argument := repo.Called(orderNumber)
 	return argument.Get(0).(order.OrderDetailWithTrackingNumber), argument.Error(1)
 }
 
