@@ -61,7 +61,7 @@ func main() {
 		storeWebEndpoint = os.Getenv("STORE_WEB_HOST")
 	}
 
-	dbConnection := "user:password@(localhost:3306)/store"
+	dbConnection := "user:password@(localhost:3306)/store?parseTime=True"
 	if os.Getenv("DB_CONNECTION") != "" {
 		dbConnection = os.Getenv("DB_CONNECTION")
 	}
