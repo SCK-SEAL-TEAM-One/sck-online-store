@@ -54,7 +54,13 @@ store_db:
 	docker compose up -d db 
 
 store_service_dev_mode:
-	cd ./store-service/cmd && DBCONNECTION=user:password@\(localhost:3306\)/store POINT_GATEWAY=localhost:8001 BANK_GATEWAY=localhost:8882 SHIPPING_GATEWAY=localhost:8883 JWT_SECRET=my-secret-key go run main.go
+	cd ./store-service/cmd && \
+	DB_CONNECTION="user:password@tcp(localhost:3306)/store?parseTime=true" \
+	POINT_GATEWAY=localhost:8001 \
+	BANK_GATEWAY=localhost:8882 \
+	SHIPPING_GATEWAY=localhost:8883 \
+	JWT_SECRET=my-secret-key \
+	go run main.go
 
 point_service:
 	docker compose up -d point-service
