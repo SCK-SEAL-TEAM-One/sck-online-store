@@ -8,8 +8,9 @@ import (
 
 type OrderRepository interface {
 	CreateOrder(userID int, orderDetail OrderDetail) (int, error)
-	GetOrderByID(ID int) (OrderDetail, error)
-	GetOrderWithTrackingNumberByID(ID int) (OrderDetailWithTrackingNumber, error)
+	GetOrderByOrderNumber(orderNumber string) (OrderDetail, error)
+	GetLastOrderNumber(yearPrefix string) (string, error)
+	GetOrderWithTrackingNumberByOrderNumber(orderNumber string) (OrderDetailWithTrackingNumber, error)
 	CreateOrderProduct(orderID, productID, quantity int, productPrice float64) error
 	UpdateOrderTransaction(orderID int, transactionID string) error
 	UpdateOrderTrackingNumber(orderID int, trackingNumber string) error
@@ -23,26 +24,39 @@ type OrderRepositoryMySQL struct {
 }
 
 func (orderRepository OrderRepositoryMySQL) CreateOrder(userID int, orderDetail OrderDetail) (int, error) {
-	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO orders (user_id, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point) VALUE (?,?,?,?,?,?,?,?,?)", userID, orderDetail.ShippingMethodID, orderDetail.PaymentMethodID, orderDetail.SubTotalPrice, orderDetail.DiscountPrice, orderDetail.TotalPrice, orderDetail.ShippingFee, orderDetail.BurnPoint, orderDetail.EarnPoint)
+	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO orders (user_id, order_number, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point) VALUE (?,?, ?,?,?,?,?,?,?,?)", userID, orderDetail.OrderNumber, orderDetail.ShippingMethodID, orderDetail.PaymentMethodID, orderDetail.SubTotalPrice, orderDetail.DiscountPrice, orderDetail.TotalPrice, orderDetail.ShippingFee, orderDetail.BurnPoint, orderDetail.EarnPoint)
 	insertedId, err := sqlResult.LastInsertId()
 	return int(insertedId), err
 }
 
-func (orderRepository OrderRepositoryMySQL) GetOrderByID(ID int) (OrderDetail, error) {
+func (orderRepository OrderRepositoryMySQL) GetOrderByOrderNumber(orderNumber string) (OrderDetail, error) {
 	result := OrderDetail{}
 	err := orderRepository.DBConnection.Get(&result, `
-		SELECT id,user_id,shipping_method_id,payment_method_id,sub_total_price,discount_price,total_price,shipping_fee,burn_point,earn_point,transaction_id,status
-		FROM orders WHERE id=?
-	`, ID)
+		SELECT id, order_number, user_id, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point, transaction_id, status
+		FROM orders WHERE order_number = ?
+	`, orderNumber)
 	return result, err
 }
 
-func (orderRepository OrderRepositoryMySQL) GetOrderWithTrackingNumberByID(ID int) (OrderDetailWithTrackingNumber, error) {
+func (orderRepository OrderRepositoryMySQL) GetLastOrderNumber(yearPrefix string) (string, error) {
+	lastOrderNumber := ""
+	pattern := yearPrefix + "%"
+	query := `
+		SELECT order_number
+		FROM orders
+		WHERE order_number LIKE ?
+		ORDER BY order_number DESC
+		LIMIT 1`
+	err := orderRepository.DBConnection.Get(&lastOrderNumber, query, pattern)
+	return lastOrderNumber, err
+}
+
+func (orderRepository OrderRepositoryMySQL) GetOrderWithTrackingNumberByOrderNumber(orderNumber string) (OrderDetailWithTrackingNumber, error) {
 	result := OrderDetailWithTrackingNumber{}
 	err := orderRepository.DBConnection.Get(&result, `
-		SELECT id,user_id,shipping_method_id,payment_method_id,sub_total_price,discount_price,total_price,shipping_fee,burn_point,earn_point,transaction_id,status, tracking_no
-		FROM orders WHERE id=?
-	`, ID)
+		SELECT id, order_number, user_id, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point, transaction_id, status, tracking_no, updated
+		FROM orders WHERE order_number = ?
+	`, orderNumber)
 	return result, err
 }
 
