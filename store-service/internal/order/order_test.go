@@ -1,6 +1,7 @@
 package order_test
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"store-service/internal/auth"
@@ -9,18 +10,23 @@ import (
 	"store-service/internal/product"
 	"store-service/internal/shipping"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderID_8004359103(t *testing.T) {
-	expected := order.Order{
-		OrderID: 8004359103,
-	}
-
+func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(t *testing.T) {
 	uid := 1
 	oid := 8004359103
+	orderNumber := "2601069522001"
 	productPrice := 12.95
+	nextSeq := 1
+	fixedTime := time.Date(2026, 1, 6, 0, 0, 0, 0, time.UTC)
+	yearPrefix := "26"
+
+	expected := order.Order{
+		OrderNumber: orderNumber,
+	}
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -68,7 +74,15 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderID_8004359103(t *test
 		Fee:         50,
 	}, nil)
 
+	mockOrderRepository := new(mockOrderRepository)
+	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return("", sql.ErrNoRows)
+
+	mockOrderHelper := new(mockOrderHelper)
+	mockOrderHelper.On("GetNextSequence", "").Return(nextSeq, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+
 	orderDetail := order.OrderDetail{
+		OrderNumber:      orderNumber,
 		ShippingMethodID: submittedOrder.ShippingMethodID,
 		PaymentMethodID:  submittedOrder.PaymentMethodID,
 		SubTotalPrice:    465.811034,
@@ -78,7 +92,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderID_8004359103(t *test
 		BurnPoint:        0,
 		EarnPoint:        4,
 	}
-	mockOrderRepository := new(mockOrderRepository)
+
 	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, nil)
 
 	shippingInfo := order.ShippingInfo{
@@ -105,6 +119,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderID_8004359103(t *test
 		CartRepository:     mockCartRepository,
 		PointService:       mockPointInterface,
 		ShippingRepository: mockShippingRepository,
+		OrderHelper:        mockOrderHelper,
+		Clock:              func() time.Time { return fixedTime },
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -199,6 +215,11 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 	uid := 1
 	oid := 8004359103
 	productPrice := 12.95
+	yearPrefix := "26"
+	lastOrderNumber := "2601129522031"
+	nextSeq := 32
+	fixedTime := time.Date(2026, 1, 12, 0, 0, 0, 0, time.UTC)
+	orderNumber := "2601129522032"
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -246,7 +267,15 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 		Fee:         50,
 	}, nil)
 
+	mockOrderRepository := new(mockOrderRepository)
+	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return(lastOrderNumber, nil)
+
+	mockOrderHelper := new(mockOrderHelper)
+	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+
 	orderDetail := order.OrderDetail{
+		OrderNumber:      orderNumber,
 		ShippingMethodID: submittedOrder.ShippingMethodID,
 		PaymentMethodID:  submittedOrder.PaymentMethodID,
 		SubTotalPrice:    465.811034,
@@ -256,7 +285,6 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 		BurnPoint:        0,
 		EarnPoint:        4,
 	}
-	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, errors.New("CreateOrder Error"))
 
 	orderService := order.OrderService{
@@ -264,6 +292,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 		OrderRepository:    mockOrderRepository,
 		PointService:       mockPointInterface,
 		ShippingRepository: mockShippingRepository,
+		OrderHelper:        mockOrderHelper,
+		Clock:              func() time.Time { return fixedTime },
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -278,6 +308,11 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 	uid := 1
 	oid := 8004359103
 	productPrice := 12.95
+	yearPrefix := "26"
+	lastOrderNumber := "2612129522079"
+	nextSeq := 80
+	fixedTime := time.Date(2026, 12, 12, 0, 0, 0, 0, time.UTC)
+	orderNumber := "2612129522080"
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -325,7 +360,15 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 		Fee:         50,
 	}, nil)
 
+	mockOrderRepository := new(mockOrderRepository)
+	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return(lastOrderNumber, nil)
+
+	mockOrderHelper := new(mockOrderHelper)
+	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+
 	orderDetail := order.OrderDetail{
+		OrderNumber:      orderNumber,
 		ShippingMethodID: submittedOrder.ShippingMethodID,
 		PaymentMethodID:  submittedOrder.PaymentMethodID,
 		SubTotalPrice:    465.811034,
@@ -335,7 +378,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 		BurnPoint:        0,
 		EarnPoint:        4,
 	}
-	mockOrderRepository := new(mockOrderRepository)
+
 	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, nil)
 
 	shippingInfo := order.ShippingInfo{
@@ -356,6 +399,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 		OrderRepository:    mockOrderRepository,
 		PointService:       mockPointInterface,
 		ShippingRepository: mockShippingRepository,
+		OrderHelper:        mockOrderHelper,
+		Clock:              func() time.Time { return fixedTime },
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -370,6 +415,11 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	uid := 1
 	oid := 8004359103
 	productPrice := 12.95
+	yearPrefix := "26"
+	lastOrderNumber := "2605159522178"
+	nextSeq := 179
+	fixedTime := time.Date(2026, 05, 15, 0, 0, 0, 0, time.UTC)
+	orderNumber := "2605159522179"
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -417,7 +467,15 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 		Fee:         50,
 	}, nil)
 
+	mockOrderRepository := new(mockOrderRepository)
+	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return(lastOrderNumber, nil)
+
+	mockOrderHelper := new(mockOrderHelper)
+	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+
 	orderDetail := order.OrderDetail{
+		OrderNumber:      orderNumber,
 		ShippingMethodID: submittedOrder.ShippingMethodID,
 		PaymentMethodID:  submittedOrder.PaymentMethodID,
 		SubTotalPrice:    465.811034,
@@ -427,7 +485,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 		BurnPoint:        0,
 		EarnPoint:        4,
 	}
-	mockOrderRepository := new(mockOrderRepository)
+
 	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, nil)
 
 	shippingInfo := order.ShippingInfo{
@@ -450,6 +508,8 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 		OrderRepository:    mockOrderRepository,
 		PointService:       mockPointInterface,
 		ShippingRepository: mockShippingRepository,
+		OrderHelper:        mockOrderHelper,
+		Clock:              func() time.Time { return fixedTime },
 	}
 
 	actual, err := orderService.CreateOrder(uid, submittedOrder)
@@ -506,13 +566,17 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Totol_Point_Erro
 	assert.NotNil(t, err)
 }
 
-func Test_GetOrderSummary_Should_Return_One_Product_If_OrderID_is_1(t *testing.T) {
+func Test_GetOrderSummary_Should_Return_One_Product_If_OrderNumber_is_2601069522001(t *testing.T) {
 	userID := 4
 	orderID := 1
 	trackingNumber := "KR-443947172"
+	orderNumber := "2601069522001"
+	updatedTime := time.Date(2026, 2, 28, 18, 58, 44, 0, time.UTC)
+	expectedUpdateTime := "01-03-2026 01:58:44"
 
 	orderDetail := order.OrderDetailWithTrackingNumber{
 		ID:               orderID,
+		OrderNumber:      orderNumber,
 		UserID:           userID,
 		ShippingMethodID: 1,
 		PaymentMethodID:  1,
@@ -525,6 +589,7 @@ func Test_GetOrderSummary_Should_Return_One_Product_If_OrderID_is_1(t *testing.T
 		TransactionID:    "TXN202512250934",
 		Status:           "paid",
 		TrackingNumber:   trackingNumber,
+		Updated:          updatedTime,
 	}
 
 	orderProduct := []order.OrderProductWithPrice{
@@ -544,7 +609,7 @@ func Test_GetOrderSummary_Should_Return_One_Product_If_OrderID_is_1(t *testing.T
 	}
 
 	expected := order.OrderSummary{
-		OrderID:        1,
+		OrderNumber:    orderNumber,
 		FirstName:      userDetail.FirstName,
 		LastName:       userDetail.LastName,
 		TrackingNumber: trackingNumber,
@@ -552,10 +617,11 @@ func Test_GetOrderSummary_Should_Return_One_Product_If_OrderID_is_1(t *testing.T
 		PaymentMethod:  "Credit Card / Debit Card",
 		OrderProductList: []order.OrderSummaryProduct{
 			{
-				ProductBrand: "SportsFun",
-				ProductName:  "Balance Training Bicycle",
-				Quantity:     1,
-				PriceTHB:     4314.6,
+				ProductBrand:  "SportsFun",
+				ProductName:   "Balance Training Bicycle",
+				Quantity:      1,
+				PriceTHB:      4314.6,
+				TotalPriceTHB: 4314.6,
 			},
 		},
 		SubTotalPrice:  orderDetail.SubTotalPrice,
@@ -564,10 +630,11 @@ func Test_GetOrderSummary_Should_Return_One_Product_If_OrderID_is_1(t *testing.T
 		ShippingFee:    orderDetail.ShippingFee,
 		BurnPoint:      orderDetail.BurnPoint,
 		ReceivingPoint: orderDetail.EarnPoint,
+		IssuedDate:     expectedUpdateTime,
 	}
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderWithTrackingNumberByID", orderID).Return(orderDetail, nil)
+	mockOrderRepository.On("GetOrderWithTrackingNumberByOrderNumber", orderNumber).Return(orderDetail, nil)
 	mockOrderRepository.On("GetOrderProductWithPrice", orderID).Return(orderProduct, nil)
 
 	mockUserRepository := new(mockUserRepository)
@@ -578,18 +645,22 @@ func Test_GetOrderSummary_Should_Return_One_Product_If_OrderID_is_1(t *testing.T
 		UserRepository:  mockUserRepository,
 	}
 
-	actual, err := orderService.GetOrderSummary(orderID)
+	actual, err := orderService.GetOrderSummary(orderNumber)
 	assert.Equal(t, expected, actual)
 	assert.Nil(t, err)
 }
 
-func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderID_is_2(t *testing.T) {
+func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderOrderNumber_is_2601069522002(t *testing.T) {
 	userID := 5
 	orderID := 2
 	trackingNumber := "KR-304590466"
+	orderNumber := "2601069522002"
+	updatedTime := time.Date(2026, 2, 14, 1, 40, 32, 0, time.UTC)
+	expectedUpdateTime := "14-02-2026 08:40:32"
 
 	orderDetail := order.OrderDetailWithTrackingNumber{
 		ID:               orderID,
+		OrderNumber:      orderNumber,
 		UserID:           userID,
 		ShippingMethodID: 1,
 		PaymentMethodID:  1,
@@ -602,6 +673,7 @@ func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderID_is_2(t *testing.
 		TransactionID:    "TXN202512251028",
 		Status:           "paid",
 		TrackingNumber:   trackingNumber,
+		Updated:          updatedTime,
 	}
 
 	orderProduct := []order.OrderProductWithPrice{
@@ -627,7 +699,7 @@ func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderID_is_2(t *testing.
 	}
 
 	expected := order.OrderSummary{
-		OrderID:        orderID,
+		OrderNumber:    orderNumber,
 		FirstName:      userDetail.FirstName,
 		LastName:       userDetail.LastName,
 		TrackingNumber: trackingNumber,
@@ -635,16 +707,18 @@ func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderID_is_2(t *testing.
 		PaymentMethod:  "Credit Card / Debit Card",
 		OrderProductList: []order.OrderSummaryProduct{
 			{
-				ProductBrand: "SportsFun",
-				ProductName:  "Balance Training Bicycle",
-				Quantity:     1,
-				PriceTHB:     4314.6,
+				ProductBrand:  "SportsFun",
+				ProductName:   "Balance Training Bicycle",
+				Quantity:      1,
+				PriceTHB:      4314.6,
+				TotalPriceTHB: 4314.6,
 			},
 			{
-				ProductBrand: "CoolKidz",
-				ProductName:  "43 Piece dinner Set",
-				Quantity:     2,
-				PriceTHB:     465.81,
+				ProductBrand:  "CoolKidz",
+				ProductName:   "43 Piece dinner Set",
+				Quantity:      2,
+				PriceTHB:      465.81,
+				TotalPriceTHB: 931.62,
 			},
 		},
 		SubTotalPrice:  orderDetail.SubTotalPrice,
@@ -653,10 +727,11 @@ func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderID_is_2(t *testing.
 		ShippingFee:    orderDetail.ShippingFee,
 		BurnPoint:      orderDetail.BurnPoint,
 		ReceivingPoint: orderDetail.EarnPoint,
+		IssuedDate:     expectedUpdateTime,
 	}
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderWithTrackingNumberByID", orderID).Return(orderDetail, nil)
+	mockOrderRepository.On("GetOrderWithTrackingNumberByOrderNumber", orderNumber).Return(orderDetail, nil)
 	mockOrderRepository.On("GetOrderProductWithPrice", orderID).Return(orderProduct, nil)
 
 	mockUserRepository := new(mockUserRepository)
@@ -667,7 +742,7 @@ func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderID_is_2(t *testing.
 		UserRepository:  mockUserRepository,
 	}
 
-	actual, err := orderService.GetOrderSummary(orderID)
+	actual, err := orderService.GetOrderSummary(orderNumber)
 	assert.Equal(t, expected, actual)
 	assert.Nil(t, err)
 }
