@@ -1,6 +1,7 @@
 package order
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"math"
@@ -10,12 +11,13 @@ import (
 	"store-service/internal/point"
 	"store-service/internal/product"
 	"store-service/internal/shipping"
+	"time"
 )
 
 type OrderInterface interface {
 	CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error)
 	OrderBurnPoint(uid int, burn int) (point.TotalPoint, error)
-	GetOrderSummary(orderID int) (OrderSummary, error)
+	GetOrderSummary(orderNumber string) (OrderSummary, error)
 	GeneratePDFFromData(orderDetail OrderSummary) ([]byte, error)
 }
 
@@ -27,6 +29,8 @@ type OrderService struct {
 	ShippingRepository shipping.ShippingRepository
 	UserRepository     auth.UserRepository
 	PDFHelper          PDFHelper
+	OrderHelper        OrderHelperInterface
+	Clock              func() time.Time
 }
 
 type CartRepository interface {
@@ -78,7 +82,30 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 	shippingDetail, _ := orderService.ShippingRepository.GetShippingMethodByID(submitedOrder.ShippingMethodID)
 	shippingFeeTHB := shippingDetail.Fee
 
+	seq := 1 // Defalt SEQ number for beginning new year
+	now := orderService.Clock()
+	yearPrefix := now.Format("06") // Format: YY
+	lastOrderNumber, err := orderService.OrderRepository.GetLastOrderNumber(yearPrefix)
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf("OrderRepository.GetLastOrderNumber internal error %s", err.Error())
+		return Order{}, err
+	}
+
+	if err == nil {
+		seq, err = orderService.OrderHelper.GetNextSequence(lastOrderNumber)
+		if err != nil {
+			log.Printf("OrderHelper.GetNextSequence internal error %s", err.Error())
+			return Order{}, err
+		}
+	}
+
+	orderNumber, err := orderService.OrderHelper.GenerateOrderNumber(submitedOrder.PaymentMethodID, submitedOrder.ShippingMethodID, seq, now)
+	if err != nil {
+		log.Printf("OrderHelper.GenerateOrderNumber internal error %s", err.Error())
+		return Order{}, err
+	}
 	orderDetail := OrderDetail{
+		OrderNumber:      orderNumber,
 		ShippingMethodID: submitedOrder.ShippingMethodID,
 		PaymentMethodID:  submitedOrder.PaymentMethodID,
 		SubTotalPrice:    subtotalPriceTHB,
@@ -88,6 +115,7 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 		BurnPoint:        submitedOrder.BurnPoint,
 		EarnPoint:        common.CalculatePoint(totalPriceTHB),
 	}
+
 	orderID, err := orderService.OrderRepository.CreateOrder(uid, orderDetail)
 	if err != nil {
 		log.Printf("OrderRepository.CreateOrder internal error %s", err.Error())
@@ -127,7 +155,7 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 	}
 
 	return Order{
-		OrderID: orderID,
+		OrderNumber: orderNumber,
 	}, nil
 }
 
@@ -143,14 +171,14 @@ func (orderService OrderService) OrderBurnPoint(uid int, burn int) (point.TotalP
 	return totalPoint, nil
 }
 
-func (orderService OrderService) GetOrderSummary(orderID int) (OrderSummary, error) {
-	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByID(orderID)
+func (orderService OrderService) GetOrderSummary(orderNumber string) (OrderSummary, error) {
+	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByOrderNumber(orderNumber)
 	if err != nil {
-		log.Printf("OrderRepository.GetOrderByID internal error for orderID %d: %s", orderID, err.Error())
+		log.Printf("OrderRepository.GetOrderWithTrackingNumberByOrderNumber internal error for orderID %s: %s", orderNumber, err.Error())
 		return OrderSummary{}, err
 	}
 
-	orderedProducts, err := orderService.OrderRepository.GetOrderProductWithPrice(orderID)
+	orderedProducts, err := orderService.OrderRepository.GetOrderProductWithPrice(orderDetail.ID)
 	if err != nil {
 		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
 		return OrderSummary{}, err
@@ -158,12 +186,16 @@ func (orderService OrderService) GetOrderSummary(orderID int) (OrderSummary, err
 
 	var productList []OrderSummaryProduct
 	for _, orderProduct := range orderedProducts {
+		totalPrice := orderProduct.Price * float64(orderProduct.Quantity)
+
+		totalPriceTHB := common.ConvertToThb(totalPrice)
 		priceTHB := common.ConvertToThb(orderProduct.Price)
 		product := OrderSummaryProduct{
-			ProductBrand: orderProduct.ProductBrand,
-			ProductName:  orderProduct.ProductName,
-			Quantity:     orderProduct.Quantity,
-			PriceTHB:     priceTHB.ShortDecimal,
+			ProductBrand:  orderProduct.ProductBrand,
+			ProductName:   orderProduct.ProductName,
+			Quantity:      orderProduct.Quantity,
+			PriceTHB:      priceTHB.ShortDecimal,
+			TotalPriceTHB: totalPriceTHB.ShortDecimal,
 		}
 		productList = append(productList, product)
 	}
@@ -182,8 +214,15 @@ func (orderService OrderService) GetOrderSummary(orderID int) (OrderSummary, err
 	totalPrice := math.Round(orderDetail.TotalPrice*factor2) / factor2
 	shippingFee := math.Round(orderDetail.ShippingFee*factor2) / factor2
 
+	bangkok, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+		log.Fatal("Could not load timezone:", err)
+	}
+
+	issuedDate := orderDetail.Updated.In(bangkok).Format("02-01-2006 15:04:05")
+
 	orderSummary := OrderSummary{
-		OrderID:          orderID,
+		OrderNumber:      orderDetail.OrderNumber,
 		FirstName:        userDetail.FirstName,
 		LastName:         userDetail.LastName,
 		TrackingNumber:   orderDetail.TrackingNumber,
@@ -194,6 +233,7 @@ func (orderService OrderService) GetOrderSummary(orderID int) (OrderSummary, err
 		TotalPrice:       totalPrice,
 		ShippingFee:      shippingFee,
 		ReceivingPoint:   orderDetail.EarnPoint,
+		IssuedDate:       issuedDate,
 	}
 
 	return orderSummary, nil
