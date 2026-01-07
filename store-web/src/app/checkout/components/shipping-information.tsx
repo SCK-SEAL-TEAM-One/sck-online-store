@@ -5,10 +5,10 @@ import InputField from '@/components/input-field'
 import Header3 from '@/components/typography/header3'
 import React, { useState } from 'react'
 
-import useOrderStore from '@/hooks/use-order-store'
 import DISTRICT_LIST from '@/assets/data/api_district.json'
 import PROVINCE_LIST from '@/assets/data/api_province.json'
 import SUB_DISTRICT_LIST from '@/assets/data/api_sub_district.json'
+import useOrderStore from '@/hooks/use-order-store'
 
 // ----------------------------------------------------------------------
 
@@ -43,7 +43,7 @@ export type SubDistrictType = {
   deleted_at: string | null
 }
 
-const ShippingInfomation = () => {
+const ShippingInformation = () => {
   const { setShippingInformation } = useOrderStore((state) => state)
 
   const [provinceList] = useState<ProvinceType[]>(PROVINCE_LIST)
@@ -257,4 +257,4 @@ const ShippingInfomation = () => {
   )
 }
 
-export default ShippingInfomation
+export default ShippingInformation

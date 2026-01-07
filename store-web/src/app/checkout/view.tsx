@@ -3,12 +3,12 @@
 import OrderList from '@/app/checkout/components/order-list'
 import OrderSummary from '@/app/checkout/components/order-summary'
 import PaymentMethod from '@/app/checkout/components/payment-method'
-import ShippingInfomation from '@/app/checkout/components/shipping-infomation'
 import ShippingMethod from '@/app/checkout/components/shipping-method'
 import Button from '@/components/button/button'
 import useOrderStore from '@/hooks/use-order-store'
 import orderCheckoutService from '@/services/order-checkout'
 import { useEffect } from 'react'
+import ShippingInformation from './components/shipping-information'
 
 // ----------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ const CheckoutView = () => {
             <div className="-mx-3 md:flex items-start">
               <div className="px-3 md:w-7/12 lg:pr-10">
                 <OrderList />
-                <ShippingInfomation />
+                <ShippingInformation />
                 <ShippingMethod />
                 <PaymentMethod />
               </div>

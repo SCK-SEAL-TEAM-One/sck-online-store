@@ -4,7 +4,7 @@ import {
   DistrictType,
   ProvinceType,
   SubDistrictType
-} from '@/app/checkout/components/shipping-infomation'
+} from '@/app/checkout/components/shipping-information'
 
 // ----------------------------------------------------------------------
 
