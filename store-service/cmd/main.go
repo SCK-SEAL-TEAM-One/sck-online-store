@@ -13,6 +13,7 @@ import (
 	"store-service/internal/payment"
 	"store-service/internal/shipping"
 	"store-service/internal/user"
+	"time"
 
 	"store-service/internal/point"
 	"store-service/internal/product"
@@ -27,6 +28,8 @@ import (
 	"github.com/penglongli/gin-metrics/ginmetrics"
 
 	_ "store-service/cmd/docs"
+
+	_ "time/tzdata"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -103,6 +106,9 @@ func main() {
 		PointEndpoint: "http://" + pointGatewayEndpoint,
 	}
 
+	PDFHelper := order.OrderSummaryPDFGenerator{}
+	orderHelper := order.OrderHelper{}
+
 	paymentService := payment.PaymentService{
 		BankGateway:       &bankGateway,
 		ShippingGateway:   &shippingGateway,
@@ -125,7 +131,9 @@ func main() {
 		ProductRepository:  productRepository,
 		ShippingRepository: shippingRepository,
 		UserRepository:     userRepository,
-		PDFHelper:          order.OrderSummaryPDFGenerator{},
+		PDFHelper:          PDFHelper,
+		OrderHelper:        orderHelper,
+		Clock:              time.Now,
 	}
 	authService := auth.AuthService{
 		UserRepository:  userRepository,
