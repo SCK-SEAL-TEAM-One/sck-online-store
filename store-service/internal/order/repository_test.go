@@ -42,9 +42,10 @@ func Test_OrderRepository(t *testing.T) {
 		assert.NotEmpty(t, actualId)
 	})
 
-	t.Run("GetOrderByID_Input_ID_1_Should_Be_Order_Detail_No_Error", func(t *testing.T) {
+	t.Run("GetOrderByOrderNumber_Input_ID_1_Should_Be_Order_Detail_No_Error", func(t *testing.T) {
 		expected := order.OrderDetail{
 			ID:               1,
+			OrderNumber:      "2603159522001",
 			UserID:           1,
 			ShippingMethodID: 1,
 			PaymentMethodID:  1,
@@ -55,9 +56,9 @@ func Test_OrderRepository(t *testing.T) {
 			TransactionID:    "",
 			Status:           "created",
 		}
-		ID := 1
+		OrderNumber := "2603159522001"
 
-		actual, err := repository.GetOrderByID(ID)
+		actual, err := repository.GenerateOrderNumber(OrderNumber)
 
 		assert.Equal(t, expected.ID, actual.ID)
 		assert.Equal(t, err, nil)
