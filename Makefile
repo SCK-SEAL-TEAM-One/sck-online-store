@@ -65,6 +65,9 @@ store_web:
 thirdparty:
 	docker compose up -d thirdparty --build
 
+start_all:
+	 docker compose up -d db adminer seed liquibase thirdparty point-service store-service store-web nginx --build
+
 down:
 	docker compose down
 
