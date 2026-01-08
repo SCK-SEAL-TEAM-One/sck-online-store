@@ -33,8 +33,8 @@ ${DOWNLOAD_DIR}    ${CURDIR}${/}temp_downloads
     ยืนยัน OTP
     ตรวจสอบหมายเลขพัสดุว่าต้องขึ้นต้นด้วย    KR
     กดดาวน์โหลดไฟล์
-    ตรวขสอบข้อมูลในไฟล์ PDF    sck    shuhari    KR    credit
-    ...    SportsFun    Balance Training Bicycle    4,314.60    1
+    ตรวขสอบข้อมูลในไฟล์ PDF    Sck    Shuhari    KR    credit
+    ...    SportsFun    Balance Training Bicycle    4,314.60    1    4,314.60
     ...    4,314.60    kerry    4,364.60    43
 
 *** Keywords ***
@@ -159,7 +159,7 @@ Cleanup Download Folder
 
 ตรวขสอบข้อมูลในไฟล์ PDF
     [Arguments]    ${first_name}    ${last_name}    ${shipping_prefix}    ${payment_method_key}    
-    ...    ${product_brand}    ${product_name}    ${product_price}    ${product_unit}
+    ...    ${product_brand}    ${product_name}    ${product_price}    ${product_unit}    ${product_total_price}
     ...    ${subtotal}    ${shipping_method}    ${total_price}    ${receiving_points}
 
     ${pages}=    Get Text From Pdf    ${file_path}
@@ -180,12 +180,11 @@ Cleanup Download Folder
     Should Contain    ${text}    Tracking Number: ${shipping_prefix}
     Should Contain    ${text}    Payment Method: ${PAYMENT_METHOD}[${payment_method_key}]
 
-    Should Contain    ${text}    ${product_brand} - ${product_name}THB${product_price}${product_unit}
+    Should Contain    ${text}    ${product_brand} - ${product_name}${product_price}${product_unit}${product_total_price}
 
-    Should Contain    ${text}    Merchandise SubtotalTHB ${subtotal}
-    Should Contain    ${text}    Shipping FeeTHB${DELIVERY_METHOD}[${shipping_method}]
-    Should Contain    ${text}    Total PriceTHB ${total_price}
-    Should Contain    ${text}    Receiving Point${receiving_points}
+    Should Contain    ${text}    Merchandise Subtotal (THB)${subtotal}
+    Should Contain    ${text}    Shipping Fee (THB)Total Price (THB)${DELIVERY_METHOD}[${shipping_method}]${total_price}
+    Should Contain    ${text}    Receiving Points${receiving_points}
 
 
 Wait For Download To Complete

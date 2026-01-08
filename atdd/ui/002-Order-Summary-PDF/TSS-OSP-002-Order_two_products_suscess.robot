@@ -42,10 +42,10 @@ ${DOWNLOAD_DIR}    ${CURDIR}${/}temp_downloads
     ตรวจสอบหมายเลขพัสดุว่าต้องขึ้นต้นด้วย    KR
     กดดาวน์โหลดไฟล์
 
-    ${order-product1}=    Create Dictionary    id=1    brand=SportsFun    name=Balance Training Bicycle    points=43    price=4,314.60    qty=1
-    ${order-product2}=    Create Dictionary    id=2    brand=CoolKidz     name=43 Piece dinner Set       points=4    price=465.81      qty=2
+    ${order-product1}=    Create Dictionary    id=1    brand=SportsFun    name=Balance Training Bicycle    points=43    price=4,314.60    qty=1    total=4,314.60
+    ${order-product2}=    Create Dictionary    id=2    brand=CoolKidz     name=43 Piece dinner Set       points=4    price=465.81      qty=2    total=931.62
     ${order-product-list}=    Create List    ${order-product1}    ${order-product2}
-    ตรวขสอบข้อมูลในไฟล์ PDF    sck    shuhari    KR    credit
+    ตรวขสอบข้อมูลในไฟล์ PDF    Sck    Shuhari    KR    credit
     ...    ${order-product-list}
     ...    5,246.22    thai_post    5,296.22    52
 
@@ -218,12 +218,12 @@ Cleanup Download Folder
         Should Contain    ${text}    ${product.brand} - ${product.name}
         Should Contain    ${text}    ${product.price}
         Should Contain    ${text}    ${product.qty}
+        Should Contain    ${text}    ${product.total}
     END
 
-    Should Contain    ${text}    Merchandise SubtotalTHB ${subtotal}
-    Should Contain    ${text}    Shipping FeeTHB${DELIVERY_METHOD}[${shipping_method}]
-    Should Contain    ${text}    Total PriceTHB ${total_price}
-    Should Contain    ${text}    Receiving Point${receiving_points}
+    Should Contain    ${text}    Merchandise Subtotal (THB)${subtotal}
+    Should Contain    ${text}    Shipping Fee (THB)Total Price (THB)${DELIVERY_METHOD}[${shipping_method}]${total_price}
+    Should Contain    ${text}    Receiving Points${receiving_points}
 
 
 Wait For Download To Complete
