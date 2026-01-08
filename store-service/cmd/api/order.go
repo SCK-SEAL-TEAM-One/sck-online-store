@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,6 +40,7 @@ type OrderConfirmation struct {
 // @Failure 500
 // @Router /api/v1/order [post]
 func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
+	log.Println("Submitted Order Handler\n")
 	uid := context.GetInt("userID")
 	var request order.SubmitedOrder
 	if err := context.BindJSON(&request); err != nil {
@@ -81,6 +83,13 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 
 	orderSummary, err := api.OrderService.GetOrderSummary(orderNumber)
 	if err != nil {
+		if errors.Is(err, order.ErrOrderNotFound) {
+			log.Printf("OrderService.GetOrderSummary not found Order Number: %s %w", orderNumber, err.Error())
+			context.JSON(http.StatusNotFound, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
 		log.Printf("OrderService.GetOrderSummary internal error %s", err.Error())
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
