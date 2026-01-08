@@ -40,7 +40,6 @@ type OrderConfirmation struct {
 // @Failure 500
 // @Router /api/v1/order [post]
 func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
-	log.Println("Submitted Order Handler\n")
 	uid := context.GetInt("userID")
 	var request order.SubmitedOrder
 	if err := context.BindJSON(&request); err != nil {
