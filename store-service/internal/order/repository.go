@@ -59,7 +59,7 @@ func (orderRepository OrderRepositoryMySQL) GetLastOrderNumber(yearPrefix string
 		SELECT order_number
 		FROM orders
 		WHERE order_number LIKE ?
-		ORDER BY order_number DESC
+		ORDER BY updated DESC
 		LIMIT 1`
 	err := orderRepository.DBConnection.Get(&lastOrderNumber, query, pattern)
 	return lastOrderNumber, err
