@@ -3,7 +3,7 @@
     "user_id": 5,
     "username": "user_5",
     "password": "P@ssw0rd",
-    "order_product_list": "[{\"id\":1,\"product_name\":\"Balance Training Bicycle\",\"product_brand\":\"SportsFun\",\"product_price\":119.95,\"product_price_thb\":4314.6,\"product_price_full_thb\":4314.597182,\"quantity\":1,\"receiving_point\":43},{\"id\":2,\"product_name\":\"43 Piece dinner Set\",\"product_brand\":\"CoolKidz\",\"product_price\":12.95,\"product_price_thb\":465.81,\"product_price_full_thb\":465.811034,\"quantity\":2,\"receiving_point\":9}]",
+    "order_product_list": "[{\"id\": 1,\"product_name\": \"Balance Training Bicycle\", \"product_brand\": \"SportsFun\", \"product_price\": 119.95, \"product_price_thb\": 4314.6, \"product_price_full_thb\": 4314.597182, \"quantity\": 1, \"receiving_point\": 43, \"total_price_thb\": 4314.6 },  {\"id\": 2, \"product_name\": \"43 Piece dinner Set\", \"product_brand\": \"CoolKidz\", \"product_price\": 12.95, \"product_price_thb\": 465.81, \"product_price_full_thb\": 465.811034, \"quantity\": 2, \"receiving_point\": 9, \"total_price_thb\": 931.62 }]",
     "access_token": null,
     "refresh_token": null,
     "total_products": 10031,
@@ -33,7 +33,7 @@
     "credit_card_cvv": "100",
     "otp": 123456,
     "ref_otp": "AXYZ",
-    "order_id": null,
+    "order_number": null,
     "shipping_method_prefix": "TH"
   }
 ]
