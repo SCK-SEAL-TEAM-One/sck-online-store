@@ -208,8 +208,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const access_token = (pm.variables.get(\"access_token\"));",
-                  "console.log('access_token', access_token)"
+                  "const access_token = (pm.variables.get(\"access_token\"));"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -374,60 +373,60 @@
                   "",
                   "const schema = {",
                   "    \"carts\": {",
-                  "      \"type\": \"array\",",
-                  "      \"items\": [",
-                  "        {",
-                  "            \"type\": \"object\",",
-                  "            \"properties\": {",
-                  "                \"id\": {",
-                  "                    \"type\": \"integer\"",
-                  "                },",
-                  "                \"user_id\": {",
-                  "                    \"type\": \"integer\"",
-                  "                },",
-                  "                \"product_id\": {",
-                  "                    \"type\": \"integer\"",
-                  "                },",
-                  "                \"quantity\": {",
-                  "                    \"type\": \"integer\"",
-                  "                },",
-                  "                \"product_name\": {",
-                  "                    \"type\": \"string\"",
-                  "                },",
-                  "                \"product_price\": {",
-                  "                    \"type\": \"number\"",
-                  "                },",
-                  "                \"product_price_thb\": {",
-                  "                    \"type\": \"number\"",
-                  "                },",
-                  "                \"product_price_full_thb\": {",
-                  "                    \"type\": \"number\"",
-                  "                },",
-                  "                \"stock\": {",
-                  "                    \"type\": \"number\"",
-                  "                },",
-                  "                \"product_image\": {",
-                  "                    \"type\": \"string\"",
+                  "        \"type\": \"array\",",
+                  "        \"items\": [",
+                  "            {",
+                  "                \"type\": \"object\",",
+                  "                \"properties\": {",
+                  "                    \"id\": {",
+                  "                        \"type\": \"integer\"",
+                  "                    },",
+                  "                    \"user_id\": {",
+                  "                        \"type\": \"integer\"",
+                  "                    },",
+                  "                    \"product_id\": {",
+                  "                        \"type\": \"integer\"",
+                  "                    },",
+                  "                    \"quantity\": {",
+                  "                        \"type\": \"integer\"",
+                  "                    },",
+                  "                    \"product_name\": {",
+                  "                        \"type\": \"string\"",
+                  "                    },",
+                  "                    \"product_price\": {",
+                  "                        \"type\": \"number\"",
+                  "                    },",
+                  "                    \"product_price_thb\": {",
+                  "                        \"type\": \"number\"",
+                  "                    },",
+                  "                    \"product_price_full_thb\": {",
+                  "                        \"type\": \"number\"",
+                  "                    },",
+                  "                    \"stock\": {",
+                  "                        \"type\": \"number\"",
+                  "                    },",
+                  "                    \"product_image\": {",
+                  "                        \"type\": \"string\"",
+                  "                    }",
                   "                }",
                   "            }",
-                  "        }",
-                  "      ]",
+                  "        ]",
                   "    },",
                   "    \"summary\": {",
-                  "      \"type\": \"object\",",
-                  "      \"properties\": {",
-                  "        \"total_price\": {",
-                  "            \"type\": \"number\"",
-                  "        },",
-                  "        \"total_price_thb\": {",
-                  "            \"type\": \"number\"",
-                  "        },",
-                  "        \"total_price_full_thb\": {",
-                  "            \"type\": \"number\"",
-                  "        },",
-                  "        \"receive_point\": {",
-                  "            \"type\": \"integer\"",
-                  "        }",
+                  "        \"type\": \"object\",",
+                  "        \"properties\": {",
+                  "            \"total_price\": {",
+                  "                \"type\": \"number\"",
+                  "            },",
+                  "            \"total_price_thb\": {",
+                  "                \"type\": \"number\"",
+                  "            },",
+                  "            \"total_price_full_thb\": {",
+                  "                \"type\": \"number\"",
+                  "            },",
+                  "            \"receive_point\": {",
+                  "                \"type\": \"integer\"",
+                  "            }",
                   "        },",
                   "    }",
                   "};",
@@ -719,8 +718,8 @@
               "script": {
                 "exec": [
                   "const jsonData = pm.response.json()",
-                  "const order_id = jsonData.order_id",
-                  "pm.variables.set(\"order_id\", order_id);"
+                  "const order_number = jsonData.order_number",
+                  "pm.variables.set(\"order_number\", order_number);"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -756,12 +755,12 @@
               "script": {
                 "exec": [
                   "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
-                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const order_number = pm.variables.get(\"order_number\");",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "",
                   "const schema = {",
-                  "    \"order_id\": {",
-                  "        \"type\": \"integer\"",
+                  "    \"order_number\": {",
+                  "        \"type\": \"string\"",
                   "    },",
                   "    \"payment_date\": {",
                   "        \"type\": \"string\"",
@@ -784,8 +783,8 @@
                   "    pm.expect(jsonData.shipping_method_id).to.eql(shipping_method_id);",
                   "});",
                   "",
-                  "pm.test(`Order ID should be ${order_id}`, function () {",
-                  "    pm.expect(jsonData.order_id).to.eql(order_id);",
+                  "pm.test(`Order Number should be ${order_number}`, function () {",
+                  "    pm.expect(jsonData.order_number).to.eql(order_number);",
                   "});",
                   "",
                   "pm.test(`Tracking Number should start with ${shipping_method_prefix}`, function () {",
@@ -804,7 +803,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_id\": {{order_id}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
+              "raw": "{\n    \"order_number\": \"{{order_number}}\",\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -828,7 +827,7 @@
                 "exec": [
                   "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
                   "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
-                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const order_number = parseFloat(pm.variables.get(\"order_number\"));",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "const shipping_method = pm.variables.get(\"shipping_method\");",
                   "const payment_method = pm.variables.get(\"payment_method\");",
@@ -837,7 +836,8 @@
                   "    \"product_brand\": product.product_brand,",
                   "    \"product_name\": product.product_name,",
                   "    \"quantity\": product.quantity,",
-                  "    \"price_thb\": product.product_price_thb",
+                  "    \"price_thb\": product.product_price_thb,",
+                  "    \"total_price_thb\": product.total_price_thb",
                   "}))",
                   "",
                   "const subtotal_price = parseFloat(pm.variables.get(\"order_subtotal_price\"));",
@@ -846,8 +846,8 @@
                   "const receiving_point = parseFloat(pm.variables.get(\"receiving_point\"));",
                   "",
                   "const schema = {",
-                  "    \"id\": {",
-                  "        \"type\": \"integer\"",
+                  "    \"order_number\": {",
+                  "        \"type\": \"string\"",
                   "    },",
                   "    \"first_name\": {",
                   "        \"type\": \"string\"",
@@ -882,6 +882,9 @@
                   "                \"price_thb\": {",
                   "                    \"type\": \"integer\"",
                   "                },",
+                  "                \"total_price_thb\": {",
+                  "                    \"type\": \"integer\"",
+                  "                }",
                   "            }",
                   "        }",
                   "      ]",
@@ -925,11 +928,13 @@
                   "});",
                   "",
                   "pm.test(`Product list should contain 2 products`, function () {",
+                  "    console.log('expected products', products)",
                   "    jsonData.products.forEach((product, index) => {",
                   "        pm.expect(product.product_brand).to.eql(products[index].product_brand);",
                   "        pm.expect(product.product_name).to.eql(products[index].product_name);",
                   "        pm.expect(product.quantity).to.eql(products[index].quantity);",
                   "        pm.expect(product.price_thb).to.eql(products[index].price_thb);",
+                  "        pm.expect(product.total_price_thb).to.eql(products[index].total_price_thb);",
                   "    })",
                   "});",
                   "",
@@ -980,9 +985,9 @@
               }
             ],
             "url": {
-              "raw": "{{STORE_SERVICE_URL}}/api/v1/order/{{order_id}}/summary/",
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/order/{{order_number}}/summary/",
               "host": ["{{STORE_SERVICE_URL}}"],
-              "path": ["api", "v1", "order", "{{order_id}}", "summary", ""]
+              "path": ["api", "v1", "order", "{{order_number}}", "summary", ""]
             }
           },
           "response": []
@@ -2355,8 +2360,8 @@
               "script": {
                 "exec": [
                   "const jsonData = pm.response.json()",
-                  "const order_id = jsonData.order_id",
-                  "pm.variables.set(\"order_id\", order_id);"
+                  "const order_number = jsonData.order_number",
+                  "pm.variables.set(\"order_number\", order_number);"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -2392,12 +2397,12 @@
               "script": {
                 "exec": [
                   "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
-                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const order_number = pm.variables.get(\"order_number\");",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "",
                   "const schema = {",
-                  "    \"order_id\": {",
-                  "        \"type\": \"integer\"",
+                  "    \"order_number\": {",
+                  "        \"type\": \"string\"",
                   "    },",
                   "    \"payment_date\": {",
                   "        \"type\": \"string\"",
@@ -2420,8 +2425,8 @@
                   "    pm.expect(jsonData.shipping_method_id).to.eql(shipping_method_id);",
                   "});",
                   "",
-                  "pm.test(`Order ID should be ${order_id}`, function () {",
-                  "    pm.expect(jsonData.order_id).to.eql(order_id);",
+                  "pm.test(`Order Number should be ${order_number}`, function () {",
+                  "    pm.expect(jsonData.order_number).to.eql(order_number);",
                   "});",
                   "",
                   "pm.test(`Tracking Number should start with ${shipping_method_prefix}`, function () {",
@@ -2440,7 +2445,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_id\": {{order_id}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
+              "raw": "{\n    \"order_number\": \"{{order_number}}\",\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2464,7 +2469,7 @@
                 "exec": [
                   "const product_list = JSON.parse(pm.variables.get(\"order_product_list\"))",
                   "const user_id = parseFloat(pm.variables.get(\"user_id\"));",
-                  "const order_id = parseFloat(pm.variables.get(\"order_id\"));",
+                  "const order_number = parseFloat(pm.variables.get(\"order_number\"));",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "const shipping_method = pm.variables.get(\"shipping_method\");",
                   "const payment_method = pm.variables.get(\"payment_method\");",
@@ -2473,7 +2478,8 @@
                   "    \"product_brand\": product.product_brand,",
                   "    \"product_name\": product.product_name,",
                   "    \"quantity\": product.quantity,",
-                  "    \"price_thb\": product.product_price_thb",
+                  "    \"price_thb\": product.product_price_thb,",
+                  "    \"total_price_thb\": product.total_price_thb",
                   "}))",
                   "",
                   "const subtotal_price = parseFloat(pm.variables.get(\"order_subtotal_price\"));",
@@ -2482,8 +2488,8 @@
                   "const receiving_point = parseFloat(pm.variables.get(\"receiving_point\"));",
                   "",
                   "const schema = {",
-                  "    \"id\": {",
-                  "        \"type\": \"integer\"",
+                  "    \"order_number\": {",
+                  "        \"type\": \"string\"",
                   "    },",
                   "    \"first_name\": {",
                   "        \"type\": \"string\"",
@@ -2518,6 +2524,9 @@
                   "                \"price_thb\": {",
                   "                    \"type\": \"integer\"",
                   "                },",
+                  "                \"total_price_thb\": {",
+                  "                    \"type\": \"integer\"",
+                  "                }",
                   "            }",
                   "        }",
                   "      ]",
@@ -2561,11 +2570,13 @@
                   "});",
                   "",
                   "pm.test(`Product list should contain 2 products`, function () {",
+                  "    console.log('expected products', products)",
                   "    jsonData.products.forEach((product, index) => {",
                   "        pm.expect(product.product_brand).to.eql(products[index].product_brand);",
                   "        pm.expect(product.product_name).to.eql(products[index].product_name);",
                   "        pm.expect(product.quantity).to.eql(products[index].quantity);",
                   "        pm.expect(product.price_thb).to.eql(products[index].price_thb);",
+                  "        pm.expect(product.total_price_thb).to.eql(products[index].total_price_thb);",
                   "    })",
                   "});",
                   "",
@@ -2616,31 +2627,14 @@
               }
             ],
             "url": {
-              "raw": "{{STORE_SERVICE_URL}}/api/v1/order/{{order_id}}/summary/",
+              "raw": "{{STORE_SERVICE_URL}}/api/v1/order/{{order_number}}/summary/",
               "host": ["{{STORE_SERVICE_URL}}"],
-              "path": ["api", "v1", "order", "{{order_id}}", "summary", ""]
+              "path": ["api", "v1", "order", "{{order_number}}", "summary", ""]
             }
           },
           "response": []
         }
       ]
-    },
-    {
-      "name": "New Request",
-      "request": {
-        "method": "PUT",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"product_id\": 2,\n    \"quantity\": 0\n}"
-        },
-        "url": {
-          "raw": "{{STORE_SERVICE_URL}}/api/v1/updateCart",
-          "host": ["{{STORE_SERVICE_URL}}"],
-          "path": ["api", "v1", "updateCart"]
-        }
-      },
-      "response": []
     }
   ],
   "auth": {
@@ -2803,7 +2797,7 @@
       "value": ""
     },
     {
-      "key": "order_id",
+      "key": "order_number",
       "value": ""
     },
     {
