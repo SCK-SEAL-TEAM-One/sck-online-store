@@ -2,6 +2,7 @@ package order
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -58,6 +59,8 @@ var ShippingMethod = map[int]string{
 	2: "Thai Post",
 	3: "Lineman",
 }
+
+var ErrOrderNotFound = errors.New("Order not found")
 
 func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error) {
 	_, err := orderService.PointService.CheckBurnPoint(uid, -(submitedOrder.BurnPoint))
@@ -174,7 +177,11 @@ func (orderService OrderService) OrderBurnPoint(uid int, burn int) (point.TotalP
 func (orderService OrderService) GetOrderSummary(orderNumber string) (OrderSummary, error) {
 	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByOrderNumber(orderNumber)
 	if err != nil {
-		log.Printf("OrderRepository.GetOrderWithTrackingNumberByOrderNumber internal error for orderID %s: %s", orderNumber, err.Error())
+		if err == sql.ErrNoRows {
+			log.Printf("OrderRepository.GetOrderWithTrackingNumberByOrderNumber not found for Order Number %s: %s", orderNumber, err.Error())
+			return OrderSummary{}, ErrOrderNotFound
+		}
+		log.Printf("OrderRepository.GetOrderWithTrackingNumberByOrderNumber internal error for %s", err.Error())
 		return OrderSummary{}, err
 	}
 
