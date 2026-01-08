@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"database/sql"
 	"log"
 	"store-service/internal/order"
 	"store-service/internal/product"
@@ -36,6 +37,10 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 
 	orderDetail, err := service.OrderRepository.GetOrderByOrderNumber(orderNumber)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("OrderRepository.GetOrderByOrderNumber not found for Order Number %s: %s", orderNumber, err.Error())
+			return SubmitedPaymentResponse{}, order.ErrOrderNotFound
+		}
 		log.Printf("OrderRepository.GetOrderByOrderNumber internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
 	}
