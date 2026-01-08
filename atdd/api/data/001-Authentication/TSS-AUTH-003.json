@@ -36,7 +36,7 @@
     "credit_card_cvv": "100",
     "otp": "123456",
     "ref_otp": "AXYZ",
-    "order_id": null,
+    "order_number": null,
     "shipping_method_prefix": "KR"
   }
 ]
