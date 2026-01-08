@@ -24,7 +24,21 @@ type OrderRepositoryMySQL struct {
 }
 
 func (orderRepository OrderRepositoryMySQL) CreateOrder(userID int, orderDetail OrderDetail) (int, error) {
-	sqlResult := orderRepository.DBConnection.MustExec("INSERT INTO orders (user_id, order_number, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point) VALUE (?,?, ?,?,?,?,?,?,?,?)", userID, orderDetail.OrderNumber, orderDetail.ShippingMethodID, orderDetail.PaymentMethodID, orderDetail.SubTotalPrice, orderDetail.DiscountPrice, orderDetail.TotalPrice, orderDetail.ShippingFee, orderDetail.BurnPoint, orderDetail.EarnPoint)
+	query := `
+		INSERT INTO orders (
+			user_id,
+			order_number,
+			shipping_method_id,
+			payment_method_id,
+			sub_total_price,
+			discount_price,
+			total_price,
+			shipping_fee,
+			burn_point,
+			earn_point
+		) VALUES (?,?,?,?,?,?,?,?,?,?)`
+
+	sqlResult := orderRepository.DBConnection.MustExec(query, userID, orderDetail.OrderNumber, orderDetail.ShippingMethodID, orderDetail.PaymentMethodID, orderDetail.SubTotalPrice, orderDetail.DiscountPrice, orderDetail.TotalPrice, orderDetail.ShippingFee, orderDetail.BurnPoint, orderDetail.EarnPoint)
 	insertedId, err := sqlResult.LastInsertId()
 	return int(insertedId), err
 }
