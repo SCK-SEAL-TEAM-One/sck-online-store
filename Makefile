@@ -90,7 +90,7 @@ build_nginx:
 	docker compose build nginx
 
 start_test_suite:
-	docker compose up -d thirdparty point-service db store-service store-web nginx --build
+	docker compose up -d thirdparty point-service db store-service store-web nginx seed liquibase --build
 
 stop_test_suite:
 	docker compose down
