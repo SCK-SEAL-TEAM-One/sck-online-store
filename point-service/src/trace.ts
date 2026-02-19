@@ -1,38 +1,57 @@
-import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import * as process from 'process';
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { NestInstrumentation } from '@opentelemetry/instrumentation-nestjs-core';
-import { TypeormInstrumentation } from 'opentelemetry-instrumentation-typeorm';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 
-const collectorOptions = {
-  url: 'http://lgtm:4317', // url is optional and can be omitted - default is http://localhost:4318/v1/traces
-  headers: {}, // an optional object containing custom headers to be sent with each request
-  concurrencyLimit: 10, // an optional limit on pending requests
-};
+const grpcExporter = new OTLPTraceExporter({
+  url: 'http://lgtm:4317',
+  headers: {},
+  concurrencyLimit: 10,
+  timeoutMillis: 5000,
+});
 
-const exporter = new OTLPTraceExporter(collectorOptions);
+console.log(
+  '[OTEL] Initializing OpenTelemetry SDK for point-service with auto-instrumentations',
+);
 
 export const otelSDK = new NodeSDK({
-  spanProcessor: new SimpleSpanProcessor(exporter),
+  spanProcessor: new BatchSpanProcessor(grpcExporter, {
+    maxQueueSize: 2048,
+    maxExportBatchSize: 512,
+    scheduledDelayMillis: 5000,
+    exportTimeoutMillis: 30000,
+  }),
 
   instrumentations: [
-    new HttpInstrumentation(),
-    new NestInstrumentation(),
-    new TypeormInstrumentation(),
+    getNodeAutoInstrumentations({
+      '@opentelemetry/instrumentation-http': {
+        enabled: true,
+      },
+      '@opentelemetry/instrumentation-mysql2': {
+        enabled: true,
+      },
+      '@opentelemetry/instrumentation-pg': {
+        enabled: true,
+      },
+    }),
   ],
   serviceName: 'point-service',
 });
 
+console.log(
+  '[OTEL] SDK configured with auto-instrumentations (includes HTTP, MySQL, PostgreSQL, etc.)',
+);
+
 // gracefully shut down the SDK on process exit
 process.on('SIGTERM', () => {
+  console.log('[OTEL] Shutting down OpenTelemetry SDK');
   otelSDK
     .shutdown()
     .then(
-      () => console.log('SDK shut down successfully'),
-      (err) => console.log('Error shutting down SDK', err),
+      () => console.log('[OTEL] OpenTelemetry SDK shut down successfully'),
+      (err) => console.log('[OTEL] Error shutting down OpenTelemetry SDK', err),
     )
     .finally(() => process.exit(0));
 });

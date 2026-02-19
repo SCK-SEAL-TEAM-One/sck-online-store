@@ -1,0 +1,75 @@
+# Beyla Configuration for eBPF-based Auto-Instrumentation
+
+# Discovery configuration - what processes to instrument
+discovery:
+  services:
+    # Instrument Go service (store-service) with eBPF
+    - name: store-service
+      open_ports: 8000
+      exe_path_regexp: ".*app$"
+      k8s_namespace: ""
+      k8s_pod_name: ""
+  # Auto-detect services on exposed ports
+  debounce: 5s
+  poll_interval: 5s
+
+# OTEL exporter configuration
+otel_traces_export:
+  endpoint: http://lgtm:4317
+  protocol: grpc
+  insecure_skip_verify: true
+
+otel_metrics_export:
+  endpoint: http://lgtm:4317
+  protocol: grpc
+  insecure_skip_verify: true
+  interval: 30s
+
+# Network instrumentation
+network:
+  enable: true
+  cidrs:
+    - 0.0.0.0/0
+
+# HTTP/GRPC instrumentation
+http:
+  request_size: 8000
+  response_size: 8000
+  client_request_size: 8000
+  client_response_size: 8000
+
+# eBPF-based instrumentation for Go
+ebpf:
+  track_request_payload: false
+  track_response_payload: false
+  tcp_connection_timeout: 10s
+  syscall_timeout: 1s
+
+# Application-level instrumentation
+attributes:
+  kubernetes:
+    enable: false
+  instance_id:
+    dns: false
+  service:
+    name: store-service
+
+# Logging
+log_level: info
+
+# Routes configuration for HTTP services
+routes:
+  unmatched: heuristic # Use heuristic matching for unmatched routes
+  patterns:
+    # Store service Go API routes
+    - /api/v1/product
+    - /api/v1/product/{id}
+    - /api/v1/order
+    - /api/v1/order/{id}
+    - /api/v1/cart
+    - /api/v1/cart/{id}
+    - /api/v1/user
+    - /api/v1/user/{id}
+    - /api/v1/payment
+    - /api/v1/shipping
+    - /api/v1/health
