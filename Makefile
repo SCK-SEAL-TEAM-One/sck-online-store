@@ -45,6 +45,7 @@ backend_unit_test:
 setup_test_fixtures:
 	docker compose up -d db thirdparty
 	sleep 7
+	docker-compose up liquibase
 
 backend_integration_test: setup_test_fixtures
 	cd store-service && go test -tags=integration ./...
