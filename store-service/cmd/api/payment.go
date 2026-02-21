@@ -40,7 +40,7 @@ func (api PaymentAPI) ConfirmPaymentHandler(context *gin.Context) {
 	confirmPayment, err := api.PaymentService.ConfirmPayment(uid, request)
 	if err != nil {
 		if errors.Is(err, order.ErrOrderNotFound) {
-			log.Printf("OrderService.GetOrderSummary not found Order Number: %s %w", request.OrderNumber, err.Error())
+			log.Printf("OrderService.GetOrderSummary not found Order Number: %s %s", request.OrderNumber, err.Error())
 			context.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
 			})
