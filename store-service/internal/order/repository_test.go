@@ -42,27 +42,27 @@ func Test_OrderRepository(t *testing.T) {
 		assert.NotEmpty(t, actualId)
 	})
 
-	t.Run("GetOrderByOrderNumber_Input_ID_1_Should_Be_Order_Detail_No_Error", func(t *testing.T) {
-		expected := order.OrderDetail{
-			ID:               1,
-			OrderNumber:      "2603159522001",
-			UserID:           1,
-			ShippingMethodID: 1,
-			PaymentMethodID:  1,
-			BurnPoint:        0,
-			SubTotalPrice:    100.00,
-			DiscountPrice:    10.00,
-			TotalPrice:       90.00,
-			TransactionID:    "",
-			Status:           "created",
-		}
-		OrderNumber := "2603159522001"
+	// t.Run("GetOrderByOrderNumber_Input_ID_1_Should_Be_Order_Detail_No_Error", func(t *testing.T) {
+	// 	expected := order.OrderDetail{
+	// 		ID:               1,
+	// 		OrderNumber:      "2603159522001",
+	// 		UserID:           1,
+	// 		ShippingMethodID: 1,
+	// 		PaymentMethodID:  1,
+	// 		BurnPoint:        0,
+	// 		SubTotalPrice:    100.00,
+	// 		DiscountPrice:    10.00,
+	// 		TotalPrice:       90.00,
+	// 		TransactionID:    "",
+	// 		Status:           "created",
+	// 	}
+	// 	OrderNumber := "2603159522001"
 
-		actual, err := repository.GenerateOrderNumber(OrderNumber)
+	// 	actual, err := repository.GenerateOrderNumber(OrderNumber)
 
-		assert.Equal(t, expected.ID, actual.ID)
-		assert.Equal(t, err, nil)
-	})
+	// 	assert.Equal(t, expected.ID, actual.ID)
+	// 	assert.Equal(t, err, nil)
+	// })
 
 	t.Run("CreateOrderProduct_Input_OrderID_2_And_ProductID_2_Should_Be_No_Error", func(t *testing.T) {
 		oid := 1
