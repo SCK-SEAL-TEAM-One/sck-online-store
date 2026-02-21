@@ -99,7 +99,7 @@ stop_test_suite:
 run_robot:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
-	&& source .venv/bin/activate \
+	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://localhost/product/list ./001-Authentication \
 	&& robot -v URL:http://localhost/product/list ./002-Order-Summary-PDF \
