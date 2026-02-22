@@ -208,5 +208,32 @@ services:
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
+  chrome:
+    image: selenium/node-chromium:4.25.0
+    container_name: node-chrome
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_INSTANCES=5
+      - SE_NODE_MAX_SESSIONS=5
+      - SE_NODE_SESSION_TIMEOUT=300
+      - SE_NODE_DRAIN_AFTER_SESSION_COUNT=0
+
+  selenium-hub:
+    image: selenium/hub:4.25.0
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+    environment:
+      - SE_SESSION_RETRY_INTERVAL=2
+      - SE_SESSION_TIMEOUT=300
+      - SE_DRAIN_TIMEOUT=20
+
 volumes:
   shared_data:
