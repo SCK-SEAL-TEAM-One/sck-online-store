@@ -93,6 +93,11 @@ build_nginx:
 start_test_suite:
 	docker compose up -d thirdparty point-service db store-service store-web nginx seed liquibase --build
 
+start_test_suite_grid:
+	cp -f store-web/.env_grid store-web/.env
+	docker compose up -d thirdparty point-service db store-service store-web nginx seed liquibase --build
+	docker-compose up selenium-hub chrome -d
+
 stop_test_suite:
 	docker compose down
 
@@ -105,6 +110,14 @@ run_robot:
 	&& robot -v URL:http://localhost/product/list ./002-Order-Summary-PDF \
 	&& deactivate
 
+run_robot_grid:
+	cd atdd/ui \
+	&& python3 -m venv .venv \
+	&& . .venv/bin/activate \
+	&& pip install -r requirements.txt \
+	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub ./001-Authentication \
+	&& deactivate
+
 run_robot_authentication:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
@@ -113,12 +126,28 @@ run_robot_authentication:
 	&& robot -v URL:http://localhost/product/list ./001-Authentication \
 	&& deactivate
 
+run_robot_authentication_grid:
+	cd atdd/ui \
+	&& python3 -m venv .venv \
+	&& source .venv/bin/activate \
+	&& pip install -r requirements.txt \
+	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub ./001-Authentication \
+	&& deactivate
+
 run_robot_order_summary_pdf:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
 	&& source .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://localhost/product/list ./002-Order-Summary-PDF \
+	&& deactivate
+
+run_robot_order_summary_pdf:
+	cd atdd/ui \
+	&& python3 -m venv .venv \
+	&& source .venv/bin/activate \
+	&& pip install -r requirements.txt \
+	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub ./002-Order-Summary-PDF \
 	&& deactivate
 
 # run_newman: 

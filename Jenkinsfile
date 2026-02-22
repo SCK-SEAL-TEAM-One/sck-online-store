@@ -63,9 +63,9 @@ pipeline {
 
     stage('run ATDD') {
       steps {
-        sh 'make start_test_suite'
+        sh 'make start_test_suite_grid'
         // sh 'make run_newman'
-        sh 'make run_robot'
+        sh 'make run_robot_grid'
         // robot outputPath: './atdd/ui', passThreshold: 100.0
         sh 'make stop_test_suite'
       }
