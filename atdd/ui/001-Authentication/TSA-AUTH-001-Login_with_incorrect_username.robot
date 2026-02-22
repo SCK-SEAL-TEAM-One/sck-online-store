@@ -1,10 +1,11 @@
 *** Settings ***
 Library    SeleniumLibrary
-Test Teardown   Close All Browsers
+Test Teardown    Close All Browsers
 
 *** Variables ***
 ${URL}    http://localhost/product/list
 ${BROWSER}    headlesschrome
+${REMOTE_HUB_URL}
 
 
 *** Test Cases ***
@@ -15,7 +16,7 @@ ${BROWSER}    headlesschrome
 *** Keywords ***
 เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่
     [Arguments]    ${target-url}    ${target-element-locator}
-    Open Browser    url=${URL}    browser=${BROWSER}
+    Open Browser    url=${URL}    browser=${BROWSER}    remote_url=${REMOTE_HUB_URL}
     Wait Until Location Is Not    location=${URL}
     Location Should Contain    ${target-url}
     Page Should Contain Element    id:${target-element-locator}

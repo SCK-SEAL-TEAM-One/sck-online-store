@@ -10,6 +10,7 @@ Test Setup    Setup Folder For Download
 *** Variables ***
 ${URL}    http://localhost/product/list
 ${BROWSER}    headlesschrome
+${REMOTE_HUB_URL}
 # ${BROWSER}    chrome
 ${DOWNLOAD_DIR}    ${CURDIR}${/}temp_downloads
 
@@ -52,7 +53,7 @@ Cleanup Download Folder
     ...    download.default_directory=${DOWNLOAD_DIR}
     ...    plugins.always_open_pdf_externally=${True}
 
-    Open Browser    url=${URL}    browser=${BROWSER}    options=add_experimental_option("prefs", ${prefs})
+    Open Browser    url=${URL}    browser=${BROWSER}    options=add_experimental_option("prefs", ${prefs})        remote_url=${REMOTE_HUB_URL}
     Delete All Cookies
     Execute Javascript    window.localStorage.clear();
     Execute Javascript    window.sessionStorage.clear();

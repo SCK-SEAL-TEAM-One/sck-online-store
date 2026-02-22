@@ -1,10 +1,12 @@
 *** Settings ***
 Library    SeleniumLibrary
-Test Teardown   Close All Browsers
+Test Teardown    Close All Browsers
 
 *** Variables ***
 ${URL}    http://localhost/product/list
 ${BROWSER}    headlesschrome
+${REMOTE_HUB_URL}
+
 
 *** Test Cases ***
 ทดสอบ เคยข้าสู่ระบบและออกจากเว็บไซต์ แล้วกลับมาอีกครั้งเพื่อสั่งซื้อสินค้า Balance Training Bicycle จัดส่งด้วย Thai Post ชำระเงินด้วยบัตรเครดิต Visa สำเร็จ และตรวจสอบการได้แต้มสะสม
@@ -32,7 +34,7 @@ ${BROWSER}    headlesschrome
 *** Keywords ***
 เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่
     [Arguments]    ${target-url}    ${target-element-locator}
-    Open Browser    url=${URL}    browser=${BROWSER}
+    Open Browser    url=${URL}    browser=${BROWSER}    remote_url=${REMOTE_HUB_URL}
     Wait Until Location Is Not    location=${URL}
     Location Should Contain    ${target-url}
     Page Should Contain Element    id:${target-element-locator}
