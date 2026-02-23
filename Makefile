@@ -117,6 +117,7 @@ run_robot_grid:
 	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x ./reports/authen.xml ./001-Authentication \
+	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x ./reports/pdf.xml ./002-Order-Summary-PDF \
 	&& deactivate
 
 run_robot_authentication:
