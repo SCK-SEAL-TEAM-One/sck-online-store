@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY = 'siamchamnankit'
-        KUBECONFIG_CREDENTIAL_ID = 'kubeconfig-credentials'
-        K8S_NAMESPACE = 'default'
+        KUBECONFIG_CREDENTIAL_ID = 'kubeconfig.yaml'
+        K8S_NAMESPACE = 'public'
     }
 
     parameters {
