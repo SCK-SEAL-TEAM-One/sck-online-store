@@ -67,7 +67,7 @@ pipeline {
         // sh 'make run_newman'
         sh 'make run_robot_grid'
         // robot outputPath: './atdd/ui', passThreshold: 100.0
-        junit 'atdd/ui/robot-*.xml'
+        junit 'atdd/ui/reports/*.xml'
         sh 'make stop_test_suite'
       }
     }
