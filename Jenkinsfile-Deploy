@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY = 'siamchamnankit'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
         KUBECONFIG_CREDENTIAL_ID = 'kubeconfig.yaml'
         K8S_NAMESPACE = 'public'
     }
@@ -45,6 +46,22 @@ pipeline {
                             kubectl version --client
                             kubectl cluster-info
                             kubectl get nodes
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Docker Login') {
+            when {
+                expression { params.DEPLOY_ALL == true }
+            }
+            steps {
+                script {
+                    echo "=== Logging into Docker Hub ==="
+                    withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh '''
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                         '''
                     }
                 }
@@ -245,6 +262,11 @@ pipeline {
                 echo "=== Deployment Pipeline Completed ==="
                 echo "Environment: ${params.ENVIRONMENT}"
                 echo "Build Number: ${BUILD_NUMBER}"
+                
+                // Docker logout
+                if (params.DEPLOY_ALL == true) {
+                    sh 'docker logout || true'
+                }
                 
                 // Restore original deployment files
                 sh '''
