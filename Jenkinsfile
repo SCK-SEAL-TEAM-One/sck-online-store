@@ -1,5 +1,10 @@
 pipeline {
   agent any
+  
+  options {
+    disableConcurrentBuilds()
+  }
+  
   stages {
     stage('install dependency') {
       steps {
@@ -76,7 +81,7 @@ pipeline {
       steps {
         script {
           // Trigger deployment pipeline with current BUILD_NUMBER as IMAGE_TAG
-          build job: 'Jenkinsfile-Deploy', 
+          build job: 'sck-online-store-deploy', 
             parameters: [
               string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}"),
               string(name: 'ENVIRONMENT', value: 'development'),
