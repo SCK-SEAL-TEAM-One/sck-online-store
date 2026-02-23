@@ -33,6 +33,8 @@ spec:
               value: http://sck-dojo.ddns.net
             - name: DB_CONNECTION
               value: user:password@(mysql:3306)/store
+            - name: JWT_SECRET
+              value: my-secret-key
           ports:
             - containerPort: 8000
 ---
