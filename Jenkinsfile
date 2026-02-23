@@ -116,6 +116,15 @@ pipeline {
             docker push siamchamnankit/store-web:latest
           '''
           
+          // Build and push store-database
+          sh '''
+            cd tearup
+            docker build -t siamchamnankit/store-database:${BUILD_NUMBER} .
+            docker tag siamchamnankit/store-database:${BUILD_NUMBER} siamchamnankit/store-database:latest
+            docker push siamchamnankit/store-database:${BUILD_NUMBER}
+            docker push siamchamnankit/store-database:latest
+          '''
+          
           // Docker logout
           sh 'docker logout || true'
           

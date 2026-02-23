@@ -85,6 +85,7 @@ pipeline {
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG}|g" deploy/store-service/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}|g" deploy/point-service/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}|g" deploy/store-web/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-database.*|image: ${DOCKER_REGISTRY}/store-database:${DEPLOY_TAG}|g" deploy/store-database/service.yml
                         
                         # Show changes
                         echo "Updated deployment files:"
@@ -102,6 +103,7 @@ pipeline {
                         if (params.DEPLOY_ALL || params.DEPLOY_POINT_SERVICE) {
                             echo "=== Deploying point-service ==="
                             sh '''
+                                kubectl apply -f deploy/store-database/service.yml
                                 kubectl apply -f deploy/point-service/service.yml
                             '''
                         }
@@ -162,6 +164,9 @@ pipeline {
                         
                         // Wait for rollout to complete
                         timeout(time: 5, unit: 'MINUTES') {
+                            if (params.DEPLOY_ALL) {
+                                sh 'kubectl rollout status deployment/mysql --timeout=300s' || true
+                            }
                             if (params.DEPLOY_ALL || params.DEPLOY_POINT_SERVICE) {
                                 sh 'kubectl rollout status deployment/point-service-deployment --timeout=300s'
                             }
@@ -190,6 +195,7 @@ pipeline {
                         sh '''
                             # Wait for pods to be ready
                             echo "Waiting for all pods to be ready..."
+                            kubectl wait --for=condition=ready pod -l app=store-database --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=point-service --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=store-service --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=store-web --timeout=300s || true
