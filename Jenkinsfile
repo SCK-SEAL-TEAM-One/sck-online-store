@@ -86,44 +86,52 @@ pipeline {
               echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
             '''
           }
-          
+        }
+      }
+    }
+
+    stage('Build and Push Images (Parallel)') {
+      steps {
+        script {
           echo "=== Building and pushing Docker images with tag: ${BUILD_NUMBER} ==="
-          
-          // Build and push store-service
-          sh '''
-            cd store-service
-            docker build -t siamchamnankit/store-service:${BUILD_NUMBER} .
-            docker tag siamchamnankit/store-service:${BUILD_NUMBER} siamchamnankit/store-service:latest
-            docker push siamchamnankit/store-service:${BUILD_NUMBER}
-            docker push siamchamnankit/store-service:latest
-          '''
-          
-          // Build and push point-service
-          sh '''
-            cd point-service
-            docker build -t siamchamnankit/point-service:${BUILD_NUMBER} .
-            docker tag siamchamnankit/point-service:${BUILD_NUMBER} siamchamnankit/point-service:latest
-            docker push siamchamnankit/point-service:${BUILD_NUMBER}
-            docker push siamchamnankit/point-service:latest
-          '''
-          
-          // Build and push store-web
-          sh '''
-            cd store-web
-            docker build -t siamchamnankit/store-web:${BUILD_NUMBER} .
-            docker tag siamchamnankit/store-web:${BUILD_NUMBER} siamchamnankit/store-web:latest
-            docker push siamchamnankit/store-web:${BUILD_NUMBER}
-            docker push siamchamnankit/store-web:latest
-          '''
-          
-          // Build and push store-database
-          sh '''
-            cd tearup
-            docker build -t siamchamnankit/store-database:${BUILD_NUMBER} .
-            docker tag siamchamnankit/store-database:${BUILD_NUMBER} siamchamnankit/store-database:latest
-            docker push siamchamnankit/store-database:${BUILD_NUMBER}
-            docker push siamchamnankit/store-database:latest
-          '''
+          parallel(
+            'Build Store Service': {
+              sh '''
+                cd store-service
+                docker build -t siamchamnankit/store-service:${BUILD_NUMBER} .
+                docker tag siamchamnankit/store-service:${BUILD_NUMBER} siamchamnankit/store-service:latest
+                docker push siamchamnankit/store-service:${BUILD_NUMBER}
+                docker push siamchamnankit/store-service:latest
+              '''
+            },
+            'Build Point Service': {
+              sh '''
+                cd point-service
+                docker build -t siamchamnankit/point-service:${BUILD_NUMBER} .
+                docker tag siamchamnankit/point-service:${BUILD_NUMBER} siamchamnankit/point-service:latest
+                docker push siamchamnankit/point-service:${BUILD_NUMBER}
+                docker push siamchamnankit/point-service:latest
+              '''
+            },
+            'Build Store Web': {
+              sh '''
+                cd store-web
+                docker build -t siamchamnankit/store-web:${BUILD_NUMBER} .
+                docker tag siamchamnankit/store-web:${BUILD_NUMBER} siamchamnankit/store-web:latest
+                docker push siamchamnankit/store-web:${BUILD_NUMBER}
+                docker push siamchamnankit/store-web:latest
+              '''
+            },
+            'Build Store Database': {
+              sh '''
+                cd tearup
+                docker build -t siamchamnankit/store-database:${BUILD_NUMBER} .
+                docker tag siamchamnankit/store-database:${BUILD_NUMBER} siamchamnankit/store-database:latest
+                docker push siamchamnankit/store-database:${BUILD_NUMBER}
+                docker push siamchamnankit/store-database:latest
+              '''
+            }
+          )
           
           // Docker logout
           sh 'docker logout || true'
