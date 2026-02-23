@@ -103,7 +103,6 @@ pipeline {
                         if (params.DEPLOY_ALL || params.DEPLOY_POINT_SERVICE) {
                             echo "=== Deploying point-service ==="
                             sh '''
-                                kubectl apply -f deploy/store-database/service.yml
                                 kubectl apply -f deploy/point-service/service.yml
                             '''
                         }
@@ -195,7 +194,7 @@ pipeline {
                         sh '''
                             # Wait for pods to be ready
                             echo "Waiting for all pods to be ready..."
-                            kubectl wait --for=condition=ready pod -l app=store-database --timeout=300s || true
+                            kubectl wait --for=condition=ready pod -l app=mysql --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=point-service --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=store-service --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=store-web --timeout=300s || true

@@ -5,6 +5,7 @@ metadata:
 spec:
   ports:
     - port: 3306
+      targetPort: 3306
   clusterIP: None
   selector:
     app: mysql
@@ -42,12 +43,28 @@ spec:
                 - ping
                 - -h
                 - localhost
-            initialDelaySeconds: 30
+                - -u
+                - root
+                - -pmy-secret-pw
+            initialDelaySeconds: 60
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           readinessProbe:
             exec:
               command:
                 - mysqladmin
+                - ping
+                - -h
+                - localhost
+                - -u
+                - root
+                - -pmy-secret-pw
+            initialDelaySeconds: 45
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+
                 - ping
                 - -h
                 - localhost
