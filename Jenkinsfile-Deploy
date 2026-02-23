@@ -33,11 +33,6 @@ pipeline {
             defaultValue: false,
             description: 'Deploy store-web only'
         )
-        booleanParam(
-            name: 'DEPLOY_NGINX',
-            defaultValue: false,
-            description: 'Deploy nginx only'
-        )
     }
 
     stages {
@@ -103,20 +98,6 @@ pipeline {
                         }
                     }
                 }
-                stage('Build Nginx') {
-                    steps {
-                        script {
-                            echo "=== Building nginx Docker image ==="
-                            sh '''
-                                cd nginx
-                                docker build -t ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER} .
-                                docker tag ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER} ${DOCKER_REGISTRY}/mynginx:latest
-                                docker push ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER}
-                                docker push ${DOCKER_REGISTRY}/mynginx:latest
-                            '''
-                        }
-                    }
-                }
             }
         }
 
@@ -132,7 +113,6 @@ pipeline {
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER}|g" deploy/store-service/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER}|g" deploy/point-service/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER}|g" deploy/store-web/service.yml
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/mynginx.*|image: ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER}|g" deploy/nginx/service.yml
                         
                         # Show changes
                         echo "Updated deployment files:"
@@ -168,12 +148,6 @@ pipeline {
                             '''
                         }
 
-                        if (params.DEPLOY_ALL || params.DEPLOY_NGINX) {
-                            echo "=== Deploying nginx ==="
-                            sh '''
-                                kubectl apply -f deploy/nginx/service.yml
-                            '''
-                        }
                     }
                 }
             }
@@ -189,7 +163,6 @@ pipeline {
                     withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
                         sh '''
                             kubectl apply -f deploy/ingress.yml
-                            kubectl apply -f deploy/nginx/ingress.yml
                         '''
                     }
                 }
