@@ -1,0 +1,314 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = 'siamchamnankit'
+        KUBECONFIG_CREDENTIAL_ID = 'kubeconfig-credentials'
+        K8S_NAMESPACE = 'default'
+    }
+
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['development', 'staging', 'production'],
+            description: 'Select target environment'
+        )
+        booleanParam(
+            name: 'DEPLOY_ALL',
+            defaultValue: true,
+            description: 'Deploy all services'
+        )
+        booleanParam(
+            name: 'DEPLOY_STORE_SERVICE',
+            defaultValue: false,
+            description: 'Deploy store-service only'
+        )
+        booleanParam(
+            name: 'DEPLOY_POINT_SERVICE',
+            defaultValue: false,
+            description: 'Deploy point-service only'
+        )
+        booleanParam(
+            name: 'DEPLOY_STORE_WEB',
+            defaultValue: false,
+            description: 'Deploy store-web only'
+        )
+        booleanParam(
+            name: 'DEPLOY_NGINX',
+            defaultValue: false,
+            description: 'Deploy nginx only'
+        )
+    }
+
+    stages {
+        stage('Validate kubectl') {
+            steps {
+                script {
+                    echo "=== Validating kubectl connection ==="
+                    withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID]) {
+                        sh '''
+                            kubectl version --client
+                            kubectl cluster-info
+                            kubectl get nodes
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build and Push Images') {
+            when {
+                expression { params.DEPLOY_ALL == true }
+            }
+            parallel {
+                stage('Build Store Service') {
+                    steps {
+                        script {
+                            echo "=== Building store-service Docker image ==="
+                            sh '''
+                                cd store-service
+                                docker build -t ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER} .
+                                docker tag ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER} ${DOCKER_REGISTRY}/store-service:latest
+                                docker push ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER}
+                                docker push ${DOCKER_REGISTRY}/store-service:latest
+                            '''
+                        }
+                    }
+                }
+                stage('Build Point Service') {
+                    steps {
+                        script {
+                            echo "=== Building point-service Docker image ==="
+                            sh '''
+                                cd point-service
+                                docker build -t ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER} .
+                                docker tag ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER} ${DOCKER_REGISTRY}/point-service:latest
+                                docker push ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER}
+                                docker push ${DOCKER_REGISTRY}/point-service:latest
+                            '''
+                        }
+                    }
+                }
+                stage('Build Store Web') {
+                    steps {
+                        script {
+                            echo "=== Building store-web Docker image ==="
+                            sh '''
+                                cd store-web
+                                docker build -t ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER} .
+                                docker tag ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER} ${DOCKER_REGISTRY}/store-web:latest
+                                docker push ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER}
+                                docker push ${DOCKER_REGISTRY}/store-web:latest
+                            '''
+                        }
+                    }
+                }
+                stage('Build Nginx') {
+                    steps {
+                        script {
+                            echo "=== Building nginx Docker image ==="
+                            sh '''
+                                cd nginx
+                                docker build -t ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER} .
+                                docker tag ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER} ${DOCKER_REGISTRY}/mynginx:latest
+                                docker push ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER}
+                                docker push ${DOCKER_REGISTRY}/mynginx:latest
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Update Image Tags') {
+            when {
+                expression { params.DEPLOY_ALL == true }
+            }
+            steps {
+                script {
+                    echo "=== Updating Kubernetes manifests with new image tags ==="
+                    sh '''
+                        # Update image tags in deployment files
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER}|g" deploy/store-service/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER}|g" deploy/point-service/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER}|g" deploy/store-web/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/mynginx.*|image: ${DOCKER_REGISTRY}/mynginx:${BUILD_NUMBER}|g" deploy/nginx/service.yml
+                        
+                        # Show changes
+                        echo "Updated deployment files:"
+                        grep "image:" deploy/*/service.yml || true
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Services') {
+            steps {
+                script {
+                    withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
+                        
+                        if (params.DEPLOY_ALL || params.DEPLOY_POINT_SERVICE) {
+                            echo "=== Deploying point-service ==="
+                            sh '''
+                                kubectl apply -f deploy/point-service/service.yml
+                            '''
+                        }
+
+                        if (params.DEPLOY_ALL || params.DEPLOY_STORE_SERVICE) {
+                            echo "=== Deploying store-service ==="
+                            sh '''
+                                kubectl apply -f deploy/store-service/service.yml
+                            '''
+                        }
+
+                        if (params.DEPLOY_ALL || params.DEPLOY_STORE_WEB) {
+                            echo "=== Deploying store-web ==="
+                            sh '''
+                                kubectl apply -f deploy/store-web/service.yml
+                            '''
+                        }
+
+                        if (params.DEPLOY_ALL || params.DEPLOY_NGINX) {
+                            echo "=== Deploying nginx ==="
+                            sh '''
+                                kubectl apply -f deploy/nginx/service.yml
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Ingress') {
+            when {
+                expression { params.DEPLOY_ALL == true }
+            }
+            steps {
+                script {
+                    echo "=== Deploying Ingress and Middleware ==="
+                    withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
+                        sh '''
+                            kubectl apply -f deploy/ingress.yml
+                            kubectl apply -f deploy/nginx/ingress.yml
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Verify Deployments') {
+            steps {
+                script {
+                    echo "=== Verifying deployments ==="
+                    withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
+                        sh '''
+                            echo "Checking deployments status..."
+                            kubectl get deployments
+                            
+                            echo "\nChecking services..."
+                            kubectl get services
+                            
+                            echo "\nChecking ingress..."
+                            kubectl get ingress
+                            
+                            echo "\nChecking pods..."
+                            kubectl get pods
+                        '''
+                        
+                        // Wait for rollout to complete
+                        timeout(time: 5, unit: 'MINUTES') {
+                            if (params.DEPLOY_ALL || params.DEPLOY_POINT_SERVICE) {
+                                sh 'kubectl rollout status deployment/point-service-deployment --timeout=300s'
+                            }
+                            if (params.DEPLOY_ALL || params.DEPLOY_STORE_SERVICE) {
+                                sh 'kubectl rollout status deployment/store-service-deployment --timeout=300s'
+                            }
+                            if (params.DEPLOY_ALL || params.DEPLOY_STORE_WEB) {
+                                sh 'kubectl rollout status deployment/store-web-deployment --timeout=300s'
+                            }
+                            if (params.DEPLOY_ALL || params.DEPLOY_NGINX) {
+                                sh 'kubectl rollout status deployment/nginx-deployment --timeout=300s'
+                            }
+                        }
+                        
+                        echo "=== Deployment verification completed successfully ==="
+                    }
+                }
+            }
+        }
+
+        stage('Health Check') {
+            when {
+                expression { params.DEPLOY_ALL == true }
+            }
+            steps {
+                script {
+                    echo "=== Running health checks ==="
+                    withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
+                        sh '''
+                            # Wait for pods to be ready
+                            echo "Waiting for all pods to be ready..."
+                            kubectl wait --for=condition=ready pod -l app=point-service --timeout=300s || true
+                            kubectl wait --for=condition=ready pod -l app=store-service --timeout=300s || true
+                            kubectl wait --for=condition=ready pod -l app=store-web --timeout=300s || true
+                            kubectl wait --for=condition=ready pod -l app=nginx --timeout=300s || true
+                            
+                            # Show final status
+                            echo "\n=== Final Pod Status ==="
+                            kubectl get pods -o wide
+                            
+                            echo "\n=== Service Endpoints ==="
+                            kubectl get endpoints
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo "=== Deployment Pipeline Completed ==="
+                echo "Environment: ${params.ENVIRONMENT}"
+                echo "Build Number: ${BUILD_NUMBER}"
+                
+                // Restore original deployment files
+                sh '''
+                    if [ -f deploy/store-service/service.yml.bak ]; then
+                        rm -f deploy/*/service.yml.bak
+                    fi
+                '''
+            }
+        }
+        success {
+            script {
+                echo "✅ Deployment completed successfully!"
+                withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
+                    sh '''
+                        echo "\n=== Deployment Summary ==="
+                        kubectl get all -o wide
+                    '''
+                }
+            }
+        }
+        failure {
+            script {
+                echo "❌ Deployment failed!"
+                withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
+                    sh '''
+                        echo "\n=== Troubleshooting Information ==="
+                        echo "\nPod Status:"
+                        kubectl get pods
+                        
+                        echo "\nRecent Events:"
+                        kubectl get events --sort-by='.lastTimestamp' | tail -20
+                        
+                        echo "\nPod Descriptions:"
+                        kubectl describe pods | grep -A 10 "Events:" || true
+                    '''
+                }
+            }
+        }
+    }
+}
