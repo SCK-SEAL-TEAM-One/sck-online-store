@@ -130,6 +130,14 @@ pipeline {
                 docker push siamchamnankit/store-database:${BUILD_NUMBER}
                 docker push siamchamnankit/store-database:latest
               '''
+            },
+            'Build Liquibase': {
+              sh '''
+                docker build -f db/Dockerfile -t siamchamnankit/liquibase:${BUILD_NUMBER} .
+                docker tag siamchamnankit/liquibase:${BUILD_NUMBER} siamchamnankit/liquibase:latest
+                docker push siamchamnankit/liquibase:${BUILD_NUMBER}
+                docker push siamchamnankit/liquibase:latest
+              '''
             }
           )
           

@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: liquibase-migration
+  namespace: public
+  labels:
+    app: liquibase
+    version: "1.0"
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app: liquibase
+    spec:
+      serviceAccountName: default
+      restartPolicy: Never
+      initContainers:
+        # Wait for MySQL to be ready before running liquibase
+        - name: wait-for-mysql
+          image: busybox:1.28
+          command: 
+            - sh
+            - -c
+            - |
+              echo "Waiting for MySQL to be ready..."
+              for i in {1..60}; do
+                if nc -z mysql 3306 2>/dev/null; then
+                  echo "MySQL is ready!"
+                  exit 0
+                fi
+                echo "Attempt $i: Waiting for MySQL..."
+                sleep 2
+              done
+              echo "MySQL did not become ready in time"
+              exit 1
+      containers:
+        - name: liquibase
+          image: siamchamnankit/liquibase:latest
+          workingDir: /liquibase/changelog
+          command:
+            - sh
+            - -c
+            - |
+              liquibase \
+                --url="jdbc:mysql://mysql:3306/store?useSSL=false&allowPublicKeyRetrieval=true" \
+                --username="user" \
+                --password="password" \
+                --changelog-file="changelog-master.yaml" \
+                update
+          env:
+            - name: LIQUIBASE_CLASSPATH
+              value: /liquibase/lib
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

@@ -86,10 +86,11 @@ pipeline {
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}|g" deploy/point-service/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}|g" deploy/store-web/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-database.*|image: ${DOCKER_REGISTRY}/store-database:${DEPLOY_TAG}|g" deploy/store-database/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/liquibase.*|image: ${DOCKER_REGISTRY}/liquibase:${DEPLOY_TAG}|g" deploy/liquibase/job.yml
                         
                         # Show changes
                         echo "Updated deployment files:"
-                        grep "image:" deploy/*/service.yml || true
+                        grep "image:" deploy/*/service.yml deploy/liquibase/job.yml || true
                     '''
                 }
             }
@@ -122,6 +123,36 @@ pipeline {
                             '''
                         }
 
+                    }
+                }
+            }
+        }
+
+        stage('Database Migration') {
+            when {
+                expression { params.DEPLOY_ALL == true || params.DEPLOY_STORE_SERVICE == true }
+            }
+            steps {
+                script {
+                    echo "=== Running Liquibase Database Migration ==="
+                    withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
+                        sh '''
+                            # Wait for MySQL to be ready
+                            echo "Waiting for MySQL to be ready..."
+                            kubectl wait --for=condition=ready pod -l app=mysql --timeout=120s || true
+                            sleep 10
+                            
+                            # Run liquibase migration job
+                            kubectl apply -f deploy/liquibase/job.yml
+                            
+                            # Wait for job to complete
+                            echo "Waiting for Liquibase migration job to complete..."
+                            kubectl wait --for=condition=complete job/liquibase-migration --timeout=300s || true
+                            
+                            # Show job logs
+                            echo "Liquibase migration logs:"
+                            kubectl logs job/liquibase-migration --tail=100 || true
+                        '''
                     }
                 }
             }
