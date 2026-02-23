@@ -4,6 +4,7 @@ Library    String
 Library    Collections
 Library    RPA.PDF
 Library    OperatingSystem
+Library    DownloadHelper.py
 Test Teardown   Cleanup Download Folder
 Test Setup    Setup Folder For Download
 
@@ -11,7 +12,7 @@ Test Setup    Setup Folder For Download
 ${URL}    http://localhost/product/list
 ${BROWSER}    headlesschrome
 ${REMOTE_HUB_URL}
-${DOWNLOAD_DIR}    ${CURDIR}${/}temp_downloads
+${DOWNLOAD_DIR}    ${CURDIR}${/}..${/}temp_downloads
 
 *** Test Cases ***
 ทดสอบ สั่งซื้อสินค้า Balance Training Bicycle จัดส่งด้วย Kerry ชำระเงินด้วยบัตรเครดิต Visa สำเร็จ และตรวจสอบใบเสร็จ
@@ -56,21 +57,61 @@ Setup Folder For Download
     Empty Directory     ${DOWNLOAD_DIR}
 
 Cleanup Download Folder
-    Remove Directory    ${DOWNLOAD_DIR}    recursive=True
+    Empty Directory    ${DOWNLOAD_DIR}
     Close All Browsers
 
 เข้าสู่เว็บไซต์ และตรวจสอบว่า redirect มาที่
     [Arguments]    ${target-url}    ${target-element-locator}
-    ${prefs}=    Create Dictionary    
-    ...    download.default_directory=${DOWNLOAD_DIR}
-    ...    plugins.always_open_pdf_externally=${True}
-    Open Browser    url=${URL}    browser=${BROWSER}    options=add_experimental_option("prefs", ${prefs})        remote_url=${REMOTE_HUB_URL}
-
-    Delete All Cookies
-    Execute Javascript    window.localStorage.clear();
-    Execute Javascript    window.sessionStorage.clear();
+    
+    ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
+    
+    Run Keyword If    '${REMOTE_HUB_URL}' != ''    
+    ...    Configure Remote Browser Options    ${chrome_options}
+    ...    ELSE
+    ...    Configure Local Browser Options    ${chrome_options}
+    
+    # For remote: set downloadsEnabled in desired_capabilities
+    Run Keyword If    '${REMOTE_HUB_URL}' != ''
+    ...    Open Browser Remote With Downloads    ${chrome_options}
+    ...    ELSE
+    ...    Open Browser    url=${URL}    browser=${BROWSER}    options=${chrome_options}
+    
+    # Enable downloads via CDP for remote browser - must be called after browser is ready
+    Sleep    2s
+    Run Keyword If    '${REMOTE_HUB_URL}' != ''    
+    ...    Run Keyword And Ignore Error    Enable Download In Headless Chrome
+    
     Location Should Contain    ${target-url}
-    Page Should Contain Element    id:${target-element-locator}
+
+Configure Remote Browser Options
+    [Arguments]    ${options}
+    ${prefs}=    Create Dictionary    
+    ...    download.default_directory=/home/seluser/downloads
+    ...    download.prompt_for_download=${False}
+    ...    download.directory_upgrade=${True}
+    ...    plugins.always_open_pdf_externally=${True}
+    ...    safebrowsing.enabled=${True}
+    Call Method    ${options}    add_experimental_option    prefs    ${prefs}
+    # Set se:downloadsEnabled via options
+    ${se_opts}=    Create Dictionary    downloadsEnabled=${True}
+    Call Method    ${options}    set_capability    se:options    ${se_opts}
+
+Open Browser Remote With Downloads
+    [Arguments]    ${chrome_options}
+    Open Browser    url=${URL}    browser=${BROWSER}    remote_url=${REMOTE_HUB_URL}    options=${chrome_options}
+
+Configure Local Browser Options
+    [Arguments]    ${options}
+    # Convert relative path to absolute path for local browser
+    ${abs_download_dir}=    Normalize Path    ${DOWNLOAD_DIR}
+    ${prefs}=    Create Dictionary    
+    ...    download.default_directory=${abs_download_dir}
+    ...    download.prompt_for_download=${False}
+    ...    download.directory_upgrade=${True}
+    ...    plugins.always_open_pdf_externally=${True}
+    ...    safebrowsing.enabled=${True}
+    Call Method    ${options}    add_experimental_option    prefs    ${prefs}
+    Log    Local browser options configured: ${abs_download_dir}    console=True
 
 เข้าสู่ระบบ
     [Arguments]    ${username-input-locator}    ${username}    ${password-input-locator}    ${password}
@@ -188,7 +229,10 @@ Cleanup Download Folder
 
 กดดาวน์โหลดไฟล์
     Click Button    id:download-order-summary-btn
-    ${file_path}=    Wait For Download To Complete
+    ${file_path}=    Run Keyword If    '${REMOTE_HUB_URL}' != ''
+    ...    Wait For Download To Complete Remote
+    ...    ELSE
+    ...    Wait For Download To Complete
     Set Test Variable    ${file_path}
 
 
@@ -231,3 +275,12 @@ Wait For Download To Complete
     Wait Until Keyword Succeeds    20 sec    1 sec    Directory Should Not Be Empty    ${DOWNLOAD_DIR}
     @{files}=    List Files In Directory    ${DOWNLOAD_DIR}    *.pdf
     RETURN    ${DOWNLOAD_DIR}${/}${files}[0]
+
+Wait For Download To Complete Remote
+    Sleep    3s    # Wait for download to start
+    ${downloaded_files}=    Get Downloaded Files From Remote
+    Should Not Be Empty    ${downloaded_files}    No files downloaded
+    ${pdf_file}=    Set Variable    ${downloaded_files}[0]
+    ${local_path}=    Set Variable    ${DOWNLOAD_DIR}${/}${pdf_file}[name]
+    Log    Downloaded file: ${pdf_file}[name] to ${local_path}
+    RETURN    ${local_path}

@@ -209,7 +209,7 @@ services:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
   chrome:
-    image: selenium/node-chromium:4.25.0
+    image: selenium/node-chromium:4.27.0
     container_name: node-chrome
     shm_size: 2gb
     depends_on:
@@ -222,9 +222,15 @@ services:
       - SE_NODE_MAX_SESSIONS=5
       - SE_NODE_SESSION_TIMEOUT=300
       - SE_NODE_DRAIN_AFTER_SESSION_COUNT=0
+      - SE_ENABLE_BROWSER_LEFTOVERS_CLEANUP=true
+      - SE_DOWNLOAD_DIR=/home/seluser/downloads
+      - SE_ENABLE_MANAGED_DOWNLOADS=true
+    volumes:
+      - /dev/shm:/dev/shm
+      - ./atdd/ui/temp_downloads:/home/seluser/downloads
 
   selenium-hub:
-    image: selenium/hub:4.25.0
+    image: selenium/hub:4.27.0
     container_name: selenium-hub
     ports:
       - "4442:4442"
@@ -234,6 +240,7 @@ services:
       - SE_SESSION_RETRY_INTERVAL=2
       - SE_SESSION_TIMEOUT=300
       - SE_DRAIN_TIMEOUT=20
+      - SE_ENABLE_MANAGED_DOWNLOADS=true
 
 volumes:
   shared_data:

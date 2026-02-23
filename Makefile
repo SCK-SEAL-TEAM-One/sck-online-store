@@ -91,6 +91,7 @@ build_nginx:
 	docker compose build nginx
 
 start_test_suite:
+	cp -f store-web/.env_local store-web/.env
 	docker compose up -d thirdparty point-service db store-service store-web nginx seed liquibase --build
 
 start_test_suite_grid:
@@ -116,6 +117,7 @@ run_robot_grid:
 	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub ./001-Authentication \
+	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub ./002-Order-Summary-PDF \
 	&& deactivate
 
 run_robot_authentication:
@@ -142,7 +144,7 @@ run_robot_order_summary_pdf:
 	&& robot -v URL:http://localhost/product/list ./002-Order-Summary-PDF \
 	&& deactivate
 
-run_robot_order_summary_pdf:
+run_robot_order_summary_pdf_grid:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
 	&& source .venv/bin/activate \
