@@ -5,7 +5,7 @@ metadata:
   labels:
     app: store-service-deployment
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: store-service
@@ -20,33 +20,21 @@ spec:
         app: store-service
     spec:
       containers:
-      - name: store-service
-        image: srank123/store-service
-        env:
-        - name: BANK_GATEWAY
-          value: host.docker.internal:8884
-        - name: SHIPPING_GATEWAY
-          value: host.docker.internal:8885
-        - name: POINT_GATEWAY
-          value: point-service-svc:8001
-        - name: STORE_WEB_HOST
-          value: http://host.docker.internal
-        - name: DB_CONNECTION
-          value: user:password@(host.docker.internal:3308)/store
-        ports:
-        - containerPort: 8000
-        livenessProbe:
-          httpGet:
-            path: /api/v1/product
-            port: 8000
-          initialDelaySeconds: 3
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /api/v1/product
-            port: 8000
-          initialDelaySeconds: 3
-          periodSeconds: 3
+        - name: store-service
+          image: siamchamnankit/store-service:latest
+          env:
+            - name: BANK_GATEWAY
+              value: thirdparty-service:8882
+            - name: SHIPPING_GATEWAY
+              value: thirdparty-service:8883
+            - name: POINT_GATEWAY
+              value: point-service
+            - name: STORE_WEB_HOST
+              value: http://sck-dojo.ddns.net
+            - name: DB_CONNECTION
+              value: user:password@(mysql:3306)/store
+          ports:
+            - containerPort: 8000
 ---
 apiVersion: v1
 kind: Service
@@ -58,5 +46,5 @@ spec:
     app: store-service
   ports:
     - protocol: TCP
-      port: 8000
+      port: 80
       targetPort: 8000
