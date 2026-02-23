@@ -46,7 +46,7 @@ spec:
                 - -u
                 - root
                 - -pmy-secret-pw
-            initialDelaySeconds: 60
+            initialDelaySeconds: 180
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
