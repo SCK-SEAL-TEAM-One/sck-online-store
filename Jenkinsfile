@@ -77,6 +77,53 @@ pipeline {
       }
     }
 
+    stage('Build and Push Docker Images') {
+      steps {
+        script {
+          echo "=== Logging into Docker Hub ==="
+          withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+            sh '''
+              echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            '''
+          }
+          
+          echo "=== Building and pushing Docker images with tag: ${BUILD_NUMBER} ==="
+          
+          // Build and push store-service
+          sh '''
+            cd store-service
+            docker build -t siamchamnankit/store-service:${BUILD_NUMBER} .
+            docker tag siamchamnankit/store-service:${BUILD_NUMBER} siamchamnankit/store-service:latest
+            docker push siamchamnankit/store-service:${BUILD_NUMBER}
+            docker push siamchamnankit/store-service:latest
+          '''
+          
+          // Build and push point-service
+          sh '''
+            cd point-service
+            docker build -t siamchamnankit/point-service:${BUILD_NUMBER} .
+            docker tag siamchamnankit/point-service:${BUILD_NUMBER} siamchamnankit/point-service:latest
+            docker push siamchamnankit/point-service:${BUILD_NUMBER}
+            docker push siamchamnankit/point-service:latest
+          '''
+          
+          // Build and push store-web
+          sh '''
+            cd store-web
+            docker build -t siamchamnankit/store-web:${BUILD_NUMBER} .
+            docker tag siamchamnankit/store-web:${BUILD_NUMBER} siamchamnankit/store-web:latest
+            docker push siamchamnankit/store-web:${BUILD_NUMBER}
+            docker push siamchamnankit/store-web:latest
+          '''
+          
+          // Docker logout
+          sh 'docker logout || true'
+          
+          echo "=== Docker images built and pushed successfully ==="
+        }
+      }
+    }
+
     stage('trigger deployment') {
       steps {
         script {

@@ -18,7 +18,7 @@ pipeline {
         string(
             name: 'IMAGE_TAG',
             defaultValue: '',
-            description: 'Docker image tag to deploy (from upstream build). Leave empty to use current BUILD_NUMBER'
+            description: 'Docker image tag to deploy (required from upstream build)'
         )
         choice(
             name: 'ENVIRONMENT',
@@ -48,12 +48,15 @@ pipeline {
     }
 
     stages {
-        stage('Set Image Tag') {
+        stage('Validate Parameters') {
             steps {
                 script {
-                    // Use IMAGE_TAG parameter if provided, otherwise use BUILD_NUMBER
-                    env.DEPLOY_TAG = params.IMAGE_TAG ?: env.BUILD_NUMBER
-                    echo "=== Image tag for deployment: ${env.DEPLOY_TAG} ==="
+                    if (!params.IMAGE_TAG) {
+                        error("IMAGE_TAG parameter is required. This pipeline should be triggered from the main build pipeline.")
+                    }
+                    env.DEPLOY_TAG = params.IMAGE_TAG
+                    echo "=== Deploying images with tag: ${env.DEPLOY_TAG} ==="
+                    echo "=== Target environment: ${params.ENVIRONMENT} ==="
                 }
             }
         }
@@ -73,81 +76,12 @@ pipeline {
             }
         }
 
-        stage('Docker Login') {
-            when {
-                expression { params.DEPLOY_ALL == true }
-            }
+        stage('Update Image Tags in Manifests') {
             steps {
                 script {
-                    echo "=== Logging into Docker Hub ==="
-                    withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh '''
-                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Build and Push Images') {
-            when {
-                expression { params.DEPLOY_ALL == true }
-            }
-            parallel {
-                stage('Build Store Service') {
-                    steps {
-                        script {
-                            echo "=== Building store-service Docker image ==="
-                            sh '''
-                                cd store-service
-                                docker build -t ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG} .
-                                docker tag ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG} ${DOCKER_REGISTRY}/store-service:latest
-                                docker push ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG}
-                                docker push ${DOCKER_REGISTRY}/store-service:latest
-                            '''
-                        }
-                    }
-                }
-                stage('Build Point Service') {
-                    steps {
-                        script {
-                            echo "=== Building point-service Docker image ==="
-                            sh '''
-                                cd point-service
-                                docker build -t ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG} .
-                                docker tag ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG} ${DOCKER_REGISTRY}/point-service:latest
-                                docker push ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}
-                                docker push ${DOCKER_REGISTRY}/point-service:latest
-                            '''
-                        }
-                    }
-                }
-                stage('Build Store Web') {
-                    steps {
-                        script {
-                            echo "=== Building store-web Docker image ==="
-                            sh '''
-                                cd store-web
-                                docker build -t ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG} .
-                                docker tag ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG} ${DOCKER_REGISTRY}/store-web:latest
-                                docker push ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}
-                                docker push ${DOCKER_REGISTRY}/store-web:latest
-                            '''
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Update Image Tags') {
-            when {
-                expression { params.DEPLOY_ALL == true }
-            }
-            steps {
-                script {
-                    echo "=== Updating Kubernetes manifests with new image tags ==="
+                    echo "=== Updating Kubernetes manifests with image tag: ${env.DEPLOY_TAG} ==="
                     sh '''
-                        # Update image tags in deployment files
+                        # Create backup and update image tags in deployment files
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG}|g" deploy/store-service/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}|g" deploy/point-service/service.yml
                         sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}|g" deploy/store-web/service.yml
@@ -237,9 +171,6 @@ pipeline {
                             if (params.DEPLOY_ALL || params.DEPLOY_STORE_WEB) {
                                 sh 'kubectl rollout status deployment/store-web-deployment --timeout=300s'
                             }
-                            if (params.DEPLOY_ALL || params.DEPLOY_NGINX) {
-                                sh 'kubectl rollout status deployment/nginx-deployment --timeout=300s'
-                            }
                         }
                         
                         echo "=== Deployment verification completed successfully ==="
@@ -262,7 +193,6 @@ pipeline {
                             kubectl wait --for=condition=ready pod -l app=point-service --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=store-service --timeout=300s || true
                             kubectl wait --for=condition=ready pod -l app=store-web --timeout=300s || true
-                            kubectl wait --for=condition=ready pod -l app=nginx --timeout=300s || true
                             
                             # Show final status
                             echo "\n=== Final Pod Status ==="
@@ -282,13 +212,8 @@ pipeline {
             script {
                 echo "=== Deployment Pipeline Completed ==="
                 echo "Environment: ${params.ENVIRONMENT}"
-                echo "Build Number: ${BUILD_NUMBER}"
                 echo "Deployed Image Tag: ${env.DEPLOY_TAG}"
-                
-                // Docker logout
-                if (params.DEPLOY_ALL == true) {
-                    sh 'docker logout || true'
-                }
+                echo "Build Number: ${BUILD_NUMBER}"
                 
                 // Restore original deployment files
                 sh '''
