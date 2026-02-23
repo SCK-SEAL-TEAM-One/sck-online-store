@@ -117,13 +117,12 @@ run_robot_grid:
 	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x robot-authen.xml ./001-Authentication \
-	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x robot-pdf.xml ./002-Order-Summary-PDF \
 	&& deactivate
 
 run_robot_authentication:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
-	&& source .venv/bin/activate \
+	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://localhost/product/list -x robot-authen.xml  ./001-Authentication \
 	&& deactivate
@@ -131,7 +130,7 @@ run_robot_authentication:
 run_robot_authentication_grid:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
-	&& source .venv/bin/activate \
+	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x robot-authen.xml ./001-Authentication \
 	&& deactivate
@@ -139,7 +138,7 @@ run_robot_authentication_grid:
 run_robot_order_summary_pdf:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
-	&& source .venv/bin/activate \
+	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://localhost/product/list -x robot-pdf.xml ./002-Order-Summary-PDF \
 	&& deactivate
@@ -147,7 +146,7 @@ run_robot_order_summary_pdf:
 run_robot_order_summary_pdf_grid:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
-	&& source .venv/bin/activate \
+	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
 	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x robot-pdf.xml ./002-Order-Summary-PDF \
 	&& deactivate
