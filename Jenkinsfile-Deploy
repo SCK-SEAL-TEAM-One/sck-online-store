@@ -110,6 +110,7 @@ pipeline {
                         if (params.DEPLOY_ALL || params.DEPLOY_STORE_SERVICE) {
                             echo "=== Deploying store-service ==="
                             sh '''
+                                kubectl apply -f deploy/store-database/service.yml
                                 kubectl apply -f deploy/store-service/service.yml
                             '''
                         }
@@ -164,12 +165,12 @@ pipeline {
                         // Wait for rollout to complete
                         timeout(time: 5, unit: 'MINUTES') {
                             if (params.DEPLOY_ALL) {
-                                sh 'kubectl rollout status deployment/mysql --timeout=300s' || true
                             }
                             if (params.DEPLOY_ALL || params.DEPLOY_POINT_SERVICE) {
                                 sh 'kubectl rollout status deployment/point-service-deployment --timeout=300s'
                             }
                             if (params.DEPLOY_ALL || params.DEPLOY_STORE_SERVICE) {
+                                sh 'kubectl rollout status deployment/mysql --timeout=300s'
                                 sh 'kubectl rollout status deployment/store-service-deployment --timeout=300s'
                             }
                             if (params.DEPLOY_ALL || params.DEPLOY_STORE_WEB) {
