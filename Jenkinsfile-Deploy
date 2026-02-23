@@ -9,6 +9,11 @@ pipeline {
     }
 
     parameters {
+        string(
+            name: 'IMAGE_TAG',
+            defaultValue: '',
+            description: 'Docker image tag to deploy (from upstream build). Leave empty to use current BUILD_NUMBER'
+        )
         choice(
             name: 'ENVIRONMENT',
             choices: ['development', 'staging', 'production'],
@@ -37,6 +42,16 @@ pipeline {
     }
 
     stages {
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    // Use IMAGE_TAG parameter if provided, otherwise use BUILD_NUMBER
+                    env.DEPLOY_TAG = params.IMAGE_TAG ?: env.BUILD_NUMBER
+                    echo "=== Image tag for deployment: ${env.DEPLOY_TAG} ==="
+                }
+            }
+        }
+
         stage('Validate kubectl') {
             steps {
                 script {
@@ -79,9 +94,9 @@ pipeline {
                             echo "=== Building store-service Docker image ==="
                             sh '''
                                 cd store-service
-                                docker build -t ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER} .
-                                docker tag ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER} ${DOCKER_REGISTRY}/store-service:latest
-                                docker push ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER}
+                                docker build -t ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG} .
+                                docker tag ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG} ${DOCKER_REGISTRY}/store-service:latest
+                                docker push ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG}
                                 docker push ${DOCKER_REGISTRY}/store-service:latest
                             '''
                         }
@@ -93,9 +108,9 @@ pipeline {
                             echo "=== Building point-service Docker image ==="
                             sh '''
                                 cd point-service
-                                docker build -t ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER} .
-                                docker tag ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER} ${DOCKER_REGISTRY}/point-service:latest
-                                docker push ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER}
+                                docker build -t ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG} .
+                                docker tag ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG} ${DOCKER_REGISTRY}/point-service:latest
+                                docker push ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}
                                 docker push ${DOCKER_REGISTRY}/point-service:latest
                             '''
                         }
@@ -107,9 +122,9 @@ pipeline {
                             echo "=== Building store-web Docker image ==="
                             sh '''
                                 cd store-web
-                                docker build -t ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER} .
-                                docker tag ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER} ${DOCKER_REGISTRY}/store-web:latest
-                                docker push ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER}
+                                docker build -t ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG} .
+                                docker tag ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG} ${DOCKER_REGISTRY}/store-web:latest
+                                docker push ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}
                                 docker push ${DOCKER_REGISTRY}/store-web:latest
                             '''
                         }
@@ -127,9 +142,9 @@ pipeline {
                     echo "=== Updating Kubernetes manifests with new image tags ==="
                     sh '''
                         # Update image tags in deployment files
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${BUILD_NUMBER}|g" deploy/store-service/service.yml
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${BUILD_NUMBER}|g" deploy/point-service/service.yml
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${BUILD_NUMBER}|g" deploy/store-web/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG}|g" deploy/store-service/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}|g" deploy/point-service/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}|g" deploy/store-web/service.yml
                         
                         # Show changes
                         echo "Updated deployment files:"
@@ -262,6 +277,7 @@ pipeline {
                 echo "=== Deployment Pipeline Completed ==="
                 echo "Environment: ${params.ENVIRONMENT}"
                 echo "Build Number: ${BUILD_NUMBER}"
+                echo "Deployed Image Tag: ${env.DEPLOY_TAG}"
                 
                 // Docker logout
                 if (params.DEPLOY_ALL == true) {

@@ -71,6 +71,21 @@ pipeline {
         sh 'make stop_test_suite'
       }
     }
+
+    stage('trigger deployment') {
+      steps {
+        script {
+          // Trigger deployment pipeline with current BUILD_NUMBER as IMAGE_TAG
+          build job: 'Jenkinsfile-Deploy', 
+            parameters: [
+              string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}"),
+              string(name: 'ENVIRONMENT', value: 'development'),
+              booleanParam(name: 'DEPLOY_ALL', value: true)
+            ],
+            wait: false
+        }
+      }
+    }
     
   }
   
