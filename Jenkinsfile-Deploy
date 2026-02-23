@@ -16,12 +16,12 @@ pipeline {
         )
         booleanParam(
             name: 'DEPLOY_ALL',
-            defaultValue: false,
+            defaultValue: true,
             description: 'Deploy all services'
         )
         booleanParam(
             name: 'DEPLOY_STORE_SERVICE',
-            defaultValue: true,
+            defaultValue: false,
             description: 'Deploy store-service only'
         )
         booleanParam(
