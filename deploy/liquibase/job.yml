@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: liquibase-migration
+  name: liquibase-migration-${BUILD_NUMBER}
   namespace: public
   labels:
     app: liquibase
@@ -9,6 +9,7 @@ metadata:
 spec:
   backoffLimit: 3
   activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 86400
   template:
     metadata:
       labels:
