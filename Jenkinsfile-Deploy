@@ -19,8 +19,6 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
         KUBECONFIG_CREDENTIAL_ID = 'kubeconfig.yaml'
         K8S_NAMESPACE = 'public'
-        // Auto-read BUILD_NUMBER from upstream job (sck-online-store)
-        UPSTREAM_BUILD_NUMBER = '${UPSTREAM_BUILD_NUMBER}'
     }
 
     parameters {
@@ -60,15 +58,27 @@ pipeline {
         stage('Validate Parameters') {
             steps {
                 script {
-                    // If triggered by upstream, use upstream BUILD_NUMBER
-                    // Otherwise, use provided IMAGE_TAG or fail
-                    if (env.UPSTREAM_BUILD_NUMBER && env.UPSTREAM_BUILD_NUMBER != 'null') {
-                        echo "Triggered by upstream job: sck-online-store"
-                        echo "Upstream BUILD_NUMBER: ${env.UPSTREAM_BUILD_NUMBER}"
-                        env.DEPLOY_TAG = env.UPSTREAM_BUILD_NUMBER
+                    // Get upstream BUILD_NUMBER using Jenkins API
+                    def upstreamBuildNumber = null
+                    try {
+                        // Try to get upstream build number from cause
+                        def cause = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+                        if (cause) {
+                            upstreamBuildNumber = cause.upstreamBuild
+                            echo "Triggered by upstream job: sck-online-store"
+                            echo "Upstream BUILD_NUMBER: ${upstreamBuildNumber}"
+                        }
+                    } catch (Exception e) {
+                        echo "Not triggered by upstream job"
+                    }
+                    
+                    // Priority: Upstream > Manual IMAGE_TAG > Error
+                    if (upstreamBuildNumber) {
+                        env.DEPLOY_TAG = upstreamBuildNumber.toString()
+                        echo "Using upstream BUILD_NUMBER: ${env.DEPLOY_TAG}"
                     } else if (params.IMAGE_TAG) {
-                        echo "Using provided IMAGE_TAG parameter: ${params.IMAGE_TAG}"
                         env.DEPLOY_TAG = params.IMAGE_TAG
+                        echo "Using provided IMAGE_TAG parameter: ${env.DEPLOY_TAG}"
                     } else {
                         error("IMAGE_TAG is required. Either trigger from sck-online-store job or provide IMAGE_TAG parameter manually.")
                     }
