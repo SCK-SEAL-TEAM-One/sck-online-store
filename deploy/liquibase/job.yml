@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: liquibase-migration-${BUILD_NUMBER}
+  name: liquibase-migration-latest
   namespace: public
   labels:
     app: liquibase
@@ -21,7 +21,7 @@ spec:
         # Wait for MySQL to be ready before running liquibase
         - name: wait-for-mysql
           image: busybox:1.28
-          command: 
+          command:
             - sh
             - -c
             - |

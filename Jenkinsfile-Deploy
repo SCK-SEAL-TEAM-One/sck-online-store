@@ -165,7 +165,7 @@ pipeline {
                             
                             # Run liquibase migration job with BUILD_NUMBER
                             BUILD_NUM=${BUILD_NUMBER}
-                            sed -i.bak "s|liquibase-migration-\${BUILD_NUMBER}|liquibase-migration-${BUILD_NUM}|g" deploy/liquibase/job.yml
+                            sed -i.bak "s|liquibase-migration-latest|liquibase-migration-${BUILD_NUM}|g" deploy/liquibase/job.yml
                             kubectl apply -f deploy/liquibase/job.yml
                             
                             # Wait for job to complete
