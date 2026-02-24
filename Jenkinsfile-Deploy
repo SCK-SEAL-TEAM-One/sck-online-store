@@ -6,19 +6,28 @@ pipeline {
         disableConcurrentBuilds()
     }
   
+    triggers {
+        // Automatically trigger when sck-online-store completes successfully
+        upstream(
+            upstreamProjects: 'sck-online-store',
+            threshold: hudson.model.Result.SUCCESS
+        )
+    }
 
     environment {
         DOCKER_REGISTRY = 'siamchamnankit'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
         KUBECONFIG_CREDENTIAL_ID = 'kubeconfig.yaml'
         K8S_NAMESPACE = 'public'
+        // Auto-read BUILD_NUMBER from upstream job (sck-online-store)
+        UPSTREAM_BUILD_NUMBER = '${UPSTREAM_BUILD_NUMBER}'
     }
 
     parameters {
         string(
             name: 'IMAGE_TAG',
             defaultValue: '',
-            description: 'Docker image tag to deploy (required from upstream build)'
+            description: 'Docker image tag to deploy (auto-filled from upstream build or override manually)'
         )
         choice(
             name: 'ENVIRONMENT',
@@ -51,10 +60,18 @@ pipeline {
         stage('Validate Parameters') {
             steps {
                 script {
-                    if (!params.IMAGE_TAG) {
-                        error("IMAGE_TAG parameter is required. This pipeline should be triggered from the main build pipeline.")
+                    // If triggered by upstream, use upstream BUILD_NUMBER
+                    // Otherwise, use provided IMAGE_TAG or fail
+                    if (env.UPSTREAM_BUILD_NUMBER && env.UPSTREAM_BUILD_NUMBER != 'null') {
+                        echo "Triggered by upstream job: sck-online-store"
+                        echo "Upstream BUILD_NUMBER: ${env.UPSTREAM_BUILD_NUMBER}"
+                        env.DEPLOY_TAG = env.UPSTREAM_BUILD_NUMBER
+                    } else if (params.IMAGE_TAG) {
+                        echo "Using provided IMAGE_TAG parameter: ${params.IMAGE_TAG}"
+                        env.DEPLOY_TAG = params.IMAGE_TAG
+                    } else {
+                        error("IMAGE_TAG is required. Either trigger from sck-online-store job or provide IMAGE_TAG parameter manually.")
                     }
-                    env.DEPLOY_TAG = params.IMAGE_TAG
                     echo "=== Deploying images with tag: ${env.DEPLOY_TAG} ==="
                     echo "=== Target environment: ${params.ENVIRONMENT} ==="
                 }

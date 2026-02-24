@@ -148,23 +148,6 @@ pipeline {
         }
       }
     }
-
-    stage('trigger deployment') {
-      steps {
-        script {
-          // Trigger deployment pipeline with current BUILD_NUMBER as IMAGE_TAG
-          build job: 'sck-online-store-deploy', 
-            parameters: [
-              string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}"),
-              string(name: 'ENVIRONMENT', value: 'development'),
-              booleanParam(name: 'DEPLOY_ALL', value: true)
-            ],
-            wait: false
-        }
-      }
-    }
-    
-  }
   
   post {
     always {
