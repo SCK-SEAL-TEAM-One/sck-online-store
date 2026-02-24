@@ -61,6 +61,8 @@ pipeline {
                     // Check if triggered by upstream job (Jenkins auto-sets UPSTREAM_BUILD_NUMBER)
                     // UPSTREAM_BUILD_NUMBER is automatically set by Jenkins when triggered by upstream
                     def upstreamBuildNumber = env.UPSTREAM_BUILD_NUMBER
+                    echo "Upstream upstreamBuildNumber: ${upstreamBuildNumber}"
+                    echo "Upstream env.UPSTREAM_BUILD_NUMBER: ${env.UPSTREAM_BUILD_NUMBER}"
                     
                     // Priority: Upstream > Manual IMAGE_TAG > Error
                     if (upstreamBuildNumber && upstreamBuildNumber != 'null' && upstreamBuildNumber != '') {
