@@ -68,102 +68,14 @@ pipeline {
 
     stage('run ATDD') {
       steps {
-        sh 'make start_test_suite_grid'
+        sh 'make start_test_suite'
         // sh 'make run_newman'
-        sh 'make run_robot_grid'
+        sh 'make run_robot'
         // robot outputPath: './atdd/ui', passThreshold: 100.0
         junit 'atdd/ui/reports/*.xml'
         sh 'make stop_test_suite'
       }
-    }
-
-    stage('Build and Push Docker Images') {
-      steps {
-        script {
-          echo "=== Logging into Docker Hub ==="
-          withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-            sh '''
-              echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-            '''
-          }
-        }
-      }
-    }
-
-    stage('Build and Push Images (Parallel)') {
-      steps {
-        script {
-          echo "=== Building and pushing Docker images with tag: ${BUILD_NUMBER} ==="
-          parallel(
-            'Build Store Service': {
-              sh '''
-                cd store-service
-                docker build -t siamchamnankit/store-service:${BUILD_NUMBER} .
-                docker tag siamchamnankit/store-service:${BUILD_NUMBER} siamchamnankit/store-service:latest
-                docker push siamchamnankit/store-service:${BUILD_NUMBER}
-                docker push siamchamnankit/store-service:latest
-              '''
-            },
-            'Build Point Service': {
-              sh '''
-                cd point-service
-                docker build -t siamchamnankit/point-service:${BUILD_NUMBER} .
-                docker tag siamchamnankit/point-service:${BUILD_NUMBER} siamchamnankit/point-service:latest
-                docker push siamchamnankit/point-service:${BUILD_NUMBER}
-                docker push siamchamnankit/point-service:latest
-              '''
-            },
-            'Build Store Web': {
-              sh '''
-                cd store-web
-                docker build -t siamchamnankit/store-web:${BUILD_NUMBER} .
-                docker tag siamchamnankit/store-web:${BUILD_NUMBER} siamchamnankit/store-web:latest
-                docker push siamchamnankit/store-web:${BUILD_NUMBER}
-                docker push siamchamnankit/store-web:latest
-              '''
-            },
-            'Build Store Database': {
-              sh '''
-                cd tearup
-                docker build -t siamchamnankit/store-database:${BUILD_NUMBER} .
-                docker tag siamchamnankit/store-database:${BUILD_NUMBER} siamchamnankit/store-database:latest
-                docker push siamchamnankit/store-database:${BUILD_NUMBER}
-                docker push siamchamnankit/store-database:latest
-              '''
-            },
-            'Build Liquibase': {
-              sh '''
-                docker build -f db/Dockerfile -t siamchamnankit/liquibase:${BUILD_NUMBER} .
-                docker tag siamchamnankit/liquibase:${BUILD_NUMBER} siamchamnankit/liquibase:latest
-                docker push siamchamnankit/liquibase:${BUILD_NUMBER}
-                docker push siamchamnankit/liquibase:latest
-              '''
-            }
-          )
-          
-          // Docker logout
-          sh 'docker logout || true'
-          
-          echo "=== Docker images built and pushed successfully ==="
-        }
-      }
-    }
-
-    stage('trigger deployment') {
-      steps {
-        script {
-          // Trigger deployment pipeline with current BUILD_NUMBER as IMAGE_TAG
-          build job: 'sck-online-store-deploy', 
-            parameters: [
-              string(name: 'IMAGE_TAG', value: "${BUILD_NUMBER}"),
-              string(name: 'ENVIRONMENT', value: 'development'),
-              booleanParam(name: 'DEPLOY_ALL', value: true)
-            ],
-            wait: false
-        }
-      }
-    }
-    
+    }    
   }
   
   post {
