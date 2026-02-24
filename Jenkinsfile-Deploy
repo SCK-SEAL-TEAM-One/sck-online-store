@@ -62,7 +62,7 @@ pipeline {
                     def upstreamBuildNumber = null
                     try {
                         // Try to get upstream build number from cause
-                        def cause = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+                        def cause = currentBuild.rawBuild.getCause(hudson.model.Cause.UpstreamCause)
                         if (cause) {
                             upstreamBuildNumber = cause.upstreamBuild
                             echo "Triggered by upstream job: sck-online-store"
