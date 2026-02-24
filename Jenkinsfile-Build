@@ -147,7 +147,8 @@ pipeline {
           echo "=== Docker images built and pushed successfully ==="
         }
       }
-    }
+    }    
+  }
   
   post {
     always {
