@@ -285,6 +285,7 @@ pipeline {
 
     post {
         always {
+            sh 'make stop_test_suite'
             script {
                 echo "=== Deployment Pipeline Completed ==="
                 echo "Environment: ${params.ENVIRONMENT}"
