@@ -116,7 +116,9 @@ pipeline {
             'Build Store Web': {
               sh '''
                 cd store-web
-                docker build -t siamchamnankit/store-web:${BUILD_NUMBER} .
+                docker build \
+                  --build-arg STORE_SERVICE_URL=http://10.51.1.201:32080 \
+                  -t siamchamnankit/store-web:${BUILD_NUMBER} .
                 docker tag siamchamnankit/store-web:${BUILD_NUMBER} siamchamnankit/store-web:latest
                 docker push siamchamnankit/store-web:${BUILD_NUMBER}
                 docker push siamchamnankit/store-web:latest
