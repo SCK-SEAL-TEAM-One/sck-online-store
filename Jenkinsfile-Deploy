@@ -144,7 +144,14 @@ pipeline {
                             
                             # Clean up old liquibase jobs (keep only last 3)
                             echo "Cleaning up old migration jobs..."
-                            kubectl delete jobs -l app=liquibase --sort-by=.metadata.creationTimestamp | head -n -3 || true
+                            # Get all liquibase jobs sorted by creation time, keep last 3, delete the rest
+                            OLD_JOBS=$(kubectl get jobs -l app=liquibase --sort-by=.metadata.creationTimestamp -o name | head -n -3)
+                            if [ -n "$OLD_JOBS" ]; then
+                                echo "Deleting old jobs: $OLD_JOBS"
+                                echo "$OLD_JOBS" | xargs kubectl delete || true
+                            else
+                                echo "No old jobs to delete"
+                            fi
                             
                             # Run liquibase migration job with BUILD_NUMBER
                             BUILD_NUM=${BUILD_NUMBER}
