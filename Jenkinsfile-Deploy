@@ -258,6 +258,18 @@ pipeline {
                 }
             }
         }
+
+        stage('run ATDD') {
+            steps {
+            sh 'make start_test_suite_sck'
+            // sh 'make run_newman'
+            sh 'make run_robot_sck'
+            // robot outputPath: './atdd/ui', passThreshold: 100.0
+            junit 'atdd/ui/reports/*.xml'
+            sh 'make stop_test_suite'
+            }
+        }
+
     }
 
     post {

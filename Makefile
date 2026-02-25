@@ -99,57 +99,62 @@ start_test_suite_grid:
 	docker compose up -d thirdparty point-service db store-service store-web nginx seed liquibase --build
 	docker compose up selenium-hub chrome -d
 
+start_test_suite_sck:
+	docker compose up selenium-hub chrome -d
+
 stop_test_suite:
 	docker compose down
 
 run_robot:
-	cd atdd/ui \
-	&& python3 -m venv .venv \
-	&& . .venv/bin/activate \
-	&& pip install -r requirements.txt \
-	&& robot -v URL:http://localhost/product/list -x ./reports/authen.xml ./001-Authentication \
-	&& robot -v URL:http://localhost/product/list -x ./reports/pdf.xml ./002-Order-Summary-PDF \
-	&& deactivate
+	$(MAKE) run_robot_cmd URL=http://localhost/product/list REMOTE_HUB_URL=""
 
 run_robot_grid:
+	$(MAKE) run_robot_cmd URL=http://nginx/product/list REMOTE_HUB_URL=http://localhost:4444/wd/hub
+
+run_robot_sck:
+	$(MAKE) run_robot_cmd URL=http://10.51.1.201:32080/product/list REMOTE_HUB_URL=http://localhost:4444/wd/hub
+
+run_robot_cmd:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
 	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
-	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x ./reports/authen.xml ./001-Authentication \
-	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x ./reports/pdf.xml ./002-Order-Summary-PDF \
+	&& robot -v URL:${URL} -v REMOTE_HUB_URL:${REMOTE_HUB_URL} -x ./reports/authen.xml ./001-Authentication \
+	&& robot -v URL:${URL} -v REMOTE_HUB_URL:${REMOTE_HUB_URL} -x ./reports/pdf.xml ./002-Order-Summary-PDF \
 	&& deactivate
 
 run_robot_authentication:
-	cd atdd/ui \
-	&& python3 -m venv .venv \
-	&& . .venv/bin/activate \
-	&& pip install -r requirements.txt \
-	&& robot -v URL:http://localhost/product/list -x ./reports/authen.xml  ./001-Authentication \
-	&& deactivate
+	$(MAKE) run_robot_authentication_cmd URL=http://localhost/product/list REMOTE_HUB_URL=""
 
 run_robot_authentication_grid:
+	$(MAKE) run_robot_authentication_cmd URL=http://nginx/product/list REMOTE_HUB_URL=http://localhost:4444/wd/hub
+
+run_robot_authentication_sck:
+	$(MAKE) run_robot_authentication_cmd URL=http://10.51.1.201:32080/product/list REMOTE_HUB_URL=http://localhost:4444/wd/hub
+
+run_robot_authentication_cmd:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
 	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
-	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x ./reports/authen.xml ./001-Authentication \
+	&& robot -v URL:${URL} -v REMOTE_HUB_URL:${REMOTE_HUB_URL} -x ./reports/authen.xml ./001-Authentication \
 	&& deactivate
 
 run_robot_order_summary_pdf:
-	cd atdd/ui \
-	&& python3 -m venv .venv \
-	&& . .venv/bin/activate \
-	&& pip install -r requirements.txt \
-	&& robot -v URL:http://localhost/product/list -x ./reports/pdf.xml ./002-Order-Summary-PDF \
-	&& deactivate
+	$(MAKE) run_robot_order_summary_pdf_cmd URL=http://localhost/product/list REMOTE_HUB_URL=""
 
 run_robot_order_summary_pdf_grid:
+	$(MAKE) run_robot_order_summary_pdf_cmd URL=http://nginx/product/list REMOTE_HUB_URL="http://localhost:4444/wd/hub"
+
+run_robot_order_summary_pdf_sck:
+	$(MAKE) run_robot_order_summary_pdf_cmd URL=http://10.51.1.201:32080/product/list REMOTE_HUB_URL="http://localhost:4444/wd/hub"
+
+run_robot_order_summary_pdf_cmd:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
 	&& . .venv/bin/activate \
 	&& pip install -r requirements.txt \
-	&& robot -v URL:http://nginx/product/list -v REMOTE_HUB_URL:http://localhost:4444/wd/hub -x ./reports/pdf.xml ./002-Order-Summary-PDF \
+	&& robot -v URL:${URL} -v REMOTE_HUB_URL:${REMOTE_HUB_URL} -x ./reports/pdf.xml ./002-Order-Summary-PDF \
 	&& deactivate
 
 # run_newman: 

@@ -42,6 +42,7 @@ ${REMOTE_HUB_URL}
     Input Password    id:${password-input-locator}    ${password}
     Click Button    id:login-btn
     Wait Until Location Is    ${URL}
+    Wait Until Element Is Visible    product-list
 
 เลือกดูสินค้า
     [Arguments]    ${card-name-locator}    ${expected-product-name}
