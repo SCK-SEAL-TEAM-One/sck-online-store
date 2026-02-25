@@ -44,6 +44,17 @@ pipeline {
             defaultValue: false,
             description: 'Deploy store-web only'
         )
+        string(
+            name: 'URL',
+            defaultValue: 'http://10.51.1.201:32080/product/list',
+            description: 'Docker image tag to deploy (auto-filled from upstream build or override manually)'
+        )
+        string(
+            name: 'REMOTE_HUB_URL',
+            defaultValue: 'http://localhost:4444/wd/hub',
+            description: 'Docker image tag to deploy (auto-filled from upstream build or override manually)'
+        )
+
     }
 
     stages {
@@ -263,7 +274,7 @@ pipeline {
             steps {
             sh 'make start_test_suite_sck'
             // sh 'make run_newman'
-            sh 'make run_robot_sck'
+            sh "make run_robot URL=${URL} REMOTE_HUB_URL=${REMOTE_HUB_URL}"
             // robot outputPath: './atdd/ui', passThreshold: 100.0
             junit 'atdd/ui/reports/*.xml'
             sh 'make stop_test_suite'

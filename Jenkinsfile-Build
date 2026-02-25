@@ -4,6 +4,19 @@ pipeline {
   options {
     disableConcurrentBuilds()
   }
+
+  parameters {
+    string(
+        name: 'URL',
+        defaultValue: 'http://nginx/product/list',
+        description: 'Docker image tag to deploy (auto-filled from upstream build or override manually)'
+    )
+    string(
+        name: 'REMOTE_HUB_URL',
+        defaultValue: 'http://localhost:4444/wd/hub',
+        description: 'Docker image tag to deploy (auto-filled from upstream build or override manually)'
+    )
+  }
   
   stages {
     stage('install dependency') {
@@ -70,7 +83,7 @@ pipeline {
       steps {
         sh 'make start_test_suite_grid'
         // sh 'make run_newman'
-        sh 'make run_robot_grid'
+        sh "make run_robot URL=${URL} REMOTE_HUB_URL=${REMOTE_HUB_URL}"
         // robot outputPath: './atdd/ui', passThreshold: 100.0
         junit 'atdd/ui/reports/*.xml'
         sh 'make stop_test_suite'
@@ -171,7 +184,7 @@ pipeline {
   post {
     always {
       sh 'make stop_test_suite'
-      sh 'docker volume prune -f'
+      sh 'docker system prune -f -a --filter "until=24h"'
     }
 
   }
