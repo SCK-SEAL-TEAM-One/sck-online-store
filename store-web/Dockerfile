@@ -1,7 +1,7 @@
 FROM node:21-alpine AS base
 
-# Build argument for store service URL
-ARG STORE_SERVICE_URL=http://localhost
+# Build argument for store service URL (optional)
+ARG STORE_SERVICE_URL
 
 WORKDIR /app
 
@@ -11,8 +11,12 @@ RUN npm install
 
 COPY . .
 
-# Pass build argument as environment variable for Next.js build
-ENV STORE_SERVICE_URL=${STORE_SERVICE_URL}
+RUN if [ -n "$STORE_SERVICE_URL" ]; then \
+      echo "✓ Build argument provided, replacing .env file"; \
+      echo "STORE_SERVICE_URL=${STORE_SERVICE_URL}" > .env; \
+    else \
+      echo "✓ No build argument, using existing .env file"; \
+    fi
 
 RUN npm run build
 
