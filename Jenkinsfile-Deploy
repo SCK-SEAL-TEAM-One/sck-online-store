@@ -274,7 +274,7 @@ pipeline {
             steps {
             sh 'make start_test_suite_sck'
             // sh 'make run_newman'
-            sh "make run_robot URL=${params.ATDD_TESTING_URL} REMOTE_HUB_URL=${params.ATDD_TESTING_REMOTE_HUB_URL}"
+            sh "make run_robot_authentication URL=${params.ATDD_TESTING_URL} REMOTE_HUB_URL=${params.ATDD_TESTING_REMOTE_HUB_URL}"
             // robot outputPath: './atdd/ui', passThreshold: 100.0
             junit 'atdd/ui/reports/*.xml'
             sh 'make stop_test_suite'

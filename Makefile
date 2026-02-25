@@ -115,6 +115,7 @@ run_robot:
 	&& robot -v URL:$(URL) -v REMOTE_HUB_URL:$(REMOTE_HUB_URL) -x ./reports/pdf.xml ./002-Order-Summary-PDF \
 	&& deactivate
 
+run_robot_authentication: URL ?= http://localhost/product/list
 run_robot_authentication:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
@@ -123,6 +124,7 @@ run_robot_authentication:
 	&& robot -v URL:$(URL) -v REMOTE_HUB_URL:${REMOTE_HUB_URL} -x ./reports/authen.xml ./001-Authentication \
 	&& deactivate
 
+run_robot_order_summary_pdf: URL ?= http://localhost/product/list
 run_robot_order_summary_pdf:
 	cd atdd/ui \
 	&& python3 -m venv .venv \
