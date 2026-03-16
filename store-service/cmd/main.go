@@ -82,7 +82,12 @@ func main() {
 		dbConnection = os.Getenv("DB_CONNECTION")
 	}
 
-	driverName, err := otelsql.Register("mysql", otelsql.WithAttributes(semconv.DBSystemMySQL))
+	driverName, err := otelsql.Register("mysql",
+		otelsql.WithAttributes(semconv.DBSystemMySQL),
+		otelsql.WithSpanOptions(otelsql.SpanOptions{
+			DisableErrSkip: true,
+		}),
+	)
 	if err != nil {
 		log.Fatalln("cannot register otelsql driver", err)
 	}
