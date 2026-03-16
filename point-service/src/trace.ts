@@ -1,15 +1,21 @@
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import * as process from 'process';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc';
 
 const grpcExporter = new OTLPTraceExporter({
   url: 'http://lgtm:4317',
   headers: {},
   concurrencyLimit: 10,
   timeoutMillis: 5000,
+});
+
+const logExporter = new OTLPLogExporter({
+  url: 'http://lgtm:4317',
 });
 
 console.log(
@@ -23,6 +29,8 @@ export const otelSDK = new NodeSDK({
     scheduledDelayMillis: 5000,
     exportTimeoutMillis: 30000,
   }),
+
+  logRecordProcessors: [new BatchLogRecordProcessor(logExporter)],
 
   instrumentations: [
     getNodeAutoInstrumentations({
