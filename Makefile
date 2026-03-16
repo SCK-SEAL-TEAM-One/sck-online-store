@@ -192,5 +192,17 @@ run_newman_order_summary_pdf:
 code-coverage:
 	cd store-service && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
 
+# --- Development workflow: run all tests before commit ---
+
+unit_test_all:
+	cd store-service && go test -v ./...
+	cd point-service && npm test
+	cd store-web && npm run test:component
+
+code_analysis_all: code_analysis_backend code_analysis_frontend
+
+test_all: code_analysis_all unit_test_all start_test_suite run_newman run_robot stop_test_suite
+	@echo "All tests passed!"
+
 gen-swagger:
 	cd store-service && swag init -g cmd/main.go -o cmd/docs 

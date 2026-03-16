@@ -69,6 +69,13 @@ make code_analysis_frontend    # npm run lint (store-web)
 make code_analysis_backend     # go vet ./... (store-service)
 ```
 
+### Development Workflow (run before commit)
+```bash
+make test_all              # Full pipeline: analysis → unit → ATDD (API + UI)
+make unit_test_all         # All unit tests: Go + Jest + Cypress component
+make code_analysis_all     # All linting: go vet + npm run lint
+```
+
 ### Build & Generate
 ```bash
 make build_backend         # Docker build store-service
