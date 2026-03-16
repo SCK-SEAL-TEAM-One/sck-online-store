@@ -1,0 +1,24 @@
+# Beyla Configuration for thirdparty (Mountebank) eBPF instrumentation
+# Instruments the mock bank/shipping gateways without any SDK
+
+discovery:
+  instrument:
+    - open_ports: 8882,8883
+
+otel_traces_export:
+  endpoint: http://lgtm:4317
+  protocol: grpc
+
+otel_metrics_export:
+  endpoint: http://lgtm:4317
+  protocol: grpc
+  interval: 30s
+
+routes:
+  unmatched: heuristic
+  patterns:
+    - /payment/visa
+    - /card/information
+    - /shipping
+
+log_level: debug

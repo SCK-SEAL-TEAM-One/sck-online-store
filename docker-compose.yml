@@ -154,40 +154,20 @@ services:
       - "4318:4318"
       - "3001:3000" # dashboard
 
-  beyla:
+  beyla-thirdparty:
     image: grafana/beyla:latest
-    container_name: beyla
-    command:
-      - /beyla
-      - --config=/config/beyla-config.yml
-    volumes:
-      - ./monitoring/beyla:/config:ro
-      - /sys/kernel/debug:/sys/kernel/debug:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /sys/kernel/config:/sys/kernel/config:ro
-    cap_add:
-      - SYS_ADMIN
-      - SYS_PTRACE
-      - SYS_RESOURCE
-      - NET_ADMIN
+    container_name: beyla-thirdparty
+    privileged: true
+    pid: "service:thirdparty"
     environment:
-      - BEYLA_OPEN_PORT=8000
-      - BEYLA_PROMETHEUS_PORT=8999
-      - BEYLA_TRACE_PRINTER=text
+      - BEYLA_OPEN_PORT=8882,8883
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4317
       - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_SERVICE_NAME=beyla-instrumentation
+      - OTEL_SERVICE_NAME=thirdparty-gateway
+      - BEYLA_BPF_TRACK_REQUEST_HEADERS=true
       - BEYLA_LOG_LEVEL=debug
-      - BEYLA_NETWORK_DIRECTION=ingress
-    privileged: true
-    networks:
-      - default
-    ipc: host
-    pid: host
-    ports:
-      - "8999:8999"
     depends_on:
-      store-service:
+      thirdparty:
         condition: service_started
       lgtm:
         condition: service_started
