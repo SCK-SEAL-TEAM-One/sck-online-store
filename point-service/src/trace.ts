@@ -52,6 +52,11 @@ console.log(
   '[OTEL] SDK configured with auto-instrumentations (includes HTTP, MySQL, PostgreSQL, etc.)',
 );
 
+// Start SDK immediately at module load time so http/express are patched
+// BEFORE NestJS imports them
+otelSDK.start();
+console.log('[OTEL] SDK started');
+
 // gracefully shut down the SDK on process exit
 process.on('SIGTERM', () => {
   console.log('[OTEL] Shutting down OpenTelemetry SDK');
