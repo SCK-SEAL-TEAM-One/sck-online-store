@@ -93,15 +93,15 @@ pipeline {
                     echo "=== Updating Kubernetes manifests with image tag: ${env.DEPLOY_TAG} ==="
                     sh '''
                         # Create backup and update image tags in deployment files
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG}|g" deploy/store-service/service.yml
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}|g" deploy/point-service/service.yml
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}|g" deploy/store-web/service.yml
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-database.*|image: ${DOCKER_REGISTRY}/store-database:${DEPLOY_TAG}|g" deploy/store-database/service.yml
-                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/liquibase.*|image: ${DOCKER_REGISTRY}/liquibase:${DEPLOY_TAG}|g" deploy/liquibase/job.yml
-                        
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-service.*|image: ${DOCKER_REGISTRY}/store-service:${DEPLOY_TAG}|g" deploy/k8s/store-service/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/point-service.*|image: ${DOCKER_REGISTRY}/point-service:${DEPLOY_TAG}|g" deploy/k8s/point-service/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-web.*|image: ${DOCKER_REGISTRY}/store-web:${DEPLOY_TAG}|g" deploy/k8s/store-web/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/store-database.*|image: ${DOCKER_REGISTRY}/store-database:${DEPLOY_TAG}|g" deploy/k8s/store-database/service.yml
+                        sed -i.bak "s|image: ${DOCKER_REGISTRY}/liquibase.*|image: ${DOCKER_REGISTRY}/liquibase:${DEPLOY_TAG}|g" deploy/k8s/liquibase/job.yml
+
                         # Show changes
                         echo "Updated deployment files:"
-                        grep "image:" deploy/*/service.yml deploy/liquibase/job.yml || true
+                        grep "image:" deploy/k8s/*/service.yml deploy/k8s/liquibase/job.yml || true
                     '''
                 }
             }
@@ -115,22 +115,22 @@ pipeline {
                         if (params.DEPLOY_ALL || params.DEPLOY_POINT_SERVICE) {
                             echo "=== Deploying point-service ==="
                             sh '''
-                                kubectl apply -f deploy/point-service/service.yml
+                                kubectl apply -f deploy/k8s/point-service/service.yml
                             '''
                         }
 
                         if (params.DEPLOY_ALL || params.DEPLOY_STORE_SERVICE) {
                             echo "=== Deploying store-service ==="
                             sh '''
-                                kubectl apply -f deploy/store-database/service.yml
-                                kubectl apply -f deploy/store-service/service.yml
+                                kubectl apply -f deploy/k8s/store-database/service.yml
+                                kubectl apply -f deploy/k8s/store-service/service.yml
                             '''
                         }
 
                         if (params.DEPLOY_ALL || params.DEPLOY_STORE_WEB) {
                             echo "=== Deploying store-web ==="
                             sh '''
-                                kubectl apply -f deploy/store-web/service.yml
+                                kubectl apply -f deploy/k8s/store-web/service.yml
                             '''
                         }
 
@@ -166,8 +166,8 @@ pipeline {
                             
                             # Run liquibase migration job with BUILD_NUMBER
                             BUILD_NUM=${BUILD_NUMBER}
-                            sed -i.bak "s|liquibase-migration-latest|liquibase-migration-${BUILD_NUM}|g" deploy/liquibase/job.yml
-                            kubectl apply -f deploy/liquibase/job.yml
+                            sed -i.bak "s|liquibase-migration-latest|liquibase-migration-${BUILD_NUM}|g" deploy/k8s/liquibase/job.yml
+                            kubectl apply -f deploy/k8s/liquibase/job.yml
                             
                             # Wait for job to complete
                             echo "Waiting for Liquibase migration job to complete..."
@@ -178,7 +178,7 @@ pipeline {
                             kubectl logs job/liquibase-migration-${BUILD_NUM} --tail=100 || true
                             
                             # Restore original job.yml
-                            mv deploy/liquibase/job.yml.bak deploy/liquibase/job.yml || true
+                            mv deploy/k8s/liquibase/job.yml.bak deploy/k8s/liquibase/job.yml || true
                         '''
                     }
                 }
@@ -194,7 +194,7 @@ pipeline {
                     echo "=== Deploying Ingress and Middleware ==="
                     withKubeConfig([credentialsId: env.KUBECONFIG_CREDENTIAL_ID, namespace: env.K8S_NAMESPACE]) {
                         sh '''
-                            kubectl apply -f deploy/ingress.yml
+                            kubectl apply -f deploy/k8s/ingress.yml
                         '''
                     }
                 }
@@ -294,8 +294,8 @@ pipeline {
                 
                 // Restore original deployment files
                 sh '''
-                    if [ -f deploy/store-service/service.yml.bak ]; then
-                        rm -f deploy/*/service.yml.bak
+                    if [ -f deploy/k8s/store-service/service.yml.bak ]; then
+                        rm -f deploy/k8s/*/service.yml.bak
                     fi
                 '''
             }
