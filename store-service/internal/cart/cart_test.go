@@ -1,11 +1,13 @@
 package cart_test
 
 import (
+	"context"
 	"database/sql"
 	"store-service/internal/cart"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func Test_GetCart_Should_be_Have_Data_and_Receive_Point_4(t *testing.T) {
@@ -50,12 +52,12 @@ func Test_GetCart_Should_be_Have_Data_and_Receive_Point_4(t *testing.T) {
 		},
 	}
 	mockCartRepository := new(mockCartRepository)
-	mockCartRepository.On("GetCartDetail", uid).Return(res, nil)
+	mockCartRepository.On("GetCartDetail", mock.Anything, uid).Return(res, nil)
 
 	cartService := cart.CartService{
 		CartRepository: mockCartRepository,
 	}
-	actual, err := cartService.GetCart(uid)
+	actual, err := cartService.GetCart(context.Background(), uid)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -69,12 +71,12 @@ func Test_GetCart_Should_be_Empty(t *testing.T) {
 	uid := 1
 	res := []cart.CartDetail{}
 	mockCartRepository := new(mockCartRepository)
-	mockCartRepository.On("GetCartDetail", uid).Return(res, nil)
+	mockCartRepository.On("GetCartDetail", mock.Anything, uid).Return(res, nil)
 
 	cartService := cart.CartService{
 		CartRepository: mockCartRepository,
 	}
-	actual, err := cartService.GetCart(uid)
+	actual, err := cartService.GetCart(context.Background(), uid)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -110,8 +112,8 @@ func Test_AddCart_Input_Submitted_First_Product_Should_be_Have_1_Quantity_and_Re
 	}
 	uid := 1
 	mockCartRepository := new(mockCartRepository)
-	mockCartRepository.On("GetCartByProductID", uid, submitedCart.ProductID).Return(cart.Cart{}, sql.ErrNoRows)
-	mockCartRepository.On("CreateCart", uid, submitedCart.ProductID, submitedCart.Quantity).Return(1, nil)
+	mockCartRepository.On("GetCartByProductID", mock.Anything, uid, submitedCart.ProductID).Return(cart.Cart{}, sql.ErrNoRows)
+	mockCartRepository.On("CreateCart", mock.Anything, uid, submitedCart.ProductID, submitedCart.Quantity).Return(1, nil)
 
 	res := []cart.CartDetail{
 		{
@@ -128,12 +130,12 @@ func Test_AddCart_Input_Submitted_First_Product_Should_be_Have_1_Quantity_and_Re
 			Brand:        "SportsFun",
 		},
 	}
-	mockCartRepository.On("GetCartDetail", uid).Return(res, nil)
+	mockCartRepository.On("GetCartDetail", mock.Anything, uid).Return(res, nil)
 
 	cartService := cart.CartService{
 		CartRepository: mockCartRepository,
 	}
-	actual, err := cartService.AddCart(uid, submitedCart)
+	actual, err := cartService.AddCart(context.Background(), uid, submitedCart)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -169,13 +171,13 @@ func Test_AddCart_Input_Submitted_More_Product_Should_be_Have_2_Quantity_and_Rec
 	}
 	uid := 1
 	mockCartRepository := new(mockCartRepository)
-	mockCartRepository.On("GetCartByProductID", uid, submitedCart.ProductID).Return(cart.Cart{
+	mockCartRepository.On("GetCartByProductID", mock.Anything, uid, submitedCart.ProductID).Return(cart.Cart{
 		ID:        1,
 		UserID:    1,
 		ProductID: 1,
 		Quantity:  1,
 	}, nil)
-	mockCartRepository.On("UpdateCart", uid, submitedCart.ProductID, 2).Return(nil)
+	mockCartRepository.On("UpdateCart", mock.Anything, uid, submitedCart.ProductID, 2).Return(nil)
 
 	res := []cart.CartDetail{
 		{
@@ -192,12 +194,12 @@ func Test_AddCart_Input_Submitted_More_Product_Should_be_Have_2_Quantity_and_Rec
 			Brand:        "SportsFun",
 		},
 	}
-	mockCartRepository.On("GetCartDetail", uid).Return(res, nil)
+	mockCartRepository.On("GetCartDetail", mock.Anything, uid).Return(res, nil)
 
 	cartService := cart.CartService{
 		CartRepository: mockCartRepository,
 	}
-	actual, err := cartService.AddCart(uid, submitedCart)
+	actual, err := cartService.AddCart(context.Background(), uid, submitedCart)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -233,7 +235,7 @@ func Test_UpdateCart_Input_Submitted_Quantity_2_Should_be_Have_2_Quantity_and_Re
 	}
 	uid := 1
 	mockCartRepository := new(mockCartRepository)
-	mockCartRepository.On("UpdateCart", uid, submitedCart.ProductID, submitedCart.Quantity).Return(nil)
+	mockCartRepository.On("UpdateCart", mock.Anything, uid, submitedCart.ProductID, submitedCart.Quantity).Return(nil)
 
 	res := []cart.CartDetail{
 		{
@@ -250,12 +252,12 @@ func Test_UpdateCart_Input_Submitted_Quantity_2_Should_be_Have_2_Quantity_and_Re
 			Brand:        "CoolKidz",
 		},
 	}
-	mockCartRepository.On("GetCartDetail", uid).Return(res, nil)
+	mockCartRepository.On("GetCartDetail", mock.Anything, uid).Return(res, nil)
 
 	cartService := cart.CartService{
 		CartRepository: mockCartRepository,
 	}
-	actual, err := cartService.UpdateCart(uid, submitedCart)
+	actual, err := cartService.UpdateCart(context.Background(), uid, submitedCart)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -272,15 +274,15 @@ func Test_UpdateCart_Input_Submitted_Quantity_0_Should_be_Have_0_Quantity_and_Re
 	}
 	uid := 1
 	mockCartRepository := new(mockCartRepository)
-	mockCartRepository.On("DeleteCart", uid, submitedCart.ProductID).Return(nil)
+	mockCartRepository.On("DeleteCart", mock.Anything, uid, submitedCart.ProductID).Return(nil)
 
 	res := []cart.CartDetail{}
-	mockCartRepository.On("GetCartDetail", uid).Return(res, nil)
+	mockCartRepository.On("GetCartDetail", mock.Anything, uid).Return(res, nil)
 
 	cartService := cart.CartService{
 		CartRepository: mockCartRepository,
 	}
-	actual, err := cartService.UpdateCart(uid, submitedCart)
+	actual, err := cartService.UpdateCart(context.Background(), uid, submitedCart)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)

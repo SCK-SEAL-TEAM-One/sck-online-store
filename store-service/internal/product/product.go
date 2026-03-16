@@ -1,22 +1,23 @@
 package product
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"store-service/internal/common"
 )
 
 type ProductInterface interface {
-	GetProducts(keyword string, limit string, offset string) (ProductResult, error)
-	GetProductByID(ID int) (ProductDetail, error)
+	GetProducts(ctx context.Context, keyword string, limit string, offset string) (ProductResult, error)
+	GetProductByID(ctx context.Context, ID int) (ProductDetail, error)
 }
 
 type ProductService struct {
 	ProductRepository ProductRepository
 }
 
-func (productService ProductService) GetProducts(keyword string, limit string, offset string) (ProductResult, error) {
-	res, err := productService.ProductRepository.GetProducts(keyword, limit, offset)
+func (productService ProductService) GetProducts(ctx context.Context, keyword string, limit string, offset string) (ProductResult, error) {
+	res, err := productService.ProductRepository.GetProducts(ctx, keyword, limit, offset)
 	if err != nil {
 		log.Printf("ProductRepository.GetProducts internal error %s", err.Error())
 		return ProductResult{}, err
@@ -32,13 +33,13 @@ func (productService ProductService) GetProducts(keyword string, limit string, o
 	return res, err
 }
 
-func (productService ProductService) GetProductByID(ID int) (ProductDetail, error) {
+func (productService ProductService) GetProductByID(ctx context.Context, ID int) (ProductDetail, error) {
 
 	if ID == 7 {
 		return ProductDetail{}, fmt.Errorf("product with ID %d should fail", ID)
 	}
 
-	productDetail, err := productService.ProductRepository.GetProductByID(ID)
+	productDetail, err := productService.ProductRepository.GetProductByID(ctx, ID)
 	if err != nil {
 		log.Printf("ProductRepository.GetProductByID internal error %s", err.Error())
 		return ProductDetail{}, err

@@ -48,7 +48,8 @@ func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
 		return
 	}
 
-	createdOrder, err := api.OrderService.CreateOrder(uid, request)
+	ctx := context.Request.Context()
+	createdOrder, err := api.OrderService.CreateOrder(ctx, uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -78,9 +79,10 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 		return
 	}
 
+	ctx := context.Request.Context()
 	orderNumber := context.Param("id")
 
-	orderSummary, err := api.OrderService.GetOrderSummary(orderNumber)
+	orderSummary, err := api.OrderService.GetOrderSummary(ctx, orderNumber)
 	if err != nil {
 		if errors.Is(err, order.ErrOrderNotFound) {
 			log.Printf("OrderService.GetOrderSummary not found Order Number: %s %s", orderNumber, err.Error())

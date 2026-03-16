@@ -2,6 +2,7 @@ package payment
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,10 +19,15 @@ type BankGatewayResponse struct {
 	TransactionID string `json:"transaction_id"`
 }
 
-func (gateway BankGateway) Payment(paymentDetail PaymentDetail) (string, error) {
+func (gateway BankGateway) Payment(ctx context.Context, paymentDetail PaymentDetail) (string, error) {
 	data, _ := json.Marshal(paymentDetail)
 	endPoint := gateway.BankEndpoint + "/payment/visa"
-	response, err := http.Post(endPoint, "application/json", bytes.NewBuffer(data))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endPoint, bytes.NewBuffer(data))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -42,9 +48,13 @@ func (gateway BankGateway) Payment(paymentDetail PaymentDetail) (string, error) 
 	return BankGatewayResponse.TransactionID, nil
 }
 
-func (gateway BankGateway) GetCardDetail(orgID int, userID int) (CardDetail, error) {
+func (gateway BankGateway) GetCardDetail(ctx context.Context, orgID int, userID int) (CardDetail, error) {
 	endPoint := gateway.BankEndpoint + fmt.Sprintf("/card/information?oid=%d&uid=%d", orgID, userID)
-	response, err := http.Get(endPoint)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endPoint, nil)
+	if err != nil {
+		return CardDetail{}, err
+	}
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return CardDetail{}, err
 	}

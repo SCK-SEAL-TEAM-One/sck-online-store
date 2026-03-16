@@ -1,6 +1,7 @@
 package order
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -16,9 +17,9 @@ import (
 )
 
 type OrderInterface interface {
-	CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error)
-	OrderBurnPoint(uid int, burn int) (point.TotalPoint, error)
-	GetOrderSummary(orderNumber string) (OrderSummary, error)
+	CreateOrder(ctx context.Context, uid int, submitedOrder SubmitedOrder) (Order, error)
+	OrderBurnPoint(ctx context.Context, uid int, burn int) (point.TotalPoint, error)
+	GetOrderSummary(ctx context.Context, orderNumber string) (OrderSummary, error)
 	GeneratePDFFromData(orderDetail OrderSummary) ([]byte, error)
 }
 
@@ -62,8 +63,8 @@ var ShippingMethod = map[int]string{
 
 var ErrOrderNotFound = errors.New("Order not found")
 
-func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrder) (Order, error) {
-	_, err := orderService.PointService.CheckBurnPoint(uid, -(submitedOrder.BurnPoint))
+func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submitedOrder SubmitedOrder) (Order, error) {
+	_, err := orderService.PointService.CheckBurnPoint(ctx, uid, -(submitedOrder.BurnPoint))
 	if err != nil {
 		return Order{}, err
 	}
@@ -74,7 +75,7 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 
 	subtotalPrice := 0.0
 	for _, productSelected := range submitedOrder.Cart {
-		product, _ := orderService.ProductRepository.GetProductByID(productSelected.ProductID)
+		product, _ := orderService.ProductRepository.GetProductByID(ctx, productSelected.ProductID)
 		subtotalPrice = subtotalPrice + (product.Price * float64(productSelected.Quantity))
 	}
 
@@ -82,13 +83,13 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 	discountPriceTHB := common.ConvertToThb(submitedOrder.DiscountPrice).LongDecimal
 	totalPriceTHB := subtotalPriceTHB - discountPriceTHB
 
-	shippingDetail, _ := orderService.ShippingRepository.GetShippingMethodByID(submitedOrder.ShippingMethodID)
+	shippingDetail, _ := orderService.ShippingRepository.GetShippingMethodByID(ctx, submitedOrder.ShippingMethodID)
 	shippingFeeTHB := shippingDetail.Fee
 
 	seq := 1 // Defalt SEQ number for beginning new year
 	now := orderService.Clock()
 	yearPrefix := now.Format("06") // Format: YY
-	lastOrderNumber, err := orderService.OrderRepository.GetLastOrderNumber(yearPrefix)
+	lastOrderNumber, err := orderService.OrderRepository.GetLastOrderNumber(ctx, yearPrefix)
 	if err != nil && err != sql.ErrNoRows {
 		log.Printf("OrderRepository.GetLastOrderNumber internal error %s", err.Error())
 		return Order{}, err
@@ -119,7 +120,7 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 		EarnPoint:        common.CalculatePoint(totalPriceTHB),
 	}
 
-	orderID, err := orderService.OrderRepository.CreateOrder(uid, orderDetail)
+	orderID, err := orderService.OrderRepository.CreateOrder(ctx, uid, orderDetail)
 	if err != nil {
 		log.Printf("OrderRepository.CreateOrder internal error %s", err.Error())
 		return Order{}, err
@@ -136,25 +137,25 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 		RecipientLastName:    submitedOrder.RecipientLastName,
 		RecipientPhoneNumber: submitedOrder.RecipientPhoneNumber,
 	}
-	_, err = orderService.OrderRepository.CreateShipping(uid, orderID, shippingInfo)
+	_, err = orderService.OrderRepository.CreateShipping(ctx, uid, orderID, shippingInfo)
 	if err != nil {
 		log.Printf("OrderRepository.CreateShipping internal error %s", err.Error())
 		return Order{}, err
 	}
 
 	for _, selectedProduct := range submitedOrder.Cart {
-		product, err := orderService.ProductRepository.GetProductByID(selectedProduct.ProductID)
-		err = orderService.OrderRepository.CreateOrderProduct(orderID, selectedProduct.ProductID, selectedProduct.Quantity, product.Price)
+		product, err := orderService.ProductRepository.GetProductByID(ctx, selectedProduct.ProductID)
+		err = orderService.OrderRepository.CreateOrderProduct(ctx, orderID, selectedProduct.ProductID, selectedProduct.Quantity, product.Price)
 		if err != nil {
 			log.Printf("OrderRepository.CreateOrderProduct internal error %s", err.Error())
 			return Order{}, err
 		}
 
-		orderService.CartRepository.DeleteCart(uid, selectedProduct.ProductID)
+		orderService.CartRepository.DeleteCart(ctx, uid, selectedProduct.ProductID)
 	}
 
 	if submitedOrder.BurnPoint > 0 {
-		orderService.OrderBurnPoint(uid, submitedOrder.BurnPoint)
+		orderService.OrderBurnPoint(ctx, uid, submitedOrder.BurnPoint)
 	}
 
 	return Order{
@@ -162,20 +163,20 @@ func (orderService OrderService) CreateOrder(uid int, submitedOrder SubmitedOrde
 	}, nil
 }
 
-func (orderService OrderService) OrderBurnPoint(uid int, burn int) (point.TotalPoint, error) {
+func (orderService OrderService) OrderBurnPoint(ctx context.Context, uid int, burn int) (point.TotalPoint, error) {
 	submit := point.SubmitedPoint{
 		Amount: -(burn),
 	}
 
-	totalPoint, err := orderService.PointService.DeductPoint(uid, submit)
+	totalPoint, err := orderService.PointService.DeductPoint(ctx, uid, submit)
 	if err != nil {
 		return point.TotalPoint{}, err
 	}
 	return totalPoint, nil
 }
 
-func (orderService OrderService) GetOrderSummary(orderNumber string) (OrderSummary, error) {
-	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByOrderNumber(orderNumber)
+func (orderService OrderService) GetOrderSummary(ctx context.Context, orderNumber string) (OrderSummary, error) {
+	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByOrderNumber(ctx, orderNumber)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("OrderRepository.GetOrderWithTrackingNumberByOrderNumber not found for Order Number %s: %s", orderNumber, err.Error())
@@ -185,7 +186,7 @@ func (orderService OrderService) GetOrderSummary(orderNumber string) (OrderSumma
 		return OrderSummary{}, err
 	}
 
-	orderedProducts, err := orderService.OrderRepository.GetOrderProductWithPrice(orderDetail.ID)
+	orderedProducts, err := orderService.OrderRepository.GetOrderProductWithPrice(ctx, orderDetail.ID)
 	if err != nil {
 		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
 		return OrderSummary{}, err
@@ -210,7 +211,7 @@ func (orderService OrderService) GetOrderSummary(orderNumber string) (OrderSumma
 	paymentMethod := PaymentMethod[orderDetail.PaymentMethodID]
 	shippingMethod := ShippingMethod[orderDetail.ShippingMethodID]
 
-	userDetail, err := orderService.UserRepository.FindByID(orderDetail.UserID)
+	userDetail, err := orderService.UserRepository.FindByID(ctx, orderDetail.UserID)
 	if err != nil {
 		log.Printf("UserRepository.FindByID internal error %s", err.Error())
 		return OrderSummary{}, err

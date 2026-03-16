@@ -1,13 +1,14 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"store-service/internal/user"
 	"time"
 )
 
 type AuthInterface interface {
-	Login(username, password string) (TokenPair, error)
+	Login(ctx context.Context, username, password string) (TokenPair, error)
 	GetAccessToken(claim Claims, ttl time.Duration) (string, error)
 	GetRefreshToken(claim Claims, ttl time.Duration) (string, error)
 	ValidateToken(token string) (Claims, error)
@@ -29,8 +30,8 @@ var (
 	ErrUserNotFound       = errors.New("user not found")
 )
 
-func (service AuthService) Login(username, password string) (TokenPair, error) {
-	userInfo, err := service.UserRepository.FindByUsername(username)
+func (service AuthService) Login(ctx context.Context, username, password string) (TokenPair, error) {
+	userInfo, err := service.UserRepository.FindByUsername(ctx, username)
 	if err != nil {
 		return TokenPair{}, ErrUserNotFound
 	}

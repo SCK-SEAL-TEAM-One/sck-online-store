@@ -1,23 +1,24 @@
 package cart
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"store-service/internal/common"
 )
 
 type CartInterface interface {
-	GetCart(uid int) (CartResult, error)
-	AddCart(uid int, submitedCart SubmitedCart) (CartResult, error)
-	UpdateCart(uid int, submitedCart SubmitedCart) (CartResult, error)
+	GetCart(ctx context.Context, uid int) (CartResult, error)
+	AddCart(ctx context.Context, uid int, submitedCart SubmitedCart) (CartResult, error)
+	UpdateCart(ctx context.Context, uid int, submitedCart SubmitedCart) (CartResult, error)
 }
 
 type CartService struct {
 	CartRepository CartRepository
 }
 
-func (cartService CartService) GetCart(uid int) (CartResult, error) {
-	carts, err := cartService.CartRepository.GetCartDetail(uid)
+func (cartService CartService) GetCart(ctx context.Context, uid int) (CartResult, error) {
+	carts, err := cartService.CartRepository.GetCartDetail(ctx, uid)
 	if err != nil {
 		log.Printf("CartRepository.GetCartDetail internal error %s", err.Error())
 	}
@@ -57,15 +58,15 @@ func (cartService CartService) GetCart(uid int) (CartResult, error) {
 	}, err
 }
 
-func (cartService CartService) AddCart(uid int, submitedCart SubmitedCart) (CartResult, error) {
-	cart, err := cartService.CartRepository.GetCartByProductID(uid, submitedCart.ProductID)
+func (cartService CartService) AddCart(ctx context.Context, uid int, submitedCart SubmitedCart) (CartResult, error) {
+	cart, err := cartService.CartRepository.GetCartByProductID(ctx, uid, submitedCart.ProductID)
 
 	if err == sql.ErrNoRows {
-		cartService.CartRepository.CreateCart(uid, submitedCart.ProductID, submitedCart.Quantity)
-		cartResult, _ := cartService.GetCart(uid)
+		cartService.CartRepository.CreateCart(ctx, uid, submitedCart.ProductID, submitedCart.Quantity)
+		cartResult, _ := cartService.GetCart(ctx, uid)
 		return cartResult, nil
 	}
-	err = cartService.CartRepository.UpdateCart(uid, submitedCart.ProductID, submitedCart.Quantity+cart.Quantity)
+	err = cartService.CartRepository.UpdateCart(ctx, uid, submitedCart.ProductID, submitedCart.Quantity+cart.Quantity)
 	if err != nil {
 		log.Printf("CartRepository.UpdateCart internal error %s", err.Error())
 		return CartResult{
@@ -74,13 +75,13 @@ func (cartService CartService) AddCart(uid int, submitedCart SubmitedCart) (Cart
 		}, err
 	}
 
-	cartResult, _ := cartService.GetCart(uid)
+	cartResult, _ := cartService.GetCart(ctx, uid)
 	return cartResult, nil
 }
 
-func (cartService CartService) UpdateCart(uid int, submitedCart SubmitedCart) (CartResult, error) {
+func (cartService CartService) UpdateCart(ctx context.Context, uid int, submitedCart SubmitedCart) (CartResult, error) {
 	if submitedCart.Quantity <= 0 {
-		err := cartService.CartRepository.DeleteCart(uid, submitedCart.ProductID)
+		err := cartService.CartRepository.DeleteCart(ctx, uid, submitedCart.ProductID)
 		if err != nil {
 			log.Printf("CartRepository.DeleteCart internal error %s", err.Error())
 			return CartResult{
@@ -89,7 +90,7 @@ func (cartService CartService) UpdateCart(uid int, submitedCart SubmitedCart) (C
 			}, err
 		}
 	} else {
-		err := cartService.CartRepository.UpdateCart(uid, submitedCart.ProductID, submitedCart.Quantity)
+		err := cartService.CartRepository.UpdateCart(ctx, uid, submitedCart.ProductID, submitedCart.Quantity)
 		if err != nil {
 			log.Printf("CartRepository.UpdateCart internal error %s", err.Error())
 			return CartResult{
@@ -98,7 +99,7 @@ func (cartService CartService) UpdateCart(uid int, submitedCart SubmitedCart) (C
 			}, err
 		}
 	}
-	cartResult, _ := cartService.GetCart(uid)
+	cartResult, _ := cartService.GetCart(ctx, uid)
 	return cartResult, nil
 
 }

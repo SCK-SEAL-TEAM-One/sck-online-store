@@ -1,6 +1,7 @@
 package order_test
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(t *testing.T) {
@@ -52,10 +54,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(
 	}
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("CheckBurnPoint", uid, submittedOrder.BurnPoint).Return(true, nil)
+	mockPointInterface.On("CheckBurnPoint", mock.Anything, uid, submittedOrder.BurnPoint).Return(true, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProductByID", submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
+	mockProductRepository.On("GetProductByID", mock.Anything, submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
 		ID:           submittedOrder.Cart[0].ProductID,
 		Name:         "43 Piece dinner Set",
 		Price:        productPrice,
@@ -67,7 +69,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(
 	}, nil)
 
 	mockShippingRepository := new(mockShippingRepository)
-	mockShippingRepository.On("GetShippingMethodByID", submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
+	mockShippingRepository.On("GetShippingMethodByID", mock.Anything, submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
 		ID:          1,
 		Name:        "Kerry",
 		Description: "",
@@ -75,7 +77,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return("", sql.ErrNoRows)
+	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return("", sql.ErrNoRows)
 
 	mockOrderHelper := new(mockOrderHelper)
 	mockOrderHelper.On("GetNextSequence", "").Return(nextSeq, nil)
@@ -93,7 +95,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(
 		EarnPoint:        4,
 	}
 
-	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, nil)
+	mockOrderRepository.On("CreateOrder", mock.Anything, uid, orderDetail).Return(oid, nil)
 
 	shippingInfo := order.ShippingInfo{
 		ShippingMethodID:     1,
@@ -106,12 +108,12 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(
 		RecipientLastName:    "ชุติบุตร",
 		RecipientPhoneNumber: "0970809292",
 	}
-	mockOrderRepository.On("CreateShipping", uid, oid, shippingInfo).Return(1, nil)
+	mockOrderRepository.On("CreateShipping", mock.Anything, uid, oid, shippingInfo).Return(1, nil)
 
-	mockOrderRepository.On("CreateOrderProduct", oid, submittedOrder.Cart[0].ProductID, submittedOrder.Cart[0].Quantity, productPrice).Return(nil)
+	mockOrderRepository.On("CreateOrderProduct", mock.Anything, oid, submittedOrder.Cart[0].ProductID, submittedOrder.Cart[0].Quantity, productPrice).Return(nil)
 
 	mockCartRepository := new(mockCartRepository)
-	mockCartRepository.On("DeleteCart", uid, submittedOrder.Cart[0].ProductID).Return(nil)
+	mockCartRepository.On("DeleteCart", mock.Anything, uid, submittedOrder.Cart[0].ProductID).Return(nil)
 
 	orderService := order.OrderService{
 		ProductRepository:  mockProductRepository,
@@ -123,7 +125,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(
 		Clock:              func() time.Time { return fixedTime },
 	}
 
-	actual, err := orderService.CreateOrder(uid, submittedOrder)
+	actual, err := orderService.CreateOrder(context.Background(), uid, submittedOrder)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -137,7 +139,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Error_Points_not_En
 	burnPoint := 100
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("CheckBurnPoint", uid, -(burnPoint)).Return(false, fmt.Errorf("points are not enough, please try again"))
+	mockPointInterface.On("CheckBurnPoint", mock.Anything, uid, -(burnPoint)).Return(false, fmt.Errorf("points are not enough, please try again"))
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -166,7 +168,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Error_Points_not_En
 		PointService: mockPointInterface,
 	}
 
-	actual, err := orderService.CreateOrder(uid, submittedOrder)
+	actual, err := orderService.CreateOrder(context.Background(), uid, submittedOrder)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, expectedErr, err)
@@ -197,13 +199,13 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_No_Product_in_Order
 	}
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+	mockPointInterface.On("CheckBurnPoint", mock.Anything, uid, 0).Return(true, nil)
 
 	orderService := order.OrderService{
 		PointService: mockPointInterface,
 	}
 
-	actual, err := orderService.CreateOrder(uid, submittedOrder)
+	actual, err := orderService.CreateOrder(context.Background(), uid, submittedOrder)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, expectedErr, err)
@@ -245,10 +247,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 	}
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+	mockPointInterface.On("CheckBurnPoint", mock.Anything, uid, 0).Return(true, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProductByID", submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
+	mockProductRepository.On("GetProductByID", mock.Anything, submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
 		ID:           submittedOrder.Cart[0].ProductID,
 		Name:         "43 Piece dinner Set",
 		Price:        productPrice,
@@ -260,7 +262,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 	}, nil)
 
 	mockShippingRepository := new(mockShippingRepository)
-	mockShippingRepository.On("GetShippingMethodByID", submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
+	mockShippingRepository.On("GetShippingMethodByID", mock.Anything, submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
 		ID:          1,
 		Name:        "Kerry",
 		Description: "",
@@ -268,7 +270,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return(lastOrderNumber, nil)
+	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return(lastOrderNumber, nil)
 
 	mockOrderHelper := new(mockOrderHelper)
 	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
@@ -285,7 +287,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 		BurnPoint:        0,
 		EarnPoint:        4,
 	}
-	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, errors.New("CreateOrder Error"))
+	mockOrderRepository.On("CreateOrder", mock.Anything, uid, orderDetail).Return(oid, errors.New("CreateOrder Error"))
 
 	orderService := order.OrderService{
 		ProductRepository:  mockProductRepository,
@@ -296,7 +298,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 		Clock:              func() time.Time { return fixedTime },
 	}
 
-	actual, err := orderService.CreateOrder(uid, submittedOrder)
+	actual, err := orderService.CreateOrder(context.Background(), uid, submittedOrder)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -338,10 +340,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 	}
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("CheckBurnPoint", uid, 0).Return(true, nil)
+	mockPointInterface.On("CheckBurnPoint", mock.Anything, uid, 0).Return(true, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProductByID", submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
+	mockProductRepository.On("GetProductByID", mock.Anything, submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
 		ID:           submittedOrder.Cart[0].ProductID,
 		Name:         "43 Piece dinner Set",
 		Price:        productPrice,
@@ -353,7 +355,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 	}, nil)
 
 	mockShippingRepository := new(mockShippingRepository)
-	mockShippingRepository.On("GetShippingMethodByID", submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
+	mockShippingRepository.On("GetShippingMethodByID", mock.Anything, submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
 		ID:          1,
 		Name:        "Kerry",
 		Description: "",
@@ -361,7 +363,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return(lastOrderNumber, nil)
+	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return(lastOrderNumber, nil)
 
 	mockOrderHelper := new(mockOrderHelper)
 	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
@@ -379,7 +381,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 		EarnPoint:        4,
 	}
 
-	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, nil)
+	mockOrderRepository.On("CreateOrder", mock.Anything, uid, orderDetail).Return(oid, nil)
 
 	shippingInfo := order.ShippingInfo{
 		ShippingMethodID:     1,
@@ -392,7 +394,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 		RecipientLastName:    "ชุติบุตร",
 		RecipientPhoneNumber: "0970809292",
 	}
-	mockOrderRepository.On("CreateShipping", uid, oid, shippingInfo).Return(1, errors.New("CreateShipping Error"))
+	mockOrderRepository.On("CreateShipping", mock.Anything, uid, oid, shippingInfo).Return(1, errors.New("CreateShipping Error"))
 
 	orderService := order.OrderService{
 		ProductRepository:  mockProductRepository,
@@ -403,7 +405,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 		Clock:              func() time.Time { return fixedTime },
 	}
 
-	actual, err := orderService.CreateOrder(uid, submittedOrder)
+	actual, err := orderService.CreateOrder(context.Background(), uid, submittedOrder)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -445,10 +447,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	}
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("CheckBurnPoint", uid, submittedOrder.BurnPoint).Return(true, nil)
+	mockPointInterface.On("CheckBurnPoint", mock.Anything, uid, submittedOrder.BurnPoint).Return(true, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProductByID", submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
+	mockProductRepository.On("GetProductByID", mock.Anything, submittedOrder.Cart[0].ProductID).Return(product.ProductDetail{
 		ID:           submittedOrder.Cart[0].ProductID,
 		Name:         "43 Piece dinner Set",
 		Price:        productPrice,
@@ -460,7 +462,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	}, nil)
 
 	mockShippingRepository := new(mockShippingRepository)
-	mockShippingRepository.On("GetShippingMethodByID", submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
+	mockShippingRepository.On("GetShippingMethodByID", mock.Anything, submittedOrder.ShippingMethodID).Return(shipping.ShippingMethodDetail{
 		ID:          1,
 		Name:        "Kerry",
 		Description: "",
@@ -468,7 +470,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", yearPrefix).Return(lastOrderNumber, nil)
+	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return(lastOrderNumber, nil)
 
 	mockOrderHelper := new(mockOrderHelper)
 	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
@@ -486,7 +488,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 		EarnPoint:        4,
 	}
 
-	mockOrderRepository.On("CreateOrder", uid, orderDetail).Return(oid, nil)
+	mockOrderRepository.On("CreateOrder", mock.Anything, uid, orderDetail).Return(oid, nil)
 
 	shippingInfo := order.ShippingInfo{
 		ShippingMethodID:     1,
@@ -499,9 +501,9 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 		RecipientLastName:    "ชุติบุตร",
 		RecipientPhoneNumber: "0970809292",
 	}
-	mockOrderRepository.On("CreateShipping", uid, oid, shippingInfo).Return(1, nil)
+	mockOrderRepository.On("CreateShipping", mock.Anything, uid, oid, shippingInfo).Return(1, nil)
 
-	mockOrderRepository.On("CreateOrderProduct", oid, submittedOrder.Cart[0].ProductID, submittedOrder.Cart[0].Quantity, productPrice).Return(errors.New("CreateOrderProduct Error"))
+	mockOrderRepository.On("CreateOrderProduct", mock.Anything, oid, submittedOrder.Cart[0].ProductID, submittedOrder.Cart[0].Quantity, productPrice).Return(errors.New("CreateOrderProduct Error"))
 
 	orderService := order.OrderService{
 		ProductRepository:  mockProductRepository,
@@ -512,7 +514,7 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 		Clock:              func() time.Time { return fixedTime },
 	}
 
-	actual, err := orderService.CreateOrder(uid, submittedOrder)
+	actual, err := orderService.CreateOrder(context.Background(), uid, submittedOrder)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -530,7 +532,7 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Total_Point_50(t
 	}
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("DeductPoint", uid, submitedPoint).Return(point.TotalPoint{
+	mockPointInterface.On("DeductPoint", mock.Anything, uid, submitedPoint).Return(point.TotalPoint{
 		Point: 50,
 	}, nil)
 
@@ -538,7 +540,7 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Total_Point_50(t
 		PointService: mockPointInterface,
 	}
 
-	actual, err := orderService.OrderBurnPoint(uid, burnPoint)
+	actual, err := orderService.OrderBurnPoint(context.Background(), uid, burnPoint)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -554,13 +556,13 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Totol_Point_Erro
 	}
 
 	mockPointInterface := new(mockPointInterface)
-	mockPointInterface.On("DeductPoint", uid, submitedPoint).Return(point.TotalPoint{}, errors.New("DeductPoint Error"))
+	mockPointInterface.On("DeductPoint", mock.Anything, uid, submitedPoint).Return(point.TotalPoint{}, errors.New("DeductPoint Error"))
 
 	orderService := order.OrderService{
 		PointService: mockPointInterface,
 	}
 
-	actual, err := orderService.OrderBurnPoint(uid, burnPoint)
+	actual, err := orderService.OrderBurnPoint(context.Background(), uid, burnPoint)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -634,18 +636,18 @@ func Test_GetOrderSummary_Should_Return_One_Product_If_OrderNumber_is_2601069522
 	}
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderWithTrackingNumberByOrderNumber", orderNumber).Return(orderDetail, nil)
-	mockOrderRepository.On("GetOrderProductWithPrice", orderID).Return(orderProduct, nil)
+	mockOrderRepository.On("GetOrderWithTrackingNumberByOrderNumber", mock.Anything, orderNumber).Return(orderDetail, nil)
+	mockOrderRepository.On("GetOrderProductWithPrice", mock.Anything, orderID).Return(orderProduct, nil)
 
 	mockUserRepository := new(mockUserRepository)
-	mockUserRepository.On("FindByID", userID).Return(userDetail, nil)
+	mockUserRepository.On("FindByID", mock.Anything, userID).Return(userDetail, nil)
 
 	orderService := order.OrderService{
 		OrderRepository: mockOrderRepository,
 		UserRepository:  mockUserRepository,
 	}
 
-	actual, err := orderService.GetOrderSummary(orderNumber)
+	actual, err := orderService.GetOrderSummary(context.Background(), orderNumber)
 	assert.Equal(t, expected, actual)
 	assert.Nil(t, err)
 }
@@ -731,18 +733,18 @@ func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderOrderNumber_is_2601
 	}
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderWithTrackingNumberByOrderNumber", orderNumber).Return(orderDetail, nil)
-	mockOrderRepository.On("GetOrderProductWithPrice", orderID).Return(orderProduct, nil)
+	mockOrderRepository.On("GetOrderWithTrackingNumberByOrderNumber", mock.Anything, orderNumber).Return(orderDetail, nil)
+	mockOrderRepository.On("GetOrderProductWithPrice", mock.Anything, orderID).Return(orderProduct, nil)
 
 	mockUserRepository := new(mockUserRepository)
-	mockUserRepository.On("FindByID", userID).Return(userDetail, nil)
+	mockUserRepository.On("FindByID", mock.Anything, userID).Return(userDetail, nil)
 
 	orderService := order.OrderService{
 		OrderRepository: mockOrderRepository,
 		UserRepository:  mockUserRepository,
 	}
 
-	actual, err := orderService.GetOrderSummary(orderNumber)
+	actual, err := orderService.GetOrderSummary(context.Background(), orderNumber)
 	assert.Equal(t, expected, actual)
 	assert.Nil(t, err)
 }

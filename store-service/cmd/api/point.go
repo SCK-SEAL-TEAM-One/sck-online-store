@@ -37,7 +37,8 @@ func (api PointAPI) DeductPointHandler(context *gin.Context) {
 		uid = 1
 	}
 
-	res, err := api.PointService.DeductPoint(uid, request)
+	ctx := context.Request.Context()
+	res, err := api.PointService.DeductPoint(ctx, uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -61,7 +62,8 @@ func (api PointAPI) TotalPointHandler(context *gin.Context) {
 		uid = 1
 	}
 	
-	res, err := api.PointService.TotalPoint(uid)
+	ctx := context.Request.Context()
+	res, err := api.PointService.TotalPoint(ctx, uid)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{

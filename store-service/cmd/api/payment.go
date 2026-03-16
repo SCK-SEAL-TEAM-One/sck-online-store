@@ -37,7 +37,8 @@ func (api PaymentAPI) ConfirmPaymentHandler(context *gin.Context) {
 		return
 	}
 
-	confirmPayment, err := api.PaymentService.ConfirmPayment(uid, request)
+	ctx := context.Request.Context()
+	confirmPayment, err := api.PaymentService.ConfirmPayment(ctx, uid, request)
 	if err != nil {
 		if errors.Is(err, order.ErrOrderNotFound) {
 			log.Printf("OrderService.GetOrderSummary not found Order Number: %s %s", request.OrderNumber, err.Error())

@@ -2,6 +2,7 @@ package point
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,9 +13,13 @@ type PointGateway struct {
 	PointEndpoint string
 }
 
-func (gateway PointGateway) GetPoints(uid int) ([]Point, error) {
+func (gateway PointGateway) GetPoints(ctx context.Context, uid int) ([]Point, error) {
 	endPoint := gateway.PointEndpoint + "/api/v1/point"
-	response, err := http.Get(endPoint)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endPoint, nil)
+	if err != nil {
+		return []Point{}, err
+	}
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return []Point{}, err
 	}
@@ -35,10 +40,15 @@ func (gateway PointGateway) GetPoints(uid int) ([]Point, error) {
 	return PointGatewayResponse, nil
 }
 
-func (gateway PointGateway) CreatePoint(uid int, body Point) (Point, error) {
+func (gateway PointGateway) CreatePoint(ctx context.Context, uid int, body Point) (Point, error) {
 	data, _ := json.Marshal(body)
 	endPoint := gateway.PointEndpoint + "/api/v1/point"
-	response, err := http.Post(endPoint, "application/json", bytes.NewBuffer(data))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endPoint, bytes.NewBuffer(data))
+	if err != nil {
+		return Point{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return Point{}, err
 	}

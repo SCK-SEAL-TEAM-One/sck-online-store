@@ -1,11 +1,13 @@
 package point_test
 
 import (
+	"context"
 	"fmt"
 	"store-service/internal/point"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func Test_DeductPoint_Input_Amount_100_Should_be_Point_100(t *testing.T) {
@@ -23,13 +25,13 @@ func Test_DeductPoint_Input_Amount_100_Should_be_Point_100(t *testing.T) {
 	}
 
 	mockPointGateway := new(mockPointGateway)
-	mockPointGateway.On("CreatePoint", uid, pointItem).Return(pointItem, nil)
-	mockPointGateway.On("GetPoints", uid).Return(pointList, nil)
+	mockPointGateway.On("CreatePoint", mock.Anything, uid, pointItem).Return(pointItem, nil)
+	mockPointGateway.On("GetPoints", mock.Anything, uid).Return(pointList, nil)
 
 	pointService := point.PointService{
 		PointGateway: mockPointGateway,
 	}
-	actual, err := pointService.DeductPoint(uid, point.SubmitedPoint{
+	actual, err := pointService.DeductPoint(context.Background(), uid, point.SubmitedPoint{
 		Amount: 100,
 	})
 
@@ -50,13 +52,13 @@ func Test_DeductPoint_Input_Amount_Minus_100_Should_be_Error(t *testing.T) {
 	}
 
 	mockPointGateway := new(mockPointGateway)
-	mockPointGateway.On("CreatePoint", uid, pointItem).Return(pointItem, nil)
-	mockPointGateway.On("GetPoints", uid).Return(pointList, nil)
+	mockPointGateway.On("CreatePoint", mock.Anything, uid, pointItem).Return(pointItem, nil)
+	mockPointGateway.On("GetPoints", mock.Anything, uid).Return(pointList, nil)
 
 	pointService := point.PointService{
 		PointGateway: mockPointGateway,
 	}
-	_, err := pointService.DeductPoint(uid, point.SubmitedPoint{
+	_, err := pointService.DeductPoint(context.Background(), uid, point.SubmitedPoint{
 		Amount: -100,
 	})
 
@@ -82,12 +84,12 @@ func Test_TotalPoint_Point_100_and_50_Should_be_Point_150(t *testing.T) {
 	}
 
 	mockPointGateway := new(mockPointGateway)
-	mockPointGateway.On("GetPoints", uid).Return(res, nil)
+	mockPointGateway.On("GetPoints", mock.Anything, uid).Return(res, nil)
 
 	pointService := point.PointService{
 		PointGateway: mockPointGateway,
 	}
-	actual, err := pointService.TotalPoint(uid)
+	actual, err := pointService.TotalPoint(context.Background(), uid)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -112,12 +114,12 @@ func Test_TotalPoint_Point_100_and_Minus_50_Should_be_Point_50(t *testing.T) {
 	}
 
 	mockPointGateway := new(mockPointGateway)
-	mockPointGateway.On("GetPoints", uid).Return(res, nil)
+	mockPointGateway.On("GetPoints", mock.Anything, uid).Return(res, nil)
 
 	pointService := point.PointService{
 		PointGateway: mockPointGateway,
 	}
-	actual, err := pointService.TotalPoint(uid)
+	actual, err := pointService.TotalPoint(context.Background(), uid)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)

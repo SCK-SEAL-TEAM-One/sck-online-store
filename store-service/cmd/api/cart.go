@@ -25,8 +25,9 @@ func (api CartAPI) GetCartHandler(context *gin.Context) {
 	var cartDetails cart.CartResult
 	var err error
 
+	ctx := context.Request.Context()
 	uid := context.GetInt("userID")
-	cartDetails, err = api.CartService.GetCart(uid)
+	cartDetails, err = api.CartService.GetCart(ctx, uid)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -59,8 +60,9 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 		return
 	}
 
+	ctx := context.Request.Context()
 	uid := context.GetInt("userID")
-	addedCart, err = api.CartService.AddCart(uid, request)
+	addedCart, err = api.CartService.AddCart(ctx, uid, request)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -89,8 +91,9 @@ func (api CartAPI) UpdateCartHandler(context *gin.Context) {
 		return
 	}
 
+	ctx := context.Request.Context()
 	uid := context.GetInt("userID")
-	updatedCart, err := api.CartService.UpdateCart(uid, request)
+	updatedCart, err := api.CartService.UpdateCart(ctx, uid, request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

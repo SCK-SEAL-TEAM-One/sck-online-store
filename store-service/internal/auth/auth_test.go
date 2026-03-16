@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"context"
 	"database/sql"
 	"store-service/internal/auth"
 	"testing"
@@ -17,7 +18,7 @@ func Test_Login_Should_Return_Error_UserNotFound_If_Incorrect_Username(t *testin
 	password := "Natta@2025"
 
 	mockUserRepository := new(mockUserRepository)
-	mockUserRepository.On("FindByUsername", username).Return(auth.User{}, sql.ErrNoRows)
+	mockUserRepository.On("FindByUsername", mock.Anything, username).Return(auth.User{}, sql.ErrNoRows)
 
 	mockPasswordHelper := new(MockPasswordHelper)
 	mockTokenManager := new(mockJWTTokenManager)
@@ -28,7 +29,7 @@ func Test_Login_Should_Return_Error_UserNotFound_If_Incorrect_Username(t *testin
 	}
 
 	// Act
-	actual, err := authService.Login(username, password)
+	actual, err := authService.Login(context.Background(), username, password)
 
 	// Assert
 	assert.Equal(t, expectedResult, actual)
@@ -52,7 +53,7 @@ func Test_Login_Should_Return_Error_InvalidCredentials_If_Incorrect_Password(t *
 		Password:  "$2a$12$jO/6faXH5oll0iKupXYscuzxiN6Qj6REfGgB18WhGBDun/p7wG0Si",
 	}
 	mockUserRepository := new(mockUserRepository)
-	mockUserRepository.On("FindByUsername", username).Return(foundUser, nil)
+	mockUserRepository.On("FindByUsername", mock.Anything, username).Return(foundUser, nil)
 
 	mockPasswordHelper := new(MockPasswordHelper)
 	mockPasswordHelper.On("CheckPasswordHash", password, foundUser.Password).Return(false)
@@ -65,7 +66,7 @@ func Test_Login_Should_Return_Error_InvalidCredentials_If_Incorrect_Password(t *
 	}
 
 	// Act
-	actual, err := authService.Login(username, password)
+	actual, err := authService.Login(context.Background(), username, password)
 
 	// Assert
 	assert.Equal(t, expectedResult, actual)
@@ -92,7 +93,7 @@ func Test_Login_Should_Resturen_TokenPair_If_Username_Password_Is_Correct(t *tes
 		Password:  "$2a$12$jO/6faXH5oll0iKupXYscuzxiN6Qj6REfGgB18WhGBDun/p7wG0Si",
 	}
 	mockUserRepository := new(mockUserRepository)
-	mockUserRepository.On("FindByUsername", username).Return(foundUser, nil)
+	mockUserRepository.On("FindByUsername", mock.Anything, username).Return(foundUser, nil)
 
 	mockPasswordHelper := new(MockPasswordHelper)
 	mockPasswordHelper.On("CheckPasswordHash", password, foundUser.Password).Return(true)
@@ -122,7 +123,7 @@ func Test_Login_Should_Resturen_TokenPair_If_Username_Password_Is_Correct(t *tes
 	}
 
 	// Act
-	actual, err := authService.Login(username, password)
+	actual, err := authService.Login(context.Background(), username, password)
 
 	// Assert
 	assert.Equal(t, expectedResult, actual)

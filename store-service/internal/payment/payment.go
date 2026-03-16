@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"store-service/internal/order"
@@ -10,7 +11,7 @@ import (
 )
 
 type PaymentInterface interface {
-	ConfirmPayment(uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error)
+	ConfirmPayment(ctx context.Context, uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error)
 }
 
 type PaymentService struct {
@@ -21,21 +22,21 @@ type PaymentService struct {
 }
 
 type BankGatewayInterface interface {
-	Payment(paymentDetail PaymentDetail) (string, error)
-	GetCardDetail(orgID int, userID int) (CardDetail, error)
+	Payment(ctx context.Context, paymentDetail PaymentDetail) (string, error)
+	GetCardDetail(ctx context.Context, orgID int, userID int) (CardDetail, error)
 }
 
 type ShippingGatewayInterface interface {
-	GetTrackingNumber(shippingGatewaySubmit shipping.ShippingGatewaySubmit) (string, error)
+	GetTrackingNumber(ctx context.Context, shippingGatewaySubmit shipping.ShippingGatewaySubmit) (string, error)
 }
 
-func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error) {
+func (service PaymentService) ConfirmPayment(ctx context.Context, uid int, submitedPayment SubmitedPayment) (SubmitedPaymentResponse, error) {
 	orgID := 1
 	orderNumber := submitedPayment.OrderNumber
 	currency := "USD"
 	now := time.Now()
 
-	orderDetail, err := service.OrderRepository.GetOrderByOrderNumber(orderNumber)
+	orderDetail, err := service.OrderRepository.GetOrderByOrderNumber(ctx, orderNumber)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("OrderRepository.GetOrderByOrderNumber not found for Order Number %s: %s", orderNumber, err.Error())
@@ -45,7 +46,7 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 		return SubmitedPaymentResponse{}, err
 	}
 
-	cardDetail, err := service.BankGateway.GetCardDetail(orgID, uid)
+	cardDetail, err := service.BankGateway.GetCardDetail(ctx, orgID, uid)
 	if err != nil {
 		log.Printf("BankGateway.GetCardDetail internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
@@ -61,26 +62,26 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 		Currency:     currency,
 		MerchantID:   orgID,
 	}
-	transactionId, err := service.BankGateway.Payment(paymentdetail)
+	transactionId, err := service.BankGateway.Payment(ctx, paymentdetail)
 	if err != nil {
 		log.Printf("BankGateway.Payment internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
 	}
 
-	orderProductList, err := service.OrderRepository.GetOrderProduct(orderDetail.ID)
+	orderProductList, err := service.OrderRepository.GetOrderProduct(ctx, orderDetail.ID)
 	if err != nil {
 		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
 	}
 	for _, orderProduct := range orderProductList {
-		err = service.ProductRepository.UpdateStock(orderProduct.ProductID, orderProduct.Quantity)
+		err = service.ProductRepository.UpdateStock(ctx, orderProduct.ProductID, orderProduct.Quantity)
 		if err != nil {
 			log.Printf("ProductRepository.UpdateStock internal error %s", err.Error())
 			return SubmitedPaymentResponse{}, err
 		}
 	}
 
-	err = service.OrderRepository.UpdateOrderTransaction(orderDetail.ID, transactionId)
+	err = service.OrderRepository.UpdateOrderTransaction(ctx, orderDetail.ID, transactionId)
 	if err != nil {
 		log.Printf("OrderRepository.UpdateOrderTransaction internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
@@ -89,13 +90,13 @@ func (service PaymentService) ConfirmPayment(uid int, submitedPayment SubmitedPa
 	shippingGatewaySubmit := shipping.ShippingGatewaySubmit{
 		ShippingMethodID: orderDetail.ShippingMethodID,
 	}
-	trackingNumber, err := service.ShippingGateway.GetTrackingNumber(shippingGatewaySubmit)
+	trackingNumber, err := service.ShippingGateway.GetTrackingNumber(ctx, shippingGatewaySubmit)
 	if err != nil {
 		log.Printf("ShippingGateway.GetTrackingNumber internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err
 	}
 
-	err = service.OrderRepository.UpdateOrderTrackingNumber(orderDetail.ID, trackingNumber)
+	err = service.OrderRepository.UpdateOrderTrackingNumber(ctx, orderDetail.ID, trackingNumber)
 	if err != nil {
 		log.Printf("OrderRepository.UpdateOrderTrackingNumber internal error %s", err.Error())
 		return SubmitedPaymentResponse{}, err

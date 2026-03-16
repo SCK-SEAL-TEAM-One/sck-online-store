@@ -86,7 +86,8 @@ func (api AuthAPI) LoginHandler(context *gin.Context) {
 		return
 	}
 
-	tokens, err := api.AuthService.Login(req.Username, req.Password)
+	ctx := context.Request.Context()
+	tokens, err := api.AuthService.Login(ctx, req.Username, req.Password)
 	if err != nil {
 		switch err {
 		case auth.ErrInvalidCredentials, auth.ErrUserNotFound:

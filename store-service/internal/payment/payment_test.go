@@ -1,6 +1,7 @@
 package payment_test
 
 import (
+	"context"
 	"errors"
 	"store-service/internal/order"
 	"store-service/internal/payment"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_TrackingNumber_KR_307676366_No_Error(t *testing.T) {
@@ -28,7 +30,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_Tracki
 	}
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		OrderNumber:      orderNumber,
 		UserID:           uid,
@@ -43,7 +45,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_Tracki
 	}, nil)
 
 	mockBankGateway := new(mockBankGateway)
-	mockBankGateway.On("GetCardDetail", orgID, uid).Return(payment.CardDetail{
+	mockBankGateway.On("GetCardDetail", mock.Anything, orgID, uid).Return(payment.CardDetail{
 		CardNumber:   "4719700591590995",
 		CVV:          752,
 		ExpiredMonth: 12,
@@ -61,9 +63,9 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_Tracki
 		Currency:     "USD",
 		MerchantID:   1,
 	}
-	mockBankGateway.On("Payment", paymentDetail).Return("TRANSACTION_ID", nil)
+	mockBankGateway.On("Payment", mock.Anything, paymentDetail).Return("TRANSACTION_ID", nil)
 
-	mockOrderRepository.On("GetOrderProduct", oid).Return([]order.OrderProduct{
+	mockOrderRepository.On("GetOrderProduct", mock.Anything, oid).Return([]order.OrderProduct{
 		{
 			ProductID: 2,
 			Quantity:  2,
@@ -71,15 +73,15 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_Tracki
 	}, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("UpdateStock", 2, 2).Return(nil)
+	mockProductRepository.On("UpdateStock", mock.Anything, 2, 2).Return(nil)
 
-	mockOrderRepository.On("UpdateOrderTransaction", oid, "TRANSACTION_ID").Return(nil)
+	mockOrderRepository.On("UpdateOrderTransaction", mock.Anything, oid, "TRANSACTION_ID").Return(nil)
 
 	mockShippingGateway := new(mockShippingGateway)
-	mockShippingGateway.On("GetTrackingNumber", shipping.ShippingGatewaySubmit{
+	mockShippingGateway.On("GetTrackingNumber", mock.Anything, shipping.ShippingGatewaySubmit{
 		ShippingMethodID: shippingMethodID,
 	}).Return(trackingNumber, nil)
-	mockOrderRepository.On("UpdateOrderTrackingNumber", oid, trackingNumber).Return(nil)
+	mockOrderRepository.On("UpdateOrderTrackingNumber", mock.Anything, oid, trackingNumber).Return(nil)
 
 	paymentService := payment.PaymentService{
 		BankGateway:       mockBankGateway,
@@ -94,7 +96,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_Tracki
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 	assert.Equal(t, expected.OrderNumber, actual.OrderNumber)
 	assert.Equal(t, expected.ShippingMethodID, actual.ShippingMethodID)
 	assert.Equal(t, expected.TrackingNumber, actual.TrackingNumber)
@@ -108,7 +110,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533002_Should_Be_Return_OrderR
 	orderNumber := "2603159533002"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{}, errors.New("GetOrderByOrderNumber Error"))
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{}, errors.New("GetOrderByOrderNumber Error"))
 
 	paymentService := payment.PaymentService{
 		OrderRepository: mockOrderRepository,
@@ -120,7 +122,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533002_Should_Be_Return_OrderR
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -137,7 +139,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159544003_Should_Be_Return_BankGa
 	orderNumber := "2603159544003"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		OrderNumber:      orderNumber,
 		UserID:           uid,
@@ -152,7 +154,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159544003_Should_Be_Return_BankGa
 	}, nil)
 
 	mockBankGateway := new(mockBankGateway)
-	mockBankGateway.On("GetCardDetail", orgID, uid).Return(payment.CardDetail{}, errors.New("GetCardDetail Error"))
+	mockBankGateway.On("GetCardDetail", mock.Anything, orgID, uid).Return(payment.CardDetail{}, errors.New("GetCardDetail Error"))
 
 	paymentService := payment.PaymentService{
 		BankGateway:     mockBankGateway,
@@ -165,7 +167,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159544003_Should_Be_Return_BankGa
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -182,7 +184,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159822004_Should_Be_Return_BankGa
 	orderNumber := "2603159822004"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		OrderNumber:      orderNumber,
 		UserID:           uid,
@@ -197,7 +199,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159822004_Should_Be_Return_BankGa
 	}, nil)
 
 	mockBankGateway := new(mockBankGateway)
-	mockBankGateway.On("GetCardDetail", orgID, uid).Return(payment.CardDetail{
+	mockBankGateway.On("GetCardDetail", mock.Anything, orgID, uid).Return(payment.CardDetail{
 		CardNumber:   "4719700591590995",
 		CVV:          752,
 		ExpiredMonth: 12,
@@ -215,7 +217,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159822004_Should_Be_Return_BankGa
 		Currency:     "USD",
 		MerchantID:   1,
 	}
-	mockBankGateway.On("Payment", paymentDetail).Return("", errors.New("Payment Error"))
+	mockBankGateway.On("Payment", mock.Anything, paymentDetail).Return("", errors.New("Payment Error"))
 
 	paymentService := payment.PaymentService{
 		BankGateway:     mockBankGateway,
@@ -228,7 +230,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159822004_Should_Be_Return_BankGa
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -245,7 +247,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159833005_Should_Be_Return_OrderR
 	orderNumber := "2603159833005"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		OrderNumber:      orderNumber,
 		UserID:           uid,
@@ -260,7 +262,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159833005_Should_Be_Return_OrderR
 	}, nil)
 
 	mockBankGateway := new(mockBankGateway)
-	mockBankGateway.On("GetCardDetail", orgID, uid).Return(payment.CardDetail{
+	mockBankGateway.On("GetCardDetail", mock.Anything, orgID, uid).Return(payment.CardDetail{
 		CardNumber:   "4719700591590995",
 		CVV:          752,
 		ExpiredMonth: 12,
@@ -278,9 +280,9 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159833005_Should_Be_Return_OrderR
 		Currency:     "USD",
 		MerchantID:   1,
 	}
-	mockBankGateway.On("Payment", paymentDetail).Return("TRANSACTION_ID", nil)
+	mockBankGateway.On("Payment", mock.Anything, paymentDetail).Return("TRANSACTION_ID", nil)
 
-	mockOrderRepository.On("GetOrderProduct", oid).Return([]order.OrderProduct{}, errors.New("GetOrderProduct Error"))
+	mockOrderRepository.On("GetOrderProduct", mock.Anything, oid).Return([]order.OrderProduct{}, errors.New("GetOrderProduct Error"))
 
 	paymentService := payment.PaymentService{
 		BankGateway:     mockBankGateway,
@@ -293,7 +295,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159833005_Should_Be_Return_OrderR
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -310,7 +312,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159844006_Should_Be_Return_Produc
 	orderNumber := "2603159844006"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		OrderNumber:      orderNumber,
 		UserID:           uid,
@@ -325,7 +327,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159844006_Should_Be_Return_Produc
 	}, nil)
 
 	mockBankGateway := new(mockBankGateway)
-	mockBankGateway.On("GetCardDetail", orgID, uid).Return(payment.CardDetail{
+	mockBankGateway.On("GetCardDetail", mock.Anything, orgID, uid).Return(payment.CardDetail{
 		CardNumber:   "4719700591590995",
 		CVV:          752,
 		ExpiredMonth: 12,
@@ -343,9 +345,9 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159844006_Should_Be_Return_Produc
 		Currency:     "USD",
 		MerchantID:   1,
 	}
-	mockBankGateway.On("Payment", paymentDetail).Return("TRANSACTION_ID", nil)
+	mockBankGateway.On("Payment", mock.Anything, paymentDetail).Return("TRANSACTION_ID", nil)
 
-	mockOrderRepository.On("GetOrderProduct", oid).Return([]order.OrderProduct{
+	mockOrderRepository.On("GetOrderProduct", mock.Anything, oid).Return([]order.OrderProduct{
 		{
 			ProductID: 2,
 			Quantity:  2,
@@ -353,7 +355,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159844006_Should_Be_Return_Produc
 	}, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("UpdateStock", 2, 2).Return(errors.New("UpdateStock Error"))
+	mockProductRepository.On("UpdateStock", mock.Anything, 2, 2).Return(errors.New("UpdateStock Error"))
 
 	paymentService := payment.PaymentService{
 		BankGateway:       mockBankGateway,
@@ -367,7 +369,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159844006_Should_Be_Return_Produc
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -384,7 +386,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522179_Should_Be_Return_OrderR
 	orderNumber := "2603159522179"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		UserID:           uid,
 		ShippingMethodID: shippingMethodID,
@@ -398,7 +400,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522179_Should_Be_Return_OrderR
 	}, nil)
 
 	mockBankGateway := new(mockBankGateway)
-	mockBankGateway.On("GetCardDetail", orgID, uid).Return(payment.CardDetail{
+	mockBankGateway.On("GetCardDetail", mock.Anything, orgID, uid).Return(payment.CardDetail{
 		CardNumber:   "4719700591590995",
 		CVV:          752,
 		ExpiredMonth: 12,
@@ -416,9 +418,9 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522179_Should_Be_Return_OrderR
 		Currency:     "USD",
 		MerchantID:   1,
 	}
-	mockBankGateway.On("Payment", paymentDetail).Return("TRANSACTION_ID", nil)
+	mockBankGateway.On("Payment", mock.Anything, paymentDetail).Return("TRANSACTION_ID", nil)
 
-	mockOrderRepository.On("GetOrderProduct", oid).Return([]order.OrderProduct{
+	mockOrderRepository.On("GetOrderProduct", mock.Anything, oid).Return([]order.OrderProduct{
 		{
 			ProductID: 2,
 			Quantity:  2,
@@ -426,9 +428,9 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522179_Should_Be_Return_OrderR
 	}, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("UpdateStock", 2, 2).Return(nil)
+	mockProductRepository.On("UpdateStock", mock.Anything, 2, 2).Return(nil)
 
-	mockOrderRepository.On("UpdateOrderTransaction", oid, "TRANSACTION_ID").Return(errors.New("UpdateOrderTransaction Error"))
+	mockOrderRepository.On("UpdateOrderTransaction", mock.Anything, oid, "TRANSACTION_ID").Return(errors.New("UpdateOrderTransaction Error"))
 
 	paymentService := payment.PaymentService{
 		BankGateway:       mockBankGateway,
@@ -442,7 +444,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522179_Should_Be_Return_OrderR
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -459,7 +461,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533899_Should_Be_Return_Shippi
 	orderNumber := "2603159533899"
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetOrderByOrderNumber", orderNumber).Return(order.OrderDetail{
+	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
 		ID:               oid,
 		OrderNumber:      orderNumber,
 		UserID:           uid,
@@ -474,7 +476,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533899_Should_Be_Return_Shippi
 	}, nil)
 
 	mockBankGateway := new(mockBankGateway)
-	mockBankGateway.On("GetCardDetail", orgID, uid).Return(payment.CardDetail{
+	mockBankGateway.On("GetCardDetail", mock.Anything, orgID, uid).Return(payment.CardDetail{
 		CardNumber:   "4719700591590995",
 		CVV:          752,
 		ExpiredMonth: 12,
@@ -492,9 +494,9 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533899_Should_Be_Return_Shippi
 		Currency:     "USD",
 		MerchantID:   1,
 	}
-	mockBankGateway.On("Payment", paymentDetail).Return("TRANSACTION_ID", nil)
+	mockBankGateway.On("Payment", mock.Anything, paymentDetail).Return("TRANSACTION_ID", nil)
 
-	mockOrderRepository.On("GetOrderProduct", oid).Return([]order.OrderProduct{
+	mockOrderRepository.On("GetOrderProduct", mock.Anything, oid).Return([]order.OrderProduct{
 		{
 			ProductID: 2,
 			Quantity:  2,
@@ -502,12 +504,12 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533899_Should_Be_Return_Shippi
 	}, nil)
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("UpdateStock", 2, 2).Return(nil)
+	mockProductRepository.On("UpdateStock", mock.Anything, 2, 2).Return(nil)
 
-	mockOrderRepository.On("UpdateOrderTransaction", oid, "TRANSACTION_ID").Return(nil)
+	mockOrderRepository.On("UpdateOrderTransaction", mock.Anything, oid, "TRANSACTION_ID").Return(nil)
 
 	mockShippingGateway := new(mockShippingGateway)
-	mockShippingGateway.On("GetTrackingNumber", shipping.ShippingGatewaySubmit{
+	mockShippingGateway.On("GetTrackingNumber", mock.Anything, shipping.ShippingGatewaySubmit{
 		ShippingMethodID: shippingMethodID,
 	}).Return("", errors.New("GetTrackingNumber Error"))
 
@@ -524,7 +526,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533899_Should_Be_Return_Shippi
 		RefOTP:      "REF_OTP",
 	}
 
-	actual, err := paymentService.ConfirmPayment(uid, submitedPayment)
+	actual, err := paymentService.ConfirmPayment(context.Background(), uid, submitedPayment)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)

@@ -1,12 +1,14 @@
 package product_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"store-service/internal/product"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func Test_GetProducts_Should_be_Return_Total_10031_and_Products_include_PriceTHB(t *testing.T) {
@@ -28,7 +30,7 @@ func Test_GetProducts_Should_be_Return_Total_10031_and_Products_include_PriceTHB
 	offset := ""
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProducts", keyword, limit, offset).Return(product.ProductResult{
+	mockProductRepository.On("GetProducts", mock.Anything, keyword, limit, offset).Return(product.ProductResult{
 		Total: 10031,
 		Products: []product.Product{
 			{
@@ -45,7 +47,7 @@ func Test_GetProducts_Should_be_Return_Total_10031_and_Products_include_PriceTHB
 	productService := product.ProductService{
 		ProductRepository: mockProductRepository,
 	}
-	actual, err := productService.GetProducts(keyword, limit, offset)
+	actual, err := productService.GetProducts(context.Background(), keyword, limit, offset)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -58,12 +60,12 @@ func Test_GetProducts_Should_be_Return_GetProducts_Error(t *testing.T) {
 	offset := ""
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProducts", keyword, limit, offset).Return(product.ProductResult{}, errors.New("GetProducts Error"))
+	mockProductRepository.On("GetProducts", mock.Anything, keyword, limit, offset).Return(product.ProductResult{}, errors.New("GetProducts Error"))
 
 	productService := product.ProductService{
 		ProductRepository: mockProductRepository,
 	}
-	actual, err := productService.GetProducts(keyword, limit, offset)
+	actual, err := productService.GetProducts(context.Background(), keyword, limit, offset)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)
@@ -83,7 +85,7 @@ func Test_GetProductByID_Should_be_Return_ProductDetail_ID_1_include_PriceTHB(t 
 	pid := 1
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProductByID", pid).Return(product.ProductDetail{
+	mockProductRepository.On("GetProductByID", mock.Anything, pid).Return(product.ProductDetail{
 		ID:           1,
 		Name:         "Balance Training Bicycle",
 		Price:        119.95,
@@ -97,7 +99,7 @@ func Test_GetProductByID_Should_be_Return_ProductDetail_ID_1_include_PriceTHB(t 
 	productService := product.ProductService{
 		ProductRepository: mockProductRepository,
 	}
-	actual, err := productService.GetProductByID(pid)
+	actual, err := productService.GetProductByID(context.Background(), pid)
 
 	assert.Equal(t, expected, actual)
 	assert.Equal(t, nil, err)
@@ -108,12 +110,12 @@ func Test_GetProductByID_Should_be_Return_GetProductByID_Error(t *testing.T) {
 	pid := 1
 
 	mockProductRepository := new(mockProductRepository)
-	mockProductRepository.On("GetProductByID", pid).Return(product.ProductDetail{}, errors.New("GetProductByID Error"))
+	mockProductRepository.On("GetProductByID", mock.Anything, pid).Return(product.ProductDetail{}, errors.New("GetProductByID Error"))
 
 	productService := product.ProductService{
 		ProductRepository: mockProductRepository,
 	}
-	actual, err := productService.GetProductByID(pid)
+	actual, err := productService.GetProductByID(context.Background(), pid)
 
 	assert.Equal(t, expected, actual)
 	assert.NotNil(t, err)

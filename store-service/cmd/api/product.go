@@ -24,11 +24,12 @@ type ProductAPI struct {
 // @Failure 500
 // @Router /api/v1/product [get]
 func (api ProductAPI) SearchHandler(context *gin.Context) {
+	ctx := context.Request.Context()
 	keyword := context.DefaultQuery("q", "")
 	limit := context.DefaultQuery("limit", "30")
 	offset := context.DefaultQuery("offset", "0")
 
-	productResult, err := api.ProductService.GetProducts(keyword, limit, offset)
+	productResult, err := api.ProductService.GetProducts(ctx, keyword, limit, offset)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -58,7 +59,8 @@ func (api ProductAPI) GetProductHandler(context *gin.Context) {
 		})
 		return
 	}
-	product, err := api.ProductService.GetProductByID(id)
+	ctx := context.Request.Context()
+	product, err := api.ProductService.GetProductByID(ctx, id)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{

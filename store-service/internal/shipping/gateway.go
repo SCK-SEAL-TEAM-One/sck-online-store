@@ -2,6 +2,7 @@ package shipping
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,10 +17,15 @@ type ShippingGatewayResponse struct {
 	TrackingNumber string `json:"tracking_number"`
 }
 
-func (gateway ShippingGateway) GetTrackingNumber(shippingGatewaySubmit ShippingGatewaySubmit) (string, error) {
+func (gateway ShippingGateway) GetTrackingNumber(ctx context.Context, shippingGatewaySubmit ShippingGatewaySubmit) (string, error) {
 	data, _ := json.Marshal(shippingGatewaySubmit)
 	endPoint := gateway.ShippingEndpoint + "/shipping"
-	response, err := http.Post(endPoint, "application/json", bytes.NewBuffer(data))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endPoint, bytes.NewBuffer(data))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}

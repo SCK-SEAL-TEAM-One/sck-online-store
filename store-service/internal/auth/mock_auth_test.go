@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"context"
 	"store-service/internal/auth"
 	"time"
 
@@ -25,13 +26,13 @@ type mockUserRepository struct {
 	mock.Mock
 }
 
-func (repo *mockUserRepository) FindByUsername(username string) (auth.User, error) {
-	args := repo.Called(username)
+func (repo *mockUserRepository) FindByUsername(ctx context.Context, username string) (auth.User, error) {
+	args := repo.Called(ctx, username)
 	return args.Get(0).(auth.User), args.Error(1)
 }
 
-func (repo *mockUserRepository) FindByID(uid int) (auth.UserPayload, error) {
-	args := repo.Called(uid)
+func (repo *mockUserRepository) FindByID(ctx context.Context, uid int) (auth.UserPayload, error) {
+	args := repo.Called(ctx, uid)
 	return args.Get(0).(auth.UserPayload), args.Error(1)
 }
 
