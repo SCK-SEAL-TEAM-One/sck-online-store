@@ -1,7 +1,7 @@
 package api
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 
 	"store-service/internal/cart"
@@ -30,6 +30,7 @@ func (api CartAPI) GetCartHandler(context *gin.Context) {
 	cartDetails, err = api.CartService.GetCart(ctx, uid)
 
 	if err != nil {
+		slog.ErrorContext(ctx, "CartService.GetCart internal error", "error", err)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"uidErr": err.Error(),
 		})
@@ -56,7 +57,7 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
-		log.Printf("bad request %s", err.Error())
+		slog.Error("bad request", "error", err)
 		return
 	}
 
@@ -65,6 +66,7 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 	addedCart, err = api.CartService.AddCart(ctx, uid, request)
 
 	if err != nil {
+		slog.ErrorContext(ctx, "CartService.AddCart internal error", "error", err)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -87,7 +89,7 @@ func (api CartAPI) UpdateCartHandler(context *gin.Context) {
 	var request cart.SubmitedCart
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
-		log.Printf("bad request %s", err.Error())
+		slog.Error("bad request", "error", err)
 		return
 	}
 
@@ -95,6 +97,7 @@ func (api CartAPI) UpdateCartHandler(context *gin.Context) {
 	uid := context.GetInt("userID")
 	updatedCart, err := api.CartService.UpdateCart(ctx, uid, request)
 	if err != nil {
+		slog.ErrorContext(ctx, "CartService.UpdateCart internal error", "error", err)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
