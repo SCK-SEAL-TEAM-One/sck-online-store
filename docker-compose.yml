@@ -55,6 +55,8 @@ services:
       - ./tearup/point/init.sql:/docker-entrypoint-initdb.d/point.sql
       - ./tearup/store/init.sql:/docker-entrypoint-initdb.d/store.sql
       - ./tearup/grandall.sql:/docker-entrypoint-initdb.d/grandall.sql
+      - ./monitoring/database/my.cnf:/etc/mysql/conf.d/slow-query.cnf:ro
+      - mysql-logs:/var/log/mysql
     ports:
       - "3306:3306"
     restart: always
@@ -153,6 +155,9 @@ services:
       - "4317:4317"
       - "4318:4318"
       - "3001:3000" # dashboard
+    volumes:
+      - ./monitoring/grafana/provisioning/dashboards.yml:/otel-lgtm/grafana/conf/provisioning/dashboards/custom-dashboards.yaml
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
 
   beyla-thirdparty:
     image: grafana/beyla:latest
@@ -172,21 +177,20 @@ services:
       lgtm:
         condition: service_started
 
-  mysql-exporter:
-    image: prom/mysqld-exporter
-    ports:
-      - "9104:9104"
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
     volumes:
-      - ./monitoring/database/.my.cnf:/.my.cnf
+      - ./monitoring/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
+      - mysql-logs:/var/log/mysql:ro
+    ports:
+      - "8888:8888"
     depends_on:
-      - db
-
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - 9090:9090
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      db:
+        condition: service_healthy
+      lgtm:
+        condition: service_started
+    restart: always
 
   chrome:
     image: selenium/node-chromium:4.27.0
@@ -224,3 +228,4 @@ services:
 
 volumes:
   shared_data:
+  mysql-logs:

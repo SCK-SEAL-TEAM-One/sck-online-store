@@ -1,0 +1,61 @@
+receivers:
+  mysql:
+    endpoint: db:3306
+    username: user
+    password: password
+    collection_interval: 15s
+    statement_events:
+      digest_text_limit: 120
+      time_limit: 24h
+      limit: 250
+    metrics:
+      mysql.commands:
+        enabled: true
+      mysql.query.count:
+        enabled: true
+      mysql.query.slow.count:
+        enabled: true
+      mysql.connection.count:
+        enabled: true
+      mysql.connection.errors:
+        enabled: true
+      mysql.joins:
+        enabled: true
+      mysql.table_open_cache:
+        enabled: true
+      mysql.statement_event.count:
+        enabled: true
+      mysql.statement_event.wait.time:
+        enabled: true
+
+  filelog/slow_query:
+    include:
+      - /var/log/mysql/slow.log
+    multiline:
+      line_start_pattern: '^# Time:'
+
+processors:
+  resource/slow_query:
+    attributes:
+      - key: service.name
+        value: mysql
+        action: upsert
+      - key: source
+        value: mysql-slow-query
+        action: upsert
+
+exporters:
+  otlp:
+    endpoint: lgtm:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [mysql]
+      exporters: [otlp]
+    logs:
+      receivers: [filelog/slow_query]
+      processors: [resource/slow_query]
+      exporters: [otlp]
