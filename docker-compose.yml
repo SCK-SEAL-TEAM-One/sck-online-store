@@ -66,7 +66,7 @@ services:
       start_period: 5s
 
   seed:
-    image: golang:1.24.5
+    image: golang:1.25
     container_name: seed-users
     working_dir: /app/store-service
     volumes:

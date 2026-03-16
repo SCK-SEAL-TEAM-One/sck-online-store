@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
 	"store-service/cmd/api"
 	"store-service/internal/auth"
 	"store-service/internal/cart"
 	"store-service/internal/healthcheck"
 	"store-service/internal/middleware"
+	storeOtel "store-service/internal/otel"
 	"store-service/internal/order"
 	"store-service/internal/payment"
 	"store-service/internal/shipping"
@@ -18,14 +22,12 @@ import (
 	"store-service/internal/point"
 	"store-service/internal/product"
 
+	"github.com/XSAM/otelsql"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-
-	"go.elastic.co/apm/module/apmgin"
-
-	"github.com/penglongli/gin-metrics/ginmetrics"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	_ "store-service/cmd/docs"
 
@@ -33,15 +35,29 @@ import (
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var (
-	serviceName  = os.Getenv("SERVICE_NAME")
+	serviceName  = os.Getenv("OTEL_SERVICE_NAME")
 	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	insecure     = os.Getenv("INSECURE_MODE")
 )
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	if collectorURL != "" {
+		cleanup, err := storeOtel.InitOtel(ctx, serviceName, collectorURL, insecure)
+		if err != nil {
+			log.Fatalf("failed to initialize OpenTelemetry: %v", err)
+		}
+		defer cleanup()
+	}
+
+	http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)
 
 	bankGatewayEndpoint := "thirdparty:8882"
 	shippingGatewayEndpoint := "thirdparty:8883"
@@ -66,7 +82,12 @@ func main() {
 		dbConnection = os.Getenv("DB_CONNECTION")
 	}
 
-	connection, err := sqlx.Connect("mysql", dbConnection)
+	driverName, err := otelsql.Register("mysql", otelsql.WithAttributes(semconv.DBSystemMySQL))
+	if err != nil {
+		log.Fatalln("cannot register otelsql driver", err)
+	}
+
+	connection, err := sqlx.Connect(driverName, dbConnection)
 	if err != nil {
 		log.Fatalln("cannot connect to database", err)
 	}
@@ -170,21 +191,7 @@ func main() {
 	config.AllowCredentials = true
 	route.Use(cors.New(config))
 
-	// get global Monitor object
-	m := ginmetrics.GetMonitor()
-
-	// +optional set metric path, default /debug/metrics
-	m.SetMetricPath("/metrics")
-	// +optional set slow time, default 5s
-	m.SetSlowTime(10)
-	// +optional set request duration, default {0.1, 0.3, 1.2, 5, 10}
-	// used to p95, p99
-	m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10, 50, 100, 500})
-
-	// set middleware for gin
-	m.Use(route)
-
-	route.Use(apmgin.Middleware(route))
+	route.Use(otelgin.Middleware(serviceName))
 
 	v1 := route.Group("/api/v1")
 	// -------------------------------------------
