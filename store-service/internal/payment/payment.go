@@ -3,7 +3,7 @@ package payment
 import (
 	"context"
 	"database/sql"
-	"log"
+	"log/slog"
 	"store-service/internal/order"
 	"store-service/internal/product"
 	"store-service/internal/shipping"
@@ -39,16 +39,16 @@ func (service PaymentService) ConfirmPayment(ctx context.Context, uid int, submi
 	orderDetail, err := service.OrderRepository.GetOrderByOrderNumber(ctx, orderNumber)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("OrderRepository.GetOrderByOrderNumber not found for Order Number %s: %s", orderNumber, err.Error())
+			slog.ErrorContext(ctx, "OrderRepository.GetOrderByOrderNumber not found", "orderNumber", orderNumber, "error", err)
 			return SubmitedPaymentResponse{}, order.ErrOrderNotFound
 		}
-		log.Printf("OrderRepository.GetOrderByOrderNumber internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.GetOrderByOrderNumber internal error", "error", err)
 		return SubmitedPaymentResponse{}, err
 	}
 
 	cardDetail, err := service.BankGateway.GetCardDetail(ctx, orgID, uid)
 	if err != nil {
-		log.Printf("BankGateway.GetCardDetail internal error %s", err.Error())
+		slog.ErrorContext(ctx, "BankGateway.GetCardDetail internal error", "error", err)
 		return SubmitedPaymentResponse{}, err
 	}
 
@@ -64,26 +64,26 @@ func (service PaymentService) ConfirmPayment(ctx context.Context, uid int, submi
 	}
 	transactionId, err := service.BankGateway.Payment(ctx, paymentdetail)
 	if err != nil {
-		log.Printf("BankGateway.Payment internal error %s", err.Error())
+		slog.ErrorContext(ctx, "BankGateway.Payment internal error", "error", err)
 		return SubmitedPaymentResponse{}, err
 	}
 
 	orderProductList, err := service.OrderRepository.GetOrderProduct(ctx, orderDetail.ID)
 	if err != nil {
-		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.GetOrderProduct internal error", "error", err)
 		return SubmitedPaymentResponse{}, err
 	}
 	for _, orderProduct := range orderProductList {
 		err = service.ProductRepository.UpdateStock(ctx, orderProduct.ProductID, orderProduct.Quantity)
 		if err != nil {
-			log.Printf("ProductRepository.UpdateStock internal error %s", err.Error())
+			slog.ErrorContext(ctx, "ProductRepository.UpdateStock internal error", "error", err)
 			return SubmitedPaymentResponse{}, err
 		}
 	}
 
 	err = service.OrderRepository.UpdateOrderTransaction(ctx, orderDetail.ID, transactionId)
 	if err != nil {
-		log.Printf("OrderRepository.UpdateOrderTransaction internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.UpdateOrderTransaction internal error", "error", err)
 		return SubmitedPaymentResponse{}, err
 	}
 
@@ -92,13 +92,13 @@ func (service PaymentService) ConfirmPayment(ctx context.Context, uid int, submi
 	}
 	trackingNumber, err := service.ShippingGateway.GetTrackingNumber(ctx, shippingGatewaySubmit)
 	if err != nil {
-		log.Printf("ShippingGateway.GetTrackingNumber internal error %s", err.Error())
+		slog.ErrorContext(ctx, "ShippingGateway.GetTrackingNumber internal error", "error", err)
 		return SubmitedPaymentResponse{}, err
 	}
 
 	err = service.OrderRepository.UpdateOrderTrackingNumber(ctx, orderDetail.ID, trackingNumber)
 	if err != nil {
-		log.Printf("OrderRepository.UpdateOrderTrackingNumber internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.UpdateOrderTrackingNumber internal error", "error", err)
 		return SubmitedPaymentResponse{}, err
 	}
 

@@ -3,7 +3,7 @@ package product
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"store-service/internal/common"
 )
 
@@ -19,7 +19,7 @@ type ProductService struct {
 func (productService ProductService) GetProducts(ctx context.Context, keyword string, limit string, offset string) (ProductResult, error) {
 	res, err := productService.ProductRepository.GetProducts(ctx, keyword, limit, offset)
 	if err != nil {
-		log.Printf("ProductRepository.GetProducts internal error %s", err.Error())
+		slog.ErrorContext(ctx, "ProductRepository.GetProducts internal error", "error", err)
 		return ProductResult{}, err
 	}
 
@@ -41,7 +41,7 @@ func (productService ProductService) GetProductByID(ctx context.Context, ID int)
 
 	productDetail, err := productService.ProductRepository.GetProductByID(ctx, ID)
 	if err != nil {
-		log.Printf("ProductRepository.GetProductByID internal error %s", err.Error())
+		slog.ErrorContext(ctx, "ProductRepository.GetProductByID internal error", "error", err)
 		return ProductDetail{}, err
 	}
 

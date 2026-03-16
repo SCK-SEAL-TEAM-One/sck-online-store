@@ -2,7 +2,7 @@ package api
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"store-service/internal/order"
 	"store-service/internal/payment"
@@ -33,7 +33,7 @@ func (api PaymentAPI) ConfirmPaymentHandler(context *gin.Context) {
 	var request payment.SubmitedPayment
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
-		log.Printf("bad request %s", err.Error())
+		slog.Error("bad request", "error", err)
 		return
 	}
 
@@ -41,7 +41,7 @@ func (api PaymentAPI) ConfirmPaymentHandler(context *gin.Context) {
 	confirmPayment, err := api.PaymentService.ConfirmPayment(ctx, uid, request)
 	if err != nil {
 		if errors.Is(err, order.ErrOrderNotFound) {
-			log.Printf("OrderService.GetOrderSummary not found Order Number: %s %s", request.OrderNumber, err.Error())
+			slog.ErrorContext(ctx, "PaymentService.ConfirmPayment not found", "orderNumber", request.OrderNumber, "error", err)
 			context.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
 			})

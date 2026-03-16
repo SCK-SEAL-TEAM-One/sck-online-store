@@ -3,7 +3,7 @@ package point
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 )
 
 type PointInterface interface {
@@ -24,7 +24,7 @@ type PointGatewayInterface interface {
 func (pointService PointService) TotalPoint(ctx context.Context, uid int) (TotalPoint, error) {
 	points, err := pointService.PointGateway.GetPoints(ctx, uid)
 	if err != nil {
-		log.Printf("pointService.PointGateway.GetPoints internal error %s", err.Error())
+		slog.ErrorContext(ctx, "PointGateway.GetPoints internal error", "error", err)
 	}
 
 	total := 0
@@ -49,7 +49,7 @@ func (pointService PointService) DeductPoint(ctx context.Context, uid int, submi
 	}
 	_, err_ := pointService.PointGateway.CreatePoint(ctx, uid, point)
 	if err_ != nil {
-		log.Printf("pointService.PointGateway.CreatePoint internal error %s", err_.Error())
+		slog.ErrorContext(ctx, "PointGateway.CreatePoint internal error", "error", err_)
 		return TotalPoint{}, err_
 	}
 	return pointService.TotalPoint(ctx, uid)
@@ -58,7 +58,7 @@ func (pointService PointService) DeductPoint(ctx context.Context, uid int, submi
 func (pointService PointService) CheckBurnPoint(ctx context.Context, uid int, amount int) (bool, error) {
 	total, err := pointService.TotalPoint(ctx, uid)
 	if err != nil {
-		log.Printf("pointService.TotalPoint internal error %s", err.Error())
+		slog.ErrorContext(ctx, "PointService.TotalPoint internal error", "error", err)
 		return false, err
 	}
 	if amount+total.Point < 0 {

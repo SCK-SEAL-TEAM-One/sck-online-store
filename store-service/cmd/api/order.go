@@ -3,7 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"store-service/internal/order"
@@ -44,7 +44,7 @@ func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
 	var request order.SubmitedOrder
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
-		log.Printf("bad request %s", err.Error())
+		slog.Error("bad request", "error", err)
 		return
 	}
 
@@ -85,13 +85,13 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 	orderSummary, err := api.OrderService.GetOrderSummary(ctx, orderNumber)
 	if err != nil {
 		if errors.Is(err, order.ErrOrderNotFound) {
-			log.Printf("OrderService.GetOrderSummary not found Order Number: %s %s", orderNumber, err.Error())
+			slog.ErrorContext(ctx, "OrderService.GetOrderSummary not found", "orderNumber", orderNumber, "error", err)
 			context.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
-		log.Printf("OrderService.GetOrderSummary internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderService.GetOrderSummary internal error", "error", err)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -105,7 +105,7 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 
 	pdfData, err := api.OrderService.GeneratePDFFromData(orderSummary)
 	if err != nil {
-		log.Printf("OrderService.GeneratePDFFromData internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderService.GeneratePDFFromData internal error", "error", err)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})

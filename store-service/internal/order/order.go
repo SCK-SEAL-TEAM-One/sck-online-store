@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"math"
 	"store-service/internal/auth"
 	"store-service/internal/cart"
@@ -91,21 +91,21 @@ func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submi
 	yearPrefix := now.Format("06") // Format: YY
 	lastOrderNumber, err := orderService.OrderRepository.GetLastOrderNumber(ctx, yearPrefix)
 	if err != nil && err != sql.ErrNoRows {
-		log.Printf("OrderRepository.GetLastOrderNumber internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.GetLastOrderNumber internal error", "error", err)
 		return Order{}, err
 	}
 
 	if err == nil {
 		seq, err = orderService.OrderHelper.GetNextSequence(lastOrderNumber)
 		if err != nil {
-			log.Printf("OrderHelper.GetNextSequence internal error %s", err.Error())
+			slog.ErrorContext(ctx, "OrderHelper.GetNextSequence internal error", "error", err)
 			return Order{}, err
 		}
 	}
 
 	orderNumber, err := orderService.OrderHelper.GenerateOrderNumber(submitedOrder.PaymentMethodID, submitedOrder.ShippingMethodID, seq, now)
 	if err != nil {
-		log.Printf("OrderHelper.GenerateOrderNumber internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderHelper.GenerateOrderNumber internal error", "error", err)
 		return Order{}, err
 	}
 	orderDetail := OrderDetail{
@@ -122,7 +122,7 @@ func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submi
 
 	orderID, err := orderService.OrderRepository.CreateOrder(ctx, uid, orderDetail)
 	if err != nil {
-		log.Printf("OrderRepository.CreateOrder internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.CreateOrder internal error", "error", err)
 		return Order{}, err
 	}
 
@@ -139,7 +139,7 @@ func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submi
 	}
 	_, err = orderService.OrderRepository.CreateShipping(ctx, uid, orderID, shippingInfo)
 	if err != nil {
-		log.Printf("OrderRepository.CreateShipping internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.CreateShipping internal error", "error", err)
 		return Order{}, err
 	}
 
@@ -147,7 +147,7 @@ func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submi
 		product, err := orderService.ProductRepository.GetProductByID(ctx, selectedProduct.ProductID)
 		err = orderService.OrderRepository.CreateOrderProduct(ctx, orderID, selectedProduct.ProductID, selectedProduct.Quantity, product.Price)
 		if err != nil {
-			log.Printf("OrderRepository.CreateOrderProduct internal error %s", err.Error())
+			slog.ErrorContext(ctx, "OrderRepository.CreateOrderProduct internal error", "error", err)
 			return Order{}, err
 		}
 
@@ -179,16 +179,16 @@ func (orderService OrderService) GetOrderSummary(ctx context.Context, orderNumbe
 	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByOrderNumber(ctx, orderNumber)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("OrderRepository.GetOrderWithTrackingNumberByOrderNumber not found for Order Number %s: %s", orderNumber, err.Error())
+			slog.ErrorContext(ctx, "OrderRepository.GetOrderWithTrackingNumberByOrderNumber not found", "orderNumber", orderNumber, "error", err)
 			return OrderSummary{}, ErrOrderNotFound
 		}
-		log.Printf("OrderRepository.GetOrderWithTrackingNumberByOrderNumber internal error for %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.GetOrderWithTrackingNumberByOrderNumber internal error", "error", err)
 		return OrderSummary{}, err
 	}
 
 	orderedProducts, err := orderService.OrderRepository.GetOrderProductWithPrice(ctx, orderDetail.ID)
 	if err != nil {
-		log.Printf("OrderRepository.GetOrderProduct internal error %s", err.Error())
+		slog.ErrorContext(ctx, "OrderRepository.GetOrderProduct internal error", "error", err)
 		return OrderSummary{}, err
 	}
 
@@ -213,7 +213,7 @@ func (orderService OrderService) GetOrderSummary(ctx context.Context, orderNumbe
 
 	userDetail, err := orderService.UserRepository.FindByID(ctx, orderDetail.UserID)
 	if err != nil {
-		log.Printf("UserRepository.FindByID internal error %s", err.Error())
+		slog.ErrorContext(ctx, "UserRepository.FindByID internal error", "error", err)
 		return OrderSummary{}, err
 	}
 
@@ -224,7 +224,8 @@ func (orderService OrderService) GetOrderSummary(ctx context.Context, orderNumbe
 
 	bangkok, err := time.LoadLocation("Asia/Bangkok")
 	if err != nil {
-		log.Fatal("Could not load timezone:", err)
+		slog.ErrorContext(ctx, "Could not load timezone", "error", err)
+		return OrderSummary{}, err
 	}
 
 	issuedDate := orderDetail.Updated.In(bangkok).Format("02-01-2006 15:04:05")
@@ -250,7 +251,7 @@ func (orderService OrderService) GetOrderSummary(ctx context.Context, orderNumbe
 func (orderService OrderService) GeneratePDFFromData(orderSummary OrderSummary) ([]byte, error) {
 	pdfBytes, err := orderService.PDFHelper.GenerateOrderSummaryPDF(orderSummary)
 	if err != nil {
-		log.Printf("PDFHelper.GenerateOrderSummaryPDF internal error %s", err.Error())
+		slog.Error("PDFHelper.GenerateOrderSummaryPDF internal error", "error", err)
 		return []byte(""), err
 	}
 

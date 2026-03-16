@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"store-service/internal/auth"
 	"time"
@@ -74,7 +74,7 @@ func (api AuthAPI) LoginHandler(context *gin.Context) {
 			"error":   "invalid_request",
 			"message": "Invalid input.",
 		})
-		log.Printf("bad request %s", err.Error())
+		slog.Error("bad request", "error", err)
 		return
 	}
 

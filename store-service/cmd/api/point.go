@@ -1,7 +1,7 @@
 package api
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -28,7 +28,7 @@ func (api PointAPI) DeductPointHandler(context *gin.Context) {
 	var request point.SubmitedPoint
 	if err := context.BindJSON(&request); err != nil {
 		context.String(http.StatusBadRequest, err.Error())
-		log.Printf("bad request %s", err.Error())
+		slog.Error("bad request", "error", err)
 		return
 	}
 
