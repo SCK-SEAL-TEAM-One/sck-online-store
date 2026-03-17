@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: point-service
-          image: siamchamnankit/point-service:latest
+          image: siamchamnankit/point-service:eks-egat-260304
           env:
             - name: DB_HOST
               value: mysql
