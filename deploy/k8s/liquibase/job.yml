@@ -46,13 +46,23 @@ spec:
             - |
               liquibase \
                 --url="jdbc:mysql://mysql:3306/store?useSSL=false&allowPublicKeyRetrieval=true" \
-                --username="user" \
-                --password="password" \
+                --username="$DB_USERNAME" \
+                --password="$DB_PASSWORD" \
                 --changelog-file="changelog-master.yaml" \
                 update
           env:
             - name: LIQUIBASE_CLASSPATH
               value: /liquibase/lib
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-password
           resources:
             requests:
               memory: "256Mi"

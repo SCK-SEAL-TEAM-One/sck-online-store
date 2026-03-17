@@ -30,11 +30,23 @@ spec:
             - name: POINT_GATEWAY
               value: point-service
             - name: STORE_WEB_HOST
-              value: http://sck-dojo.ddns.net
+              value: http://a0d66da3269b342eeac0719b3194fad0-f7f38988794c33da.elb.ap-southeast-7.amazonaws.com
             - name: DB_CONNECTION
-              value: user:password@(mysql:3306)/store
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: db-connection
             - name: JWT_SECRET
-              value: my-secret-key
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: jwt-secret
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4317
+            - name: INSECURE_MODE
+              value: "true"
+            - name: OTEL_SERVICE_NAME
+              value: store-service
           ports:
             - containerPort: 8000
 ---

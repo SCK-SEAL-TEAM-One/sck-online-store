@@ -28,9 +28,21 @@ spec:
             - name: DB_PORT
               value: "3306"
             - name: DB_USERNAME
-              value: user
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-user
             - name: DB_PASSWORD
-              value: password
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-password
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_SERVICE_NAME
+              value: point-service
           ports:
             - containerPort: 8001
           livenessProbe:

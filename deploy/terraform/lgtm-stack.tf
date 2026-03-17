@@ -262,16 +262,28 @@ resource "helm_release" "otel_collector" {
     }
     ports = {
       otlp = {
-        enabled     = true
+        enabled       = true
         containerPort = 4317
-        servicePort = 4317
-        protocol    = "TCP"
+        servicePort   = 4317
+        protocol      = "TCP"
       }
       otlp-http = {
-        enabled     = true
+        enabled       = true
         containerPort = 4318
-        servicePort = 4318
-        protocol    = "TCP"
+        servicePort   = 4318
+        protocol      = "TCP"
+      }
+      jaeger-compact = {
+        enabled = false
+      }
+      jaeger-thrift = {
+        enabled = false
+      }
+      jaeger-grpc = {
+        enabled = false
+      }
+      zipkin = {
+        enabled = false
       }
     }
     config = {
@@ -288,10 +300,10 @@ resource "helm_release" "otel_collector" {
         }
       }
       exporters = {
-        otlphttp_tempo = {
+        "otlphttp/tempo" = {
           endpoint = "http://tempo:4318"
         }
-        otlphttp_loki = {
+        "otlphttp/loki" = {
           endpoint = "http://loki:3100/otlp"
         }
         prometheusremotewrite = {
@@ -302,11 +314,11 @@ resource "helm_release" "otel_collector" {
         pipelines = {
           traces = {
             receivers = ["otlp"]
-            exporters = ["otlphttp_tempo"]
+            exporters = ["otlphttp/tempo"]
           }
           logs = {
             receivers = ["otlp"]
-            exporters = ["otlphttp_loki"]
+            exporters = ["otlphttp/loki"]
           }
           metrics = {
             receivers = ["otlp"]

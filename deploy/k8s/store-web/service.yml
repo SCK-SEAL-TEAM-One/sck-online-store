@@ -21,7 +21,8 @@ spec:
     spec:
       containers:
         - name: store-web
-          image: siamchamnankit/store-web:latest
+          image: siamchamnankit/store-web:ks-egat-260303
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
 ---

@@ -31,21 +31,26 @@ spec:
             - containerPort: 3306
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: my-secret-pw
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-root-password
             - name: MYSQL_USER
-              value: user
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-user
             - name: MYSQL_PASSWORD
-              value: password
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-password
           livenessProbe:
             exec:
               command:
-                - mysqladmin
-                - ping
-                - -h
-                - localhost
-                - -u
-                - root
-                - -pmy-secret-pw
+                - sh
+                - -c
+                - mysqladmin ping -h localhost -u root -p$MYSQL_ROOT_PASSWORD
             initialDelaySeconds: 180
             periodSeconds: 10
             timeoutSeconds: 5
@@ -53,13 +58,9 @@ spec:
           readinessProbe:
             exec:
               command:
-                - mysqladmin
-                - ping
-                - -h
-                - localhost
-                - -u
-                - root
-                - -pmy-secret-pw
+                - sh
+                - -c
+                - mysqladmin ping -h localhost -u root -p$MYSQL_ROOT_PASSWORD
             initialDelaySeconds: 45
             periodSeconds: 5
             timeoutSeconds: 5

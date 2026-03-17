@@ -45,3 +45,24 @@ data "aws_availability_zones" "available" {
     values = ["opt-in-not-required"]
   }
 }
+
+# Monitoring cluster providers
+data "aws_eks_cluster_auth" "monitoring" {
+  name = module.monitoring_eks.cluster_name
+}
+
+provider "helm" {
+  alias = "monitoring"
+  kubernetes {
+    host                   = module.monitoring_eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.monitoring_eks.cluster_certificate_authority_data)
+    token                  = data.aws_eks_cluster_auth.monitoring.token
+  }
+}
+
+provider "kubernetes" {
+  alias = "monitoring"
+  host                   = module.monitoring_eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.monitoring_eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.monitoring.token
+}
