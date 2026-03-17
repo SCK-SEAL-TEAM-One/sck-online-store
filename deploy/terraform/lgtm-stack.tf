@@ -178,6 +178,7 @@ resource "helm_release" "grafana" {
           {
             name      = "Loki"
             type      = "loki"
+            uid       = "loki"
             access    = "proxy"
             url       = "http://loki:3100"
             isDefault = false
@@ -185,6 +186,7 @@ resource "helm_release" "grafana" {
           {
             name   = "Tempo"
             type   = "tempo"
+            uid    = "tempo"
             access = "proxy"
             url    = "http://tempo:3100"
             jsonData = {
@@ -197,6 +199,7 @@ resource "helm_release" "grafana" {
           {
             name      = "Prometheus"
             type      = "prometheus"
+            uid       = "prometheus"
             access    = "proxy"
             url       = "http://prometheus-server:80"
             isDefault = true
@@ -229,6 +232,9 @@ resource "helm_release" "grafana" {
         }
         store-workflow-monitor = {
           json = file("${path.module}/../../monitoring/grafana/dashboards/store-workflow-monitor.json")
+        }
+        mysql-overview = {
+          json = file("${path.module}/../../monitoring/grafana/dashboards/mysql-overview.json")
         }
       }
     }
@@ -299,6 +305,31 @@ resource "helm_release" "otel_collector" {
           }
         }
       }
+      connectors = {
+        spanmetrics = {
+          histogram = {
+            explicit = {
+              buckets = ["5ms", "10ms", "25ms", "50ms", "100ms", "250ms", "500ms", "1s", "2.5s", "5s", "10s"]
+            }
+          }
+          dimensions = [
+            { name = "http.method" },
+            { name = "http.route" },
+            { name = "http.status_code" }
+          ]
+          dimensions_cache_size = 1000
+          aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE"
+          metrics_flush_interval = "15s"
+        }
+        servicegraph = {
+          latency_histogram_buckets = ["5ms", "10ms", "25ms", "50ms", "100ms", "250ms", "500ms", "1s", "2.5s", "5s"]
+          dimensions              = ["http.method", "http.route"]
+          store = {
+            ttl       = "10s"
+            max_items = 1000
+          }
+        }
+      }
       exporters = {
         "otlphttp/tempo" = {
           endpoint = "http://tempo:4318"
@@ -314,15 +345,19 @@ resource "helm_release" "otel_collector" {
         pipelines = {
           traces = {
             receivers = ["otlp"]
-            exporters = ["otlphttp/tempo"]
+            exporters = ["spanmetrics", "servicegraph", "otlphttp/tempo"]
           }
-          logs = {
-            receivers = ["otlp"]
-            exporters = ["otlphttp/loki"]
+          "metrics/spanmetrics" = {
+            receivers = ["spanmetrics", "servicegraph"]
+            exporters = ["prometheusremotewrite"]
           }
           metrics = {
             receivers = ["otlp"]
             exporters = ["prometheusremotewrite"]
+          }
+          logs = {
+            receivers = ["otlp"]
+            exporters = ["otlphttp/loki"]
           }
         }
       }
