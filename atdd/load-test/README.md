@@ -31,9 +31,9 @@ make down && make start_all
 
 # EKS: reset MySQL pod and re-run Liquibase migration
 kubectl -n public delete pod -l app=mysql
-kubectl -n public delete job liquibase-migration
+kubectl -n public delete job liquibase-migration-latest
 kubectl -n public apply -f deploy/k8s/liquibase/job.yml
-kubectl -n public rollout restart deployment store-service point-service
+kubectl -n public rollout restart deployment store-service-deployment point-service-deployment
 ```
 
 ## k6
@@ -63,19 +63,19 @@ k6 run --vus 50 --duration 3m -e BASE_URL=http://localhost atdd/load-test/shoppi
 
 ### Configuration
 
-| Setting | Value | Description |
-|---------|-------|-------------|
-| Virtual Users | 20 | Ramp up over 30s, sustain 2m30s, ramp down 30s |
-| Total Duration | ~3m30s | Across all stages |
-| User Pool | `user_1`..`user_84` | Distributed via `VU % 84 + 1` |
-| Think Time | 1-3s random | Between each step |
+| Setting        | Value               | Description                                    |
+| -------------- | ------------------- | ---------------------------------------------- |
+| Virtual Users  | 20                  | Ramp up over 30s, sustain 2m30s, ramp down 30s |
+| Total Duration | ~3m30s              | Across all stages                              |
+| User Pool      | `user_1`..`user_84` | Distributed via `VU % 84 + 1`                  |
+| Think Time     | 1-3s random         | Between each step                              |
 
 ### Thresholds
 
-| Metric | Threshold |
-|--------|-----------|
-| `http_req_duration` | p(99) < 200ms |
-| `http_req_failed` | rate == 0 (zero failures) |
+| Metric              | Threshold                 |
+| ------------------- | ------------------------- |
+| `http_req_duration` | p(99) < 200ms             |
+| `http_req_failed`   | rate == 0 (zero failures) |
 
 ### Output to Grafana (k6 + Prometheus)
 
@@ -130,14 +130,14 @@ jmeter -t atdd/load-test/shopping-flow.jmx
 
 All settings are configurable via `-J` properties (no need to edit the `.jmx` file):
 
-| Property | Default | CLI Flag | Description |
-|----------|---------|----------|-------------|
-| `host` | `localhost` | `-Jhost=<hostname>` | Target host |
-| `port` | `80` | `-Jport=8080` | Target port |
-| `protocol` | `http` | `-Jprotocol=https` | HTTP or HTTPS |
-| `threads` | `20` | `-Jthreads=50` | Number of concurrent threads |
-| `rampup` | `30` | `-Jrampup=60` | Ramp-up time in seconds |
-| Duration | `210s` | — | Edit in GUI or `.jmx` directly |
+| Property   | Default     | CLI Flag            | Description                    |
+| ---------- | ----------- | ------------------- | ------------------------------ |
+| `host`     | `localhost` | `-Jhost=<hostname>` | Target host                    |
+| `port`     | `80`        | `-Jport=8080`       | Target port                    |
+| `protocol` | `http`      | `-Jprotocol=https`  | HTTP or HTTPS                  |
+| `threads`  | `20`        | `-Jthreads=50`      | Number of concurrent threads   |
+| `rampup`   | `30`        | `-Jrampup=60`       | Ramp-up time in seconds        |
+| Duration   | `210s`      | —                   | Edit in GUI or `.jmx` directly |
 
 Example with all overrides:
 
@@ -155,14 +155,14 @@ jmeter -n \
 
 ## Comparison
 
-| Aspect | k6 | JMeter |
-|--------|------|--------|
-| Best for | CI pipelines, scripted runs | GUI exploration, detailed analysis |
-| Config | Code (JavaScript) | XML (GUI editor) |
-| Parameterization | `BASE_URL` env var | `-Jhost`, `-Jthreads`, etc. |
-| HTML Report | Built-in summary | `--report` flag generates full dashboard |
-| Cloud Integration | Grafana Cloud k6 | BlazeMeter, Azure Load Testing |
-| Resource Usage | Low (Go-based) | Higher (JVM-based) |
+| Aspect            | k6                          | JMeter                                   |
+| ----------------- | --------------------------- | ---------------------------------------- |
+| Best for          | CI pipelines, scripted runs | GUI exploration, detailed analysis       |
+| Config            | Code (JavaScript)           | XML (GUI editor)                         |
+| Parameterization  | `BASE_URL` env var          | `-Jhost`, `-Jthreads`, etc.              |
+| HTML Report       | Built-in summary            | `--report` flag generates full dashboard |
+| Cloud Integration | Grafana Cloud k6            | BlazeMeter, Azure Load Testing           |
+| Resource Usage    | Low (Go-based)              | Higher (JVM-based)                       |
 
 ## File Structure
 
