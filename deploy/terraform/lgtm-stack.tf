@@ -164,6 +164,22 @@ resource "helm_release" "grafana" {
   values = [yamlencode({
     adminUser     = "admin"
     adminPassword = "workshop"
+    plugins = [
+      "grafana-lokiexplore-app",
+      "grafana-exploretraces-app",
+      "grafana-metricsdrilldown-app"
+    ]
+    "grafana.ini" = {
+      "plugin.grafana-lokiexplore-app" = {
+        enabled = true
+      }
+      "plugin.grafana-exploretraces-app" = {
+        enabled = true
+      }
+      "plugin.grafana-metricsdrilldown-app" = {
+        enabled = true
+      }
+    }
     service = {
       type = "LoadBalancer"
       annotations = {
