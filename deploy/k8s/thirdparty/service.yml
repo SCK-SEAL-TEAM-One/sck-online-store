@@ -15,16 +15,10 @@ spec:
       labels:
         app: thirdparty
     spec:
+      shareProcessNamespace: true
       containers:
         - name: thirdparty
           image: siamchamnankit/store-shipping-gateway:0.0.1
-          env:
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: http://ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4317
-            - name: OTEL_EXPORTER_OTLP_PROTOCOL
-              value: grpc
-            - name: OTEL_SERVICE_NAME
-              value: thirdparty-gateway
           ports:
             - containerPort: 8882
             - containerPort: 8883
@@ -40,6 +34,23 @@ spec:
               port: 2525
             initialDelaySeconds: 5
             periodSeconds: 5
+        - name: beyla
+          image: grafana/beyla:latest
+          securityContext:
+            privileged: true
+          env:
+            - name: BEYLA_OPEN_PORT
+              value: "8882,8883"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_SERVICE_NAME
+              value: thirdparty-gateway
+            - name: BEYLA_BPF_TRACK_REQUEST_HEADERS
+              value: "true"
+            - name: BEYLA_LOG_LEVEL
+              value: debug
 ---
 apiVersion: v1
 kind: Service

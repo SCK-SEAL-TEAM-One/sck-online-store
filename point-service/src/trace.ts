@@ -8,15 +8,12 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc';
 
 const grpcExporter = new OTLPTraceExporter({
-  url: 'http://lgtm:4317',
   headers: {},
   concurrencyLimit: 10,
   timeoutMillis: 5000,
 });
 
-const logExporter = new OTLPLogExporter({
-  url: 'http://lgtm:4317',
-});
+const logExporter = new OTLPLogExporter({});
 
 console.log(
   '[OTEL] Initializing OpenTelemetry SDK for point-service with auto-instrumentations',
