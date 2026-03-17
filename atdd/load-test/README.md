@@ -98,9 +98,16 @@ brew install jmeter
 ### Run (CLI — non-GUI mode)
 
 ```bash
-# Basic run with HTML report
+# Against local (default: localhost:80)
 jmeter -n \
   -t atdd/load-test/shopping-flow.jmx \
+  -l atdd/load-test/results.jtl \
+  -e -o atdd/load-test/report/
+
+# Against remote
+jmeter -n \
+  -t atdd/load-test/shopping-flow.jmx \
+  -Jhost=<elb-hostname> \
   -l atdd/load-test/results.jtl \
   -e -o atdd/load-test/report/
 
@@ -108,6 +115,7 @@ jmeter -n \
 TIMESTAMP=$(date +%Y%m%d%H%M%S) && \
 jmeter -n \
   -t atdd/load-test/shopping-flow.jmx \
+  -Jhost=<elb-hostname> \
   -l "atdd/load-test/results-${TIMESTAMP}.jtl" \
   -e -o "atdd/load-test/report-${TIMESTAMP}/"
 ```
@@ -118,35 +126,32 @@ jmeter -n \
 jmeter -t atdd/load-test/shopping-flow.jmx
 ```
 
-### Configuration
+### Parameters
 
-Edit the `HTTP Request Defaults` element in the `.jmx` to change the target:
+All settings are configurable via `-J` properties (no need to edit the `.jmx` file):
 
-| Property | Default | Description |
-|----------|---------|-------------|
-| Server Name | `localhost` | Target host |
-| Port | `80` | Target port |
-| Protocol | `http` | HTTP or HTTPS |
-| Thread Count | `1` | Number of concurrent threads (increase for load) |
-| Duration | `210s` | Total test duration |
+| Property | Default | CLI Flag | Description |
+|----------|---------|----------|-------------|
+| `host` | `localhost` | `-Jhost=<hostname>` | Target host |
+| `port` | `80` | `-Jport=8080` | Target port |
+| `protocol` | `http` | `-Jprotocol=https` | HTTP or HTTPS |
+| `threads` | `20` | `-Jthreads=50` | Number of concurrent threads |
+| `rampup` | `30` | `-Jrampup=60` | Ramp-up time in seconds |
+| Duration | `210s` | — | Edit in GUI or `.jmx` directly |
 
-### Change Target Host
-
-In GUI mode, update **HTTP Request Defaults** > Server Name.
-
-In CLI mode, override with JMeter properties:
+Example with all overrides:
 
 ```bash
 jmeter -n \
   -t atdd/load-test/shopping-flow.jmx \
-  -Jhost=<elb-hostname> \
+  -Jhost=my-elb.amazonaws.com \
   -Jport=80 \
-  -Jthreads=20 \
-  -l atdd/load-test/results.jtl
+  -Jprotocol=http \
+  -Jthreads=50 \
+  -Jrampup=60 \
+  -l atdd/load-test/results.jtl \
+  -e -o atdd/load-test/report/
 ```
-
-> Note: Property overrides (`-J`) require the `.jmx` to use `${__P(host,localhost)}` syntax.
-> The current `.jmx` uses hardcoded defaults — update directly in the file or GUI if needed.
 
 ## Comparison
 
@@ -154,7 +159,7 @@ jmeter -n \
 |--------|------|--------|
 | Best for | CI pipelines, scripted runs | GUI exploration, detailed analysis |
 | Config | Code (JavaScript) | XML (GUI editor) |
-| Parameterization | `BASE_URL` env var | HTTP Request Defaults |
+| Parameterization | `BASE_URL` env var | `-Jhost`, `-Jthreads`, etc. |
 | HTML Report | Built-in summary | `--report` flag generates full dashboard |
 | Cloud Integration | Grafana Cloud k6 | BlazeMeter, Azure Load Testing |
 | Resource Usage | Low (Go-based) | Higher (JVM-based) |
