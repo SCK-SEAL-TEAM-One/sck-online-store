@@ -69,7 +69,7 @@ func (orderSummaryPDF OrderSummaryPDFGenerator) GenerateOrderSummaryPDF(orderSum
 	page.AddRow(5, col.New(12))
 
 	// --- CUSTOMER INFO ---
-	orderIDText := fmt.Sprintf("Order No.: %s", orderSummary.OrderNumber)
+	orderIDText := fmt.Sprintf("Order No.: %d", orderSummary.OrderNumber)
 	fullNameText := fmt.Sprintf("Full Name: %s %s", titleCase.String(orderSummary.FirstName), titleCase.String(orderSummary.LastName))
 	purchaseDateText := fmt.Sprintf("Purchase Date: %s", orderSummary.IssuedDate)
 	paymentMethodText := fmt.Sprintf("Payment Method: %s", orderSummary.PaymentMethod)

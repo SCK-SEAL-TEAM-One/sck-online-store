@@ -42,17 +42,17 @@ func (repo *mockOrderRepository) CreateOrder(ctx context.Context, userID int, or
 	return argument.Int(0), argument.Error(1)
 }
 
-func (repo *mockOrderRepository) GetOrderByOrderNumber(ctx context.Context, orderNumber string) (order.OrderDetail, error) {
+func (repo *mockOrderRepository) GetOrderByOrderNumber(ctx context.Context, orderNumber int64) (order.OrderDetail, error) {
 	argument := repo.Called(ctx, orderNumber)
 	return argument.Get(0).(order.OrderDetail), argument.Error(1)
 }
 
-func (repo *mockOrderRepository) GetLastOrderNumber(ctx context.Context, yearPrefix string) (string, error) {
-	argument := repo.Called(ctx, yearPrefix)
-	return argument.Get(0).(string), argument.Error(1)
+func (repo *mockOrderRepository) GetNextSequence(ctx context.Context, yearPrefix string, userID int) (int, error) {
+	argument := repo.Called(ctx, yearPrefix, userID)
+	return argument.Int(0), argument.Error(1)
 }
 
-func (repo *mockOrderRepository) GetOrderWithTrackingNumberByOrderNumber(ctx context.Context, orderNumber string) (order.OrderDetailWithTrackingNumber, error) {
+func (repo *mockOrderRepository) GetOrderWithTrackingNumberByOrderNumber(ctx context.Context, orderNumber int64) (order.OrderDetailWithTrackingNumber, error) {
 	argument := repo.Called(ctx, orderNumber)
 	return argument.Get(0).(order.OrderDetailWithTrackingNumber), argument.Error(1)
 }

@@ -1,0 +1,78 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-order-sequences-table
+      author: developer
+      description: Create atomic sequence table to fix order number race condition
+      changes:
+        - createTable:
+            tableName: order_sequences
+            columns:
+              - column:
+                  name: date_prefix
+                  type: CHAR(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: current_seq
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: order_sequences
+            columnNames: date_prefix, user_id
+            constraintName: pk_order_sequences
+      rollback:
+        - dropTable:
+            tableName: order_sequences
+
+  - changeSet:
+      id: 004-migrate-existing-order-numbers
+      author: developer
+      description: Seed order_sequences from existing orders and convert order_number to BIGINT with embedded userId
+      changes:
+        - sql:
+            comment: Seed order_sequences from existing orders
+            sql: >
+              INSERT INTO order_sequences (date_prefix, user_id, current_seq)
+              SELECT LEFT(order_number, 6), user_id, MAX(CAST(RIGHT(order_number, 3) AS UNSIGNED))
+              FROM orders
+              WHERE order_number IS NOT NULL
+              GROUP BY LEFT(order_number, 6), user_id
+              ON DUPLICATE KEY UPDATE current_seq = GREATEST(current_seq, VALUES(current_seq));
+        - sql:
+            comment: Embed userId into existing order numbers (13-digit to 16-digit)
+            sql: >
+              UPDATE orders SET order_number = CONCAT(
+              LEFT(order_number, 10),
+              LPAD(user_id, 3, '0'),
+              RIGHT(order_number, 3)
+              ) WHERE order_number IS NOT NULL;
+        - dropUniqueConstraint:
+            tableName: orders
+            constraintName: uq_orders_order_number
+        - modifyDataType:
+            tableName: orders
+            columnName: order_number
+            newDataType: BIGINT
+        - addUniqueConstraint:
+            tableName: orders
+            columnNames: order_number
+            constraintName: uq_orders_order_number
+      rollback:
+        - dropUniqueConstraint:
+            tableName: orders
+            constraintName: uq_orders_order_number
+        - modifyDataType:
+            tableName: orders
+            columnName: order_number
+            newDataType: VARCHAR(20)
+        - addUniqueConstraint:
+            tableName: orders
+            columnNames: order_number
+            constraintName: uq_orders_order_number

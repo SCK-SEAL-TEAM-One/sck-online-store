@@ -686,12 +686,12 @@
               "script": {
                 "exec": [
                   "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
-                  "const order_number =  pm.variables.get(\"order_number\");",
+                  "const order_number = Number(pm.variables.get(\"order_number\"));",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "",
                   "const schema = {",
                   "    \"order_number\": {",
-                  "        \"type\": \"string\"",
+                  "        \"type\": \"number\"",
                   "    },",
                   "    \"payment_date\": {",
                   "        \"type\": \"string\"",
@@ -741,7 +741,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_number\": \"{{order_number}}\",\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}"
+              "raw": "{\n    \"order_number\": {{order_number}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}"
             },
             "url": {
               "raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",
@@ -1672,12 +1672,12 @@
               "script": {
                 "exec": [
                   "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
-                  "const order_number = pm.variables.get(\"order_number\");",
+                  "const order_number = Number(pm.variables.get(\"order_number\"));",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "",
                   "const schema = {",
                   "    \"order_number\": {",
-                  "        \"type\": \"string\"",
+                  "        \"type\": \"number\"",
                   "    },",
                   "    \"payment_date\": {",
                   "        \"type\": \"string\"",
@@ -1727,7 +1727,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_number\": \"{{order_number}}\",\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}"
+              "raw": "{\n    \"order_number\": {{order_number}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}"
             },
             "url": {
               "raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",
@@ -2997,12 +2997,12 @@
               "script": {
                 "exec": [
                   "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
-                  "const order_number = pm.variables.get(\"order_number\");",
+                  "const order_number = Number(pm.variables.get(\"order_number\"));",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "",
                   "const schema = {",
                   "    \"order_number\": {",
-                  "        \"type\": \"string\"",
+                  "        \"type\": \"number\"",
                   "    },",
                   "    \"payment_date\": {",
                   "        \"type\": \"string\"",
@@ -3054,7 +3054,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_number\": \"{{order_number}}\",\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}"
+              "raw": "{\n    \"order_number\": {{order_number}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}"
             },
             "url": {
               "raw": "{{STORE_SERVICE_URL}}/api/v1/confirmPayment",

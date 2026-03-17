@@ -36,7 +36,7 @@ type OrderRequest = {
 
 export type OrderCheckoutServiceResponse = {
   data?: {
-    order_number: string
+    order_number: number
   }
   message?: string
 }

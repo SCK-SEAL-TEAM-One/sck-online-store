@@ -4,13 +4,13 @@ import { handleServiceError } from '@/utils/helper'
 // ------------------------------------------------
 
 type OrderConfirmPaymentServiceRequest = {
-  order_number: string
+  order_number: number
   otp: number
   otpRef: string
 }
 
 export type OrderConfirmPaymentDetailType = {
-  order_number: string
+  order_number: number
   payment_date: string
   shipping_method_id: number
   tracking_number: string

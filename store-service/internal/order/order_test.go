@@ -2,7 +2,6 @@ package order_test
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"store-service/internal/auth"
@@ -17,14 +16,14 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(t *testing.T) {
+func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001001(t *testing.T) {
 	uid := 1
 	oid := 8004359103
-	orderNumber := "2601069522001"
+	var orderNumber int64 = 2601069522001001
 	productPrice := 12.95
 	nextSeq := 1
 	fixedTime := time.Date(2026, 1, 6, 0, 0, 0, 0, time.UTC)
-	yearPrefix := "26"
+	datePrefix := "260106"
 
 	expected := order.Order{
 		OrderNumber: orderNumber,
@@ -77,11 +76,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_OrderNumber_2601069522001(
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return("", sql.ErrNoRows)
+	mockOrderRepository.On("GetNextSequence", mock.Anything, datePrefix, uid).Return(nextSeq, nil)
 
 	mockOrderHelper := new(mockOrderHelper)
-	mockOrderHelper.On("GetNextSequence", "").Return(nextSeq, nil)
-	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, uid, nextSeq, fixedTime).Return(orderNumber, nil)
 
 	orderDetail := order.OrderDetail{
 		OrderNumber:      orderNumber,
@@ -217,11 +215,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 	uid := 1
 	oid := 8004359103
 	productPrice := 12.95
-	yearPrefix := "26"
-	lastOrderNumber := "2601129522031"
+	datePrefix := "260112"
 	nextSeq := 32
 	fixedTime := time.Date(2026, 1, 12, 0, 0, 0, 0, time.UTC)
-	orderNumber := "2601129522032"
+	var orderNumber int64 = 2601129522001032
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -270,11 +267,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Error(
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return(lastOrderNumber, nil)
+	mockOrderRepository.On("GetNextSequence", mock.Anything, datePrefix, uid).Return(nextSeq, nil)
 
 	mockOrderHelper := new(mockOrderHelper)
-	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
-	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, uid, nextSeq, fixedTime).Return(orderNumber, nil)
 
 	orderDetail := order.OrderDetail{
 		OrderNumber:      orderNumber,
@@ -310,11 +306,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 	uid := 1
 	oid := 8004359103
 	productPrice := 12.95
-	yearPrefix := "26"
-	lastOrderNumber := "2612129522079"
+	datePrefix := "261212"
 	nextSeq := 80
 	fixedTime := time.Date(2026, 12, 12, 0, 0, 0, 0, time.UTC)
-	orderNumber := "2612129522080"
+	var orderNumber int64 = 2612129522001080
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -363,11 +358,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Shipping_Err
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return(lastOrderNumber, nil)
+	mockOrderRepository.On("GetNextSequence", mock.Anything, datePrefix, uid).Return(nextSeq, nil)
 
 	mockOrderHelper := new(mockOrderHelper)
-	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
-	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, uid, nextSeq, fixedTime).Return(orderNumber, nil)
 
 	orderDetail := order.OrderDetail{
 		OrderNumber:      orderNumber,
@@ -417,11 +411,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	uid := 1
 	oid := 8004359103
 	productPrice := 12.95
-	yearPrefix := "26"
-	lastOrderNumber := "2605159522178"
+	datePrefix := "260515"
 	nextSeq := 179
 	fixedTime := time.Date(2026, 05, 15, 0, 0, 0, 0, time.UTC)
-	orderNumber := "2605159522179"
+	var orderNumber int64 = 2605159522001179
 
 	submittedOrder := order.SubmitedOrder{
 		Cart: []order.OrderProduct{
@@ -470,11 +463,10 @@ func Test_CreateOrder_Input_Submitted_Order_Should_be_Return_Create_Order_Produc
 	}, nil)
 
 	mockOrderRepository := new(mockOrderRepository)
-	mockOrderRepository.On("GetLastOrderNumber", mock.Anything, yearPrefix).Return(lastOrderNumber, nil)
+	mockOrderRepository.On("GetNextSequence", mock.Anything, datePrefix, uid).Return(nextSeq, nil)
 
 	mockOrderHelper := new(mockOrderHelper)
-	mockOrderHelper.On("GetNextSequence", lastOrderNumber).Return(nextSeq, nil)
-	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, nextSeq, fixedTime).Return(orderNumber, nil)
+	mockOrderHelper.On("GenerateOrderNumber", submittedOrder.PaymentMethodID, submittedOrder.ShippingMethodID, uid, nextSeq, fixedTime).Return(orderNumber, nil)
 
 	orderDetail := order.OrderDetail{
 		OrderNumber:      orderNumber,
@@ -568,11 +560,11 @@ func Test_OrderBurnPoint_Input_Burn_Points_100_Should_be_Return_Totol_Point_Erro
 	assert.NotNil(t, err)
 }
 
-func Test_GetOrderSummary_Should_Return_One_Product_If_OrderNumber_is_2601069522001(t *testing.T) {
+func Test_GetOrderSummary_Should_Return_One_Product_If_OrderNumber_is_2601069522001001(t *testing.T) {
 	userID := 4
 	orderID := 1
 	trackingNumber := "KR-443947172"
-	orderNumber := "2601069522001"
+	var orderNumber int64 = 2601069522001001
 	updatedTime := time.Date(2026, 2, 28, 18, 58, 44, 0, time.UTC)
 	expectedUpdateTime := "01-03-2026 01:58:44"
 
@@ -652,11 +644,11 @@ func Test_GetOrderSummary_Should_Return_One_Product_If_OrderNumber_is_2601069522
 	assert.Nil(t, err)
 }
 
-func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderOrderNumber_is_2601069522002(t *testing.T) {
+func Test_GetOrderSummary_Should_Return_Two_Products_If_OrderOrderNumber_is_2601069522002002(t *testing.T) {
 	userID := 5
 	orderID := 2
 	trackingNumber := "KR-304590466"
-	orderNumber := "2601069522002"
+	var orderNumber int64 = 2601069522002002
 	updatedTime := time.Date(2026, 2, 14, 1, 40, 32, 0, time.UTC)
 	expectedUpdateTime := "14-02-2026 08:40:32"
 

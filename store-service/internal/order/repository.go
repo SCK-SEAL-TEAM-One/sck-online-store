@@ -9,9 +9,9 @@ import (
 
 type OrderRepository interface {
 	CreateOrder(ctx context.Context, userID int, orderDetail OrderDetail) (int, error)
-	GetOrderByOrderNumber(ctx context.Context, orderNumber string) (OrderDetail, error)
-	GetLastOrderNumber(ctx context.Context, yearPrefix string) (string, error)
-	GetOrderWithTrackingNumberByOrderNumber(ctx context.Context, orderNumber string) (OrderDetailWithTrackingNumber, error)
+	GetOrderByOrderNumber(ctx context.Context, orderNumber int64) (OrderDetail, error)
+	GetNextSequence(ctx context.Context, datePrefix string, userID int) (int, error)
+	GetOrderWithTrackingNumberByOrderNumber(ctx context.Context, orderNumber int64) (OrderDetailWithTrackingNumber, error)
 	CreateOrderProduct(ctx context.Context, orderID, productID, quantity int, productPrice float64) error
 	UpdateOrderTransaction(ctx context.Context, orderID int, transactionID string) error
 	UpdateOrderTrackingNumber(ctx context.Context, orderID int, trackingNumber string) error
@@ -47,7 +47,7 @@ func (orderRepository OrderRepositoryMySQL) CreateOrder(ctx context.Context, use
 	return int(insertedId), err
 }
 
-func (orderRepository OrderRepositoryMySQL) GetOrderByOrderNumber(ctx context.Context, orderNumber string) (OrderDetail, error) {
+func (orderRepository OrderRepositoryMySQL) GetOrderByOrderNumber(ctx context.Context, orderNumber int64) (OrderDetail, error) {
 	result := OrderDetail{}
 	err := orderRepository.DBConnection.GetContext(ctx, &result, `
 		SELECT id, order_number, user_id, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point, transaction_id, status
@@ -56,20 +56,23 @@ func (orderRepository OrderRepositoryMySQL) GetOrderByOrderNumber(ctx context.Co
 	return result, err
 }
 
-func (orderRepository OrderRepositoryMySQL) GetLastOrderNumber(ctx context.Context, yearPrefix string) (string, error) {
-	lastOrderNumber := ""
-	pattern := yearPrefix + "%"
+func (orderRepository OrderRepositoryMySQL) GetNextSequence(ctx context.Context, datePrefix string, userID int) (int, error) {
 	query := `
-		SELECT order_number
-		FROM orders
-		WHERE order_number LIKE ?
-		ORDER BY RIGHT(order_number, 3) DESC
-		LIMIT 1`
-	err := orderRepository.DBConnection.GetContext(ctx, &lastOrderNumber, query, pattern)
-	return lastOrderNumber, err
+		INSERT INTO order_sequences (date_prefix, user_id, current_seq)
+		VALUES (?, ?, LAST_INSERT_ID(1))
+		ON DUPLICATE KEY UPDATE current_seq = LAST_INSERT_ID(current_seq + 1)`
+	result, err := orderRepository.DBConnection.ExecContext(ctx, query, datePrefix, userID)
+	if err != nil {
+		return 0, err
+	}
+	seq, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(seq), nil
 }
 
-func (orderRepository OrderRepositoryMySQL) GetOrderWithTrackingNumberByOrderNumber(ctx context.Context, orderNumber string) (OrderDetailWithTrackingNumber, error) {
+func (orderRepository OrderRepositoryMySQL) GetOrderWithTrackingNumberByOrderNumber(ctx context.Context, orderNumber int64) (OrderDetailWithTrackingNumber, error) {
 	result := OrderDetailWithTrackingNumber{}
 	err := orderRepository.DBConnection.GetContext(ctx, &result, `
 		SELECT id, order_number, user_id, shipping_method_id, payment_method_id, sub_total_price, discount_price, total_price, shipping_fee, burn_point, earn_point, transaction_id, status, tracking_no, updated

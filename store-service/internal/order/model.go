@@ -54,12 +54,12 @@ type OrderSummaryProduct struct {
 }
 
 type Order struct {
-	OrderNumber string
+	OrderNumber int64
 }
 
 type OrderDetail struct {
 	ID               int     `json:"id"  db:"id"`
-	OrderNumber      string  `json:"order_number" db:"order_number"`
+	OrderNumber      int64   `json:"order_number" db:"order_number"`
 	UserID           int     `json:"user_id"  db:"user_id"`
 	ShippingMethodID int     `json:"shipping_method_id"  db:"shipping_method_id"`
 	PaymentMethodID  int     `json:"payment_method_id"  db:"payment_method_id"`
@@ -75,7 +75,7 @@ type OrderDetail struct {
 
 type OrderDetailWithTrackingNumber struct {
 	ID               int       `json:"id"  db:"id"`
-	OrderNumber      string    `json:"order_number" db:"order_number"`
+	OrderNumber      int64     `json:"order_number" db:"order_number"`
 	UserID           int       `json:"user_id"  db:"user_id"`
 	ShippingMethodID int       `json:"shipping_method_id"  db:"shipping_method_id"`
 	PaymentMethodID  int       `json:"payment_method_id"  db:"payment_method_id"`
@@ -92,7 +92,7 @@ type OrderDetailWithTrackingNumber struct {
 }
 
 type OrderSummary struct {
-	OrderNumber      string                `json:"order_number"`
+	OrderNumber      int64                 `json:"order_number"`
 	FirstName        string                `json:"first_name"`
 	LastName         string                `json:"last_name"`
 	TrackingNumber   string                `json:"tracking_no"`

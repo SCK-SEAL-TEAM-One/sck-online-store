@@ -8,3 +8,6 @@ databaseChangeLog:
   - include:
       file: changelogs/003-add-order-number-to-orders.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changelogs/004-fix-order-number-concurrency.yaml
+      relativeToChangelogFile: true

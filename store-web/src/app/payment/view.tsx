@@ -33,14 +33,14 @@ const PaymentView = () => {
   const handlePaymentConfirm = async () => {
     if (otp.length === 6 && orderNumber) {
       const result = await orderConfirmPaymentService({
-        order_number: orderNumber,
+        order_number: Number(orderNumber),
         otp: Number(otp),
         otpRef: otpRef
       })
 
       if (result.data) {
         const convertResultToObject = {
-          order: result.data.order_number,
+          order: result.data.order_number.toString(),
           shipping: result.data.shipping_method_id.toString(),
           payment: result.data.payment_date,
           tracking: result.data.tracking_number

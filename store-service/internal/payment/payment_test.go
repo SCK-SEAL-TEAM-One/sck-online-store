@@ -15,7 +15,7 @@ import (
 
 func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_TrackingNumber_KR_307676366_No_Error(t *testing.T) {
 	uid := 1
-	orderNumber := "2603159522001"
+	var orderNumber int64 = 2603159522001001
 	oid := 8004359103
 	orgID := 1
 	shippingMethodID := 1
@@ -23,7 +23,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522001_Should_Be_Return_Tracki
 	trackingNumber := "KR-307676366"
 
 	expected := payment.SubmitedPaymentResponse{
-		OrderNumber:      "2603159522001",
+		OrderNumber:      orderNumber,
 		PaymentDate:      time.Now(),
 		ShippingMethodID: 1,
 		TrackingNumber:   trackingNumber,
@@ -107,7 +107,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533002_Should_Be_Return_OrderR
 	expected := payment.SubmitedPaymentResponse{}
 
 	uid := 1
-	orderNumber := "2603159533002"
+	var orderNumber int64 = 2603159533001002
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{}, errors.New("GetOrderByOrderNumber Error"))
@@ -136,7 +136,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159544003_Should_Be_Return_BankGa
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
-	orderNumber := "2603159544003"
+	var orderNumber int64 = 2603159544001003
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
@@ -181,7 +181,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159822004_Should_Be_Return_BankGa
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
-	orderNumber := "2603159822004"
+	var orderNumber int64 = 2603159822001004
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
@@ -244,7 +244,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159833005_Should_Be_Return_OrderR
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
-	orderNumber := "2603159833005"
+	var orderNumber int64 = 2603159833001005
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
@@ -309,7 +309,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159844006_Should_Be_Return_Produc
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
-	orderNumber := "2603159844006"
+	var orderNumber int64 = 2603159844001006
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
@@ -383,7 +383,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159522179_Should_Be_Return_OrderR
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
-	orderNumber := "2603159522179"
+	var orderNumber int64 = 2603159522001179
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{
@@ -458,7 +458,7 @@ func Test_ConfirmPayment_Input_OrderNumber_2603159533899_Should_Be_Return_Shippi
 	orgID := 1
 	shippingMethodID := 1
 	paymentMethodID := 1
-	orderNumber := "2603159533899"
+	var orderNumber int64 = 2603159533001899
 
 	mockOrderRepository := new(mockOrderRepository)
 	mockOrderRepository.On("GetOrderByOrderNumber", mock.Anything, orderNumber).Return(order.OrderDetail{

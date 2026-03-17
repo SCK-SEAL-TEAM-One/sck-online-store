@@ -755,12 +755,12 @@
               "script": {
                 "exec": [
                   "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
-                  "const order_number = pm.variables.get(\"order_number\");",
+                  "const order_number = Number(pm.variables.get(\"order_number\"));",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "",
                   "const schema = {",
                   "    \"order_number\": {",
-                  "        \"type\": \"string\"",
+                  "        \"type\": \"number\"",
                   "    },",
                   "    \"payment_date\": {",
                   "        \"type\": \"string\"",
@@ -803,7 +803,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_number\": \"{{order_number}}\",\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
+              "raw": "{\n    \"order_number\": {{order_number}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -847,7 +847,7 @@
                   "",
                   "const schema = {",
                   "    \"order_number\": {",
-                  "        \"type\": \"string\"",
+                  "        \"type\": \"number\"",
                   "    },",
                   "    \"first_name\": {",
                   "        \"type\": \"string\"",
@@ -2397,12 +2397,12 @@
               "script": {
                 "exec": [
                   "const shipping_method_id = parseFloat(pm.variables.get(\"shipping_method_id\"));",
-                  "const order_number = pm.variables.get(\"order_number\");",
+                  "const order_number = Number(pm.variables.get(\"order_number\"));",
                   "const shipping_method_prefix = pm.variables.get(\"shipping_method_prefix\");",
                   "",
                   "const schema = {",
                   "    \"order_number\": {",
-                  "        \"type\": \"string\"",
+                  "        \"type\": \"number\"",
                   "    },",
                   "    \"payment_date\": {",
                   "        \"type\": \"string\"",
@@ -2445,7 +2445,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_number\": \"{{order_number}}\",\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
+              "raw": "{\n    \"order_number\": {{order_number}},\n    \"otp\": {{otp}},\n    \"ref_otp\": \"{{ref_otp}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2489,7 +2489,7 @@
                   "",
                   "const schema = {",
                   "    \"order_number\": {",
-                  "        \"type\": \"string\"",
+                  "        \"type\": \"number\"",
                   "    },",
                   "    \"first_name\": {",
                   "        \"type\": \"string\"",

@@ -11,7 +11,6 @@ import (
 	"store-service/internal/cart"
 	"store-service/internal/common"
 	"store-service/internal/metrics"
-	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -24,7 +23,7 @@ import (
 type OrderInterface interface {
 	CreateOrder(ctx context.Context, uid int, submitedOrder SubmitedOrder) (Order, error)
 	OrderBurnPoint(ctx context.Context, uid int, burn int) (point.TotalPoint, error)
-	GetOrderSummary(ctx context.Context, orderNumber string) (OrderSummary, error)
+	GetOrderSummary(ctx context.Context, orderNumber int64) (OrderSummary, error)
 	GeneratePDFFromData(orderDetail OrderSummary) ([]byte, error)
 }
 
@@ -92,61 +91,39 @@ func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submi
 	shippingFeeTHB := shippingDetail.Fee
 
 	now := orderService.Clock()
-	yearPrefix := now.Format("06") // Format: YY
+	datePrefix := now.Format("060102")
 
-	const maxRetries = 3
-	var orderID int
-	var orderNumber string
-	var orderDetail OrderDetail
+	seq, err := orderService.OrderRepository.GetNextSequence(ctx, datePrefix, uid)
+	if err != nil {
+		slog.ErrorContext(ctx, "OrderRepository.GetNextSequence failed",
+			"log_type", "error", "error_code", "ORDER_SEQ_FAILED", "error_message", err.Error(), "user_id", uid)
+		return Order{}, err
+	}
 
-	for attempt := 0; attempt < maxRetries; attempt++ {
-		seq := 1 // Default SEQ number for beginning new year
-		lastOrderNumber, err := orderService.OrderRepository.GetLastOrderNumber(ctx, yearPrefix)
-		if err != nil && err != sql.ErrNoRows {
-			slog.ErrorContext(ctx, "OrderRepository.GetLastOrderNumber failed",
-				"log_type", "error", "error_code", "ORDER_SEQ_FAILED", "error_message", err.Error(), "user_id", uid)
-			return Order{}, err
-		}
+	orderNumber, err := orderService.OrderHelper.GenerateOrderNumber(submitedOrder.PaymentMethodID, submitedOrder.ShippingMethodID, uid, seq, now)
+	if err != nil {
+		slog.ErrorContext(ctx, "OrderHelper.GenerateOrderNumber failed",
+			"log_type", "error", "error_code", "ORDER_NUMBER_FAILED", "error_message", err.Error(), "user_id", uid)
+		return Order{}, err
+	}
 
-		if err == nil {
-			seq, err = orderService.OrderHelper.GetNextSequence(lastOrderNumber)
-			if err != nil {
-				slog.ErrorContext(ctx, "OrderHelper.GetNextSequence failed",
-					"log_type", "error", "error_code", "ORDER_SEQ_FAILED", "error_message", err.Error(), "user_id", uid)
-				return Order{}, err
-			}
-		}
+	orderDetail := OrderDetail{
+		OrderNumber:      orderNumber,
+		ShippingMethodID: submitedOrder.ShippingMethodID,
+		PaymentMethodID:  submitedOrder.PaymentMethodID,
+		SubTotalPrice:    subtotalPriceTHB,
+		DiscountPrice:    discountPriceTHB,
+		TotalPrice:       totalPriceTHB + shippingFeeTHB,
+		ShippingFee:      shippingFeeTHB,
+		BurnPoint:        submitedOrder.BurnPoint,
+		EarnPoint:        common.CalculatePoint(totalPriceTHB),
+	}
 
-		orderNumber, err = orderService.OrderHelper.GenerateOrderNumber(submitedOrder.PaymentMethodID, submitedOrder.ShippingMethodID, seq, now)
-		if err != nil {
-			slog.ErrorContext(ctx, "OrderHelper.GenerateOrderNumber failed",
-				"log_type", "error", "error_code", "ORDER_NUMBER_FAILED", "error_message", err.Error(), "user_id", uid)
-			return Order{}, err
-		}
-		orderDetail = OrderDetail{
-			OrderNumber:      orderNumber,
-			ShippingMethodID: submitedOrder.ShippingMethodID,
-			PaymentMethodID:  submitedOrder.PaymentMethodID,
-			SubTotalPrice:    subtotalPriceTHB,
-			DiscountPrice:    discountPriceTHB,
-			TotalPrice:       totalPriceTHB + shippingFeeTHB,
-			ShippingFee:      shippingFeeTHB,
-			BurnPoint:        submitedOrder.BurnPoint,
-			EarnPoint:        common.CalculatePoint(totalPriceTHB),
-		}
-
-		orderID, err = orderService.OrderRepository.CreateOrder(ctx, uid, orderDetail)
-		if err != nil {
-			if isDuplicateKeyError(err) && attempt < maxRetries-1 {
-				slog.WarnContext(ctx, "Duplicate order number, retrying",
-					"log_type", "state_change", "order_number", orderNumber, "attempt", attempt+1, "user_id", uid)
-				continue
-			}
-			slog.ErrorContext(ctx, "OrderRepository.CreateOrder failed",
-				"log_type", "error", "error_code", "ORDER_INSERT_FAILED", "error_message", err.Error(), "user_id", uid)
-			return Order{}, err
-		}
-		break
+	orderID, err := orderService.OrderRepository.CreateOrder(ctx, uid, orderDetail)
+	if err != nil {
+		slog.ErrorContext(ctx, "OrderRepository.CreateOrder failed",
+			"log_type", "error", "error_code", "ORDER_INSERT_FAILED", "error_message", err.Error(), "user_id", uid)
+		return Order{}, err
 	}
 
 	shippingInfo := ShippingInfo{
@@ -217,7 +194,7 @@ func (orderService OrderService) OrderBurnPoint(ctx context.Context, uid int, bu
 	return totalPoint, nil
 }
 
-func (orderService OrderService) GetOrderSummary(ctx context.Context, orderNumber string) (OrderSummary, error) {
+func (orderService OrderService) GetOrderSummary(ctx context.Context, orderNumber int64) (OrderSummary, error) {
 	orderDetail, err := orderService.OrderRepository.GetOrderWithTrackingNumberByOrderNumber(ctx, orderNumber)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -308,8 +285,4 @@ func (orderService OrderService) GeneratePDFFromData(orderSummary OrderSummary) 
 	}
 
 	return pdfBytes, nil
-}
-
-func isDuplicateKeyError(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "Duplicate entry")
 }

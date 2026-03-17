@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"store-service/internal/order"
 
@@ -23,7 +24,7 @@ type OrderAPI struct {
 // OrderConfirmation represents the response after order submission
 // @Description Order confirmation response containing order number
 type OrderConfirmation struct {
-	OrderNumber string `json:"order_number"`
+	OrderNumber int64 `json:"order_number"`
 }
 
 // @Summary Submit new order
@@ -41,21 +42,54 @@ type OrderConfirmation struct {
 // @Router /api/v1/order [post]
 func (api OrderAPI) SubmitOrderHandler(context *gin.Context) {
 	uid := context.GetInt("userID")
+	ctx := context.Request.Context()
+
 	var request order.SubmitedOrder
 	if err := context.BindJSON(&request); err != nil {
+		slog.ErrorContext(ctx, "Order submit bad request",
+			"log_type", "error",
+			"error_code", "INVALID_REQUEST",
+			"error_message", err.Error(),
+			"user_id", uid,
+		)
 		context.String(http.StatusBadRequest, err.Error())
-		slog.Error("bad request", "error", err)
 		return
 	}
 
-	ctx := context.Request.Context()
 	createdOrder, err := api.OrderService.CreateOrder(ctx, uid, request)
 	if err != nil {
+		slog.ErrorContext(ctx, "OrderService.CreateOrder failed",
+			"log_type", "error",
+			"error_code", "ORDER_CREATION_FAILED",
+			"error_message", err.Error(),
+			"user_id", uid,
+			slog.Any("request", map[string]any{
+				"item_count":         len(request.Cart),
+				"payment_method_id":  request.PaymentMethodID,
+				"shipping_method_id": request.ShippingMethodID,
+				"burn_point":         request.BurnPoint,
+			}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
+	slog.InfoContext(ctx, "Order created",
+		"log_type", "business",
+		"event", "order_created",
+		"entity_type", "order",
+		"entity_id", createdOrder.OrderNumber,
+		"actor_id", uid,
+		slog.Any("metadata", map[string]any{
+			"item_count":         len(request.Cart),
+			"payment_method_id":  request.PaymentMethodID,
+			"shipping_method_id": request.ShippingMethodID,
+			"total_price":        request.TotalPrice,
+			"burn_point":         request.BurnPoint,
+		}),
+	)
 
 	context.JSON(http.StatusOK, OrderConfirmation{
 		OrderNumber: createdOrder.OrderNumber,
@@ -80,18 +114,37 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 	}
 
 	ctx := context.Request.Context()
-	orderNumber := context.Param("id")
+	orderNumberStr := context.Param("id")
+	orderNumber, err := strconv.ParseInt(orderNumberStr, 10, 64)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid order number",
+		})
+		return
+	}
 
 	orderSummary, err := api.OrderService.GetOrderSummary(ctx, orderNumber)
 	if err != nil {
 		if errors.Is(err, order.ErrOrderNotFound) {
-			slog.ErrorContext(ctx, "OrderService.GetOrderSummary not found", "orderNumber", orderNumber, "error", err)
+			slog.ErrorContext(ctx, "OrderService.GetOrderSummary not found",
+				"log_type", "error",
+				"error_code", "ORDER_NOT_FOUND",
+				"error_message", err.Error(),
+				"user_id", 0,
+				slog.Any("request", map[string]any{"order_number": orderNumber}),
+			)
 			context.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
-		slog.ErrorContext(ctx, "OrderService.GetOrderSummary internal error", "error", err)
+		slog.ErrorContext(ctx, "OrderService.GetOrderSummary internal error",
+			"log_type", "error",
+			"error_code", "ORDER_SUMMARY_FAILED",
+			"error_message", err.Error(),
+			"user_id", 0,
+			slog.Any("request", map[string]any{"order_number": orderNumber}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -105,14 +158,20 @@ func (api OrderAPI) GetOrderSummaryHandler(context *gin.Context) {
 
 	pdfData, err := api.OrderService.GeneratePDFFromData(orderSummary)
 	if err != nil {
-		slog.ErrorContext(ctx, "OrderService.GeneratePDFFromData internal error", "error", err)
+		slog.ErrorContext(ctx, "OrderService.GeneratePDFFromData failed",
+			"log_type", "error",
+			"error_code", "PDF_GENERATION_FAILED",
+			"error_message", err.Error(),
+			"user_id", 0,
+			slog.Any("request", map[string]any{"order_number": orderNumber}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	filename := fmt.Sprintf("Order_Summary_%s.pdf", orderNumber)
+	filename := fmt.Sprintf("Order_Summary_%d.pdf", orderNumber)
 	contentDisposition := fmt.Sprintf("attachment; filename=\"%s\"", filename)
 
 	context.Header("Access-Control-Expose-Headers", "Content-Disposition")
