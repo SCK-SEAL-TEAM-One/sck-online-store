@@ -63,7 +63,7 @@ func (orderRepository OrderRepositoryMySQL) GetLastOrderNumber(ctx context.Conte
 		SELECT order_number
 		FROM orders
 		WHERE order_number LIKE ?
-		ORDER BY updated DESC
+		ORDER BY RIGHT(order_number, 3) DESC
 		LIMIT 1`
 	err := orderRepository.DBConnection.GetContext(ctx, &lastOrderNumber, query, pattern)
 	return lastOrderNumber, err

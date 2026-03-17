@@ -1,28 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_MIMIR",
-      "label": "Mimir",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "11.0.0"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    }
-  ],
   "annotations": {
     "list": []
   },
@@ -30,7 +6,19 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "System Monitor",
+      "type": "link",
+      "url": "/d/store-workflow-monitor"
+    }
+  ],
   "panels": [
     {
       "collapsed": false,
@@ -42,7 +30,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_MIMIR}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -77,17 +65,24 @@
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(rate(orders_created_total[5m])) by (payment_method)",
           "legendFormat": "{{payment_method}}",
           "refId": "A"
+        }
+      ],
+      "links": [
+        {
+          "title": "View order traces in Tempo",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"span-name\",\"tag\":\"name\",\"operator\":\"=\",\"value\":[\"POST /api/v1/order\"],\"scope\":\"span\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
         }
       ]
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_MIMIR}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -122,7 +117,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(rate(order_revenue_total[5m]))",
           "legendFormat": "Revenue",
           "refId": "A"
@@ -132,7 +127,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_MIMIR}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -167,7 +162,7 @@
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "histogram_quantile(0.5, sum(rate(order_items_count_bucket[5m])) by (le))",
           "legendFormat": "p50 items",
           "refId": "A"
@@ -184,7 +179,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_MIMIR}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -223,7 +218,7 @@
       "type": "gauge",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(rate(payment_attempts_total{status=\"success\"}[5m])) / sum(rate(payment_attempts_total[5m])) * 100",
           "legendFormat": "Success %",
           "refId": "A"
@@ -233,7 +228,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_MIMIR}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -268,17 +263,24 @@
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(rate(payment_attempts_total[5m])) by (status)",
           "legendFormat": "{{status}}",
           "refId": "A"
+        }
+      ],
+      "links": [
+        {
+          "title": "View payment traces in Tempo",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"span-name\",\"tag\":\"name\",\"operator\":\"=\",\"value\":[\"POST /api/v1/confirmPayment\"],\"scope\":\"span\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
         }
       ]
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_MIMIR}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -313,29 +315,36 @@
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "histogram_quantile(0.50, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "histogram_quantile(0.95, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "histogram_quantile(0.99, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p99",
           "refId": "C"
+        }
+      ],
+      "links": [
+        {
+          "title": "View slow payment traces",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"span-name\",\"tag\":\"name\",\"operator\":\"=\",\"value\":[\"POST /api/v1/confirmPayment\"],\"scope\":\"span\"},{\"id\":\"min-duration\",\"tag\":\"duration\",\"operator\":\">\",\"value\":[\"500ms\"],\"scope\":\"intrinsic\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
         }
       ]
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_MIMIR}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -368,7 +377,7 @@
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(orders_created_total)",
           "legendFormat": "Total",
           "refId": "A"
@@ -381,12 +390,16 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "Prometheus",
+          "value": "prometheus"
+        },
         "hide": 0,
         "includeAll": false,
         "label": "Datasource",
         "multi": false,
-        "name": "DS_MIMIR",
+        "name": "datasource",
         "options": [],
         "query": "prometheus",
         "refresh": 1,

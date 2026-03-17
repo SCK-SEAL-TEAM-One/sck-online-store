@@ -1,0 +1,1052 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 2,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Business Metrics",
+      "type": "link",
+      "url": "/d/store-business-metrics"
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "System Health",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "store-service",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "clamp_max(sum(rate(traces_spanmetrics_calls_total{service=\"store-service\", span_kind=\"SPAN_KIND_SERVER\"}[5m])), 1)",
+          "legendFormat": "store-service",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "point-service",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "clamp_max(sum(rate(traces_spanmetrics_calls_total{service=\"point-service\", span_kind=\"SPAN_KIND_SERVER\"}[5m])), 1)",
+          "legendFormat": "point-service",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "thirdparty-gateway",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "clamp_max(sum(rate(traces_spanmetrics_calls_total{service=\"thirdparty-gateway\", span_kind=\"SPAN_KIND_SERVER\"}[5m])), 1)",
+          "legendFormat": "thirdparty-gateway",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "MySQL",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "clamp_max(mysql_uptime_seconds_total, 1)",
+          "legendFormat": "MySQL",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Request Rate by Service",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (service)",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 5 },
+      "id": 6,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "right" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Error Rate by Service",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\", status_code=\"STATUS_CODE_ERROR\"}[5m])) by (service)",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 5 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "right" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Latency p95 by Service",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le, service))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "id": 200,
+      "title": "Shopping Funnel — RED per Endpoint",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "POST /api/v1/login" }, "properties": [{ "id": "color", "value": { "fixedColor": "#8AB8FF", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "GET /api/v1/product" }, "properties": [{ "id": "color", "value": { "fixedColor": "#73BF69", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "PUT /api/v1/addCart" }, "properties": [{ "id": "color", "value": { "fixedColor": "#FADE2A", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "POST /api/v1/order" }, "properties": [{ "id": "color", "value": { "fixedColor": "#FF9830", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "POST /api/v1/confirmPayment" }, "properties": [{ "id": "color", "value": { "fixedColor": "#F2495C", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "GET /api/v1/point" }, "properties": [{ "id": "color", "value": { "fixedColor": "#B877D9", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
+      "id": 10,
+      "options": {
+        "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "bottom", "sortBy": "Mean", "sortDesc": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Request Rate — Shopping Steps",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"store-service\", http_route=~\"/api/v1/login|/api/v1/product|/api/v1/addCart|/api/v1/order|/api/v1/confirmPayment|/api/v1/point\"}[5m])) by (http_request_method, http_route)",
+          "legendFormat": "{{http_request_method}} {{http_route}}",
+          "refId": "A"
+        }
+      ],
+      "links": [
+        {
+          "title": "View traces in Tempo",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"span-name\",\"tag\":\"name\",\"operator\":\"=\",\"scope\":\"span\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "bottom", "sortBy": "Mean", "sortDesc": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Errors — Shopping Steps",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"store-service\", http_route=~\"/api/v1/login|/api/v1/product|/api/v1/addCart|/api/v1/order|/api/v1/confirmPayment|/api/v1/point\", http_response_status_code=~\"4..|5..\"}[5m])) by (http_request_method, http_route, http_response_status_code)",
+          "legendFormat": "{{http_request_method}} {{http_route}} [{{http_response_status_code}}]",
+          "refId": "A"
+        }
+      ],
+      "links": [
+        {
+          "title": "View error traces in Tempo",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"status\",\"tag\":\"status\",\"operator\":\"=\",\"value\":[\"error\"],\"scope\":\"intrinsic\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 10 },
+      "id": 12,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "sortBy": "Mean", "sortDesc": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Latency p95 — Shopping Steps",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket{service_name=\"store-service\", http_route=~\"/api/v1/login|/api/v1/product|/api/v1/addCart|/api/v1/order|/api/v1/confirmPayment|/api/v1/point\"}[5m])) by (le, http_request_method, http_route))",
+          "legendFormat": "{{http_request_method}} {{http_route}}",
+          "refId": "A"
+        }
+      ],
+      "links": [
+        {
+          "title": "View slow traces in Tempo",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"min-duration\",\"tag\":\"duration\",\"operator\":\">\",\"value\":[\"500ms\"],\"scope\":\"intrinsic\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
+      "id": 300,
+      "title": "Inter-Service Calls",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 19 },
+      "id": 13,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "store → Bank Gateway (payment)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum(rate(payment_duration_bucket[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(payment_duration_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        }
+      ],
+      "links": [
+        {
+          "title": "View payment traces",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"span-name\",\"tag\":\"name\",\"operator\":\"=\",\"value\":[\"HTTP POST\"],\"scope\":\"span\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 19 },
+      "id": 14,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "store → Point Service",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum(rate(traces_service_graph_request_client_seconds_bucket{client=\"store-service\", server=\"point-service\"}[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(traces_service_graph_request_client_seconds_bucket{client=\"store-service\", server=\"point-service\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        }
+      ],
+      "links": [
+        {
+          "title": "View point-service traces",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"point-service\"],\"scope\":\"resource\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 19 },
+      "id": 15,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "store → Shipping Gateway",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_latency_bucket{service=\"thirdparty-gateway\", span_name=\"POST /shipping\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{service=\"thirdparty-gateway\", span_name=\"POST /shipping\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        }
+      ],
+      "links": [
+        {
+          "title": "View shipping traces",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"thirdparty-gateway\"],\"scope\":\"resource\"},{\"id\":\"span-name\",\"tag\":\"name\",\"operator\":\"=\",\"value\":[\"POST /shipping\"],\"scope\":\"span\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 19 },
+      "id": 16,
+      "options": {
+        "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Service-to-Service Request Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(rate(traces_service_graph_request_total{client=\"store-service\"}[5m])) by (server)",
+          "legendFormat": "→ {{server}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "id": 400,
+      "title": "Database Impact",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 28 },
+      "id": 17,
+      "options": {
+        "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "bottom", "sortBy": "Mean", "sortDesc": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "MySQL Commands/sec",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(mysql_commands_total[5m]) > 0",
+          "legendFormat": "{{command}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 28 },
+      "id": 18,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Slow Queries",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "mysql_query_slow_count_total",
+          "legendFormat": "Slow Queries",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 28 },
+      "id": 19,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Active Connections",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "mysql_threads{kind=\"connected\"}",
+          "legendFormat": "Connections",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 28 },
+      "id": 20,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "SQL Query Latency (from traces)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_latency_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(traces_spanmetrics_latency_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "links": [
+        {
+          "title": "View slow SQL traces",
+          "url": "/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"queryType\":\"traceqlSearch\",\"filters\":[{\"id\":\"service-name\",\"tag\":\"resource.service.name\",\"operator\":\"=\",\"value\":[\"store-service\"],\"scope\":\"resource\"},{\"id\":\"span-name\",\"tag\":\"name\",\"operator\":\"=~\",\"value\":[\"sql.*\"],\"scope\":\"span\"},{\"id\":\"min-duration\",\"tag\":\"duration\",\"operator\":\">\",\"value\":[\"100ms\"],\"scope\":\"intrinsic\"}]}],\"range\":{\"from\":\"${__from}\",\"to\":\"${__to}\"}}",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "unit": "ns"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "schema" },
+            "properties": [{ "id": "custom.width", "value": 80 }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "digest" },
+            "properties": [{ "id": "custom.width", "value": 350 }]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 28 },
+      "id": 21,
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Value" }],
+        "cellHeight": "sm"
+      },
+      "title": "Top Statements by Wait Time",
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "topk(10, mysql_statement_event_wait_time_nanoseconds)",
+          "legendFormat": "",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true, "instance": true, "job": true },
+            "renameByName": { "Value": "Wait Time" }
+          }
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 32 },
+      "id": 22,
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "MySQL Slow Query Log",
+      "type": "logs",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{source=\"mysql-slow-query\"}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "id": 500,
+      "title": "Logs & Errors — Drill Down",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 37 },
+      "id": 23,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "Application Errors (store-service)",
+      "type": "logs",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{service_name=\"store-service\"} | json | severity >= \"ERROR\" or detected_level = \"error\"",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 },
+      "id": 24,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "Business Events (orders, payments)",
+      "type": "logs",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{service_name=\"store-service\"} |= \"business\"",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
+      "id": 25,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "Point Service Logs",
+      "type": "logs",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{service_name=\"point-service\"}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
+      "id": 26,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "title": "All Services — Recent Errors",
+      "type": "logs",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{service_name=~\".+\"} | json | severity >= \"ERROR\" or detected_level = \"error\"",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["store-service", "workflow", "system"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Shopping Workflow - System Monitor",
+  "uid": "store-workflow-monitor",
+  "version": 1
+}
