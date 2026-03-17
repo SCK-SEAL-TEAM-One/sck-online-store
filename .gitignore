@@ -42,3 +42,28 @@ atdd/api/newman
 
 # mountebank
 mb*.log
+
+# secrets
+deploy/k8s/secrets.yml
+
+# terraform
+deploy/terraform/.terraform/
+deploy/terraform/.terraform.lock.hcl
+deploy/terraform/terraform.tfstate
+deploy/terraform/terraform.tfstate.*
+
+# load test output
+atdd/load-test/report/
+atdd/load-test/report-*/
+atdd/load-test/results.jtl
+atdd/load-test/results-*.jtl
+jmeter.log
+
+# EKS postman environment
+atdd/api/sck-online-store.eks.postman_environment.json
+
+# compiled binary
+store-service/main
+
+# python cache
+__pycache__/
