@@ -90,6 +90,10 @@ resource "helm_release" "tempo" {
 
   values = [yamlencode({
     tempo = {
+      metricsGenerator = {
+        enabled       = true
+        remoteWriteUrl = "http://prometheus-server:80/api/v1/write"
+      }
       resources = {
         requests = {
           cpu    = "100m"
