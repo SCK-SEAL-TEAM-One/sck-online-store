@@ -24,7 +24,8 @@ type PointGatewayInterface interface {
 func (pointService PointService) TotalPoint(ctx context.Context, uid int) (TotalPoint, error) {
 	points, err := pointService.PointGateway.GetPoints(ctx, uid)
 	if err != nil {
-		slog.ErrorContext(ctx, "PointGateway.GetPoints internal error", "error", err)
+		slog.ErrorContext(ctx, "PointGateway.GetPoints failed",
+			"log_type", "error", "error_code", "POINT_GATEWAY_FAILED", "error_message", err.Error(), "user_id", uid)
 	}
 
 	total := 0
@@ -49,7 +50,9 @@ func (pointService PointService) DeductPoint(ctx context.Context, uid int, submi
 	}
 	_, err_ := pointService.PointGateway.CreatePoint(ctx, uid, point)
 	if err_ != nil {
-		slog.ErrorContext(ctx, "PointGateway.CreatePoint internal error", "error", err_)
+		slog.ErrorContext(ctx, "PointGateway.CreatePoint failed",
+			"log_type", "error", "error_code", "POINT_CREATE_FAILED", "error_message", err_.Error(),
+			"user_id", uid, "amount", submitedPoint.Amount)
 		return TotalPoint{}, err_
 	}
 	return pointService.TotalPoint(ctx, uid)
@@ -58,7 +61,8 @@ func (pointService PointService) DeductPoint(ctx context.Context, uid int, submi
 func (pointService PointService) CheckBurnPoint(ctx context.Context, uid int, amount int) (bool, error) {
 	total, err := pointService.TotalPoint(ctx, uid)
 	if err != nil {
-		slog.ErrorContext(ctx, "PointService.TotalPoint internal error", "error", err)
+		slog.ErrorContext(ctx, "PointService.TotalPoint failed",
+			"log_type", "error", "error_code", "POINT_CHECK_FAILED", "error_message", err.Error(), "user_id", uid)
 		return false, err
 	}
 	if amount+total.Point < 0 {

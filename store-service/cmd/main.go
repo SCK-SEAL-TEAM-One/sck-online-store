@@ -12,6 +12,7 @@ import (
 	"store-service/internal/cart"
 	"store-service/internal/healthcheck"
 	"store-service/internal/middleware"
+	"store-service/internal/metrics"
 	storeOtel "store-service/internal/otel"
 	"store-service/internal/order"
 	"store-service/internal/payment"
@@ -55,6 +56,7 @@ func main() {
 			log.Fatalf("failed to initialize OpenTelemetry: %v", err)
 		}
 		defer cleanup()
+		metrics.Init()
 	}
 
 	http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)

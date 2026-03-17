@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"store-service/internal/product"
 	"strconv"
@@ -32,6 +33,13 @@ func (api ProductAPI) SearchHandler(context *gin.Context) {
 	productResult, err := api.ProductService.GetProducts(ctx, keyword, limit, offset)
 
 	if err != nil {
+		slog.ErrorContext(ctx, "ProductService.GetProducts failed",
+			"log_type", "error",
+			"error_code", "PRODUCT_SEARCH_FAILED",
+			"error_message", err.Error(),
+			"user_id", 0,
+			slog.Any("request", map[string]any{"keyword": keyword, "limit": limit, "offset": offset}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -63,6 +71,13 @@ func (api ProductAPI) GetProductHandler(context *gin.Context) {
 	product, err := api.ProductService.GetProductByID(ctx, id)
 
 	if err != nil {
+		slog.ErrorContext(ctx, "ProductService.GetProductByID failed",
+			"log_type", "error",
+			"error_code", "PRODUCT_QUERY_FAILED",
+			"error_message", err.Error(),
+			"user_id", 0,
+			slog.Any("request", map[string]any{"product_id": id}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})

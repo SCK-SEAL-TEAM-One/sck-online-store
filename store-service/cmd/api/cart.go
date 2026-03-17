@@ -30,7 +30,12 @@ func (api CartAPI) GetCartHandler(context *gin.Context) {
 	cartDetails, err = api.CartService.GetCart(ctx, uid)
 
 	if err != nil {
-		slog.ErrorContext(ctx, "CartService.GetCart internal error", "error", err)
+		slog.ErrorContext(ctx, "CartService.GetCart failed",
+			"log_type", "error",
+			"error_code", "CART_QUERY_FAILED",
+			"error_message", err.Error(),
+			"user_id", uid,
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"uidErr": err.Error(),
 		})
@@ -50,28 +55,52 @@ func (api CartAPI) GetCartHandler(context *gin.Context) {
 // @Failure 500
 // @Router /api/v1/cart [post]
 func (api CartAPI) AddCartHandler(context *gin.Context) {
-	// uidString := context.GetHeader("uid")
+	ctx := context.Request.Context()
+	uid := context.GetInt("userID")
+
 	var request cart.SubmitedCart
 	var addedCart cart.CartResult
 	var err error
 
 	if err := context.BindJSON(&request); err != nil {
+		slog.ErrorContext(ctx, "Add cart bad request",
+			"log_type", "error",
+			"error_code", "INVALID_REQUEST",
+			"error_message", err.Error(),
+			"user_id", uid,
+		)
 		context.String(http.StatusBadRequest, err.Error())
-		slog.Error("bad request", "error", err)
 		return
 	}
 
-	ctx := context.Request.Context()
-	uid := context.GetInt("userID")
 	addedCart, err = api.CartService.AddCart(ctx, uid, request)
 
 	if err != nil {
-		slog.ErrorContext(ctx, "CartService.AddCart internal error", "error", err)
+		slog.ErrorContext(ctx, "CartService.AddCart failed",
+			"log_type", "error",
+			"error_code", "CART_ADD_FAILED",
+			"error_message", err.Error(),
+			"user_id", uid,
+			slog.Any("request", map[string]any{"product_id": request.ProductID, "quantity": request.Quantity}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
+	slog.InfoContext(ctx, "Cart item added",
+		"log_type", "state_change",
+		"entity_type", "cart",
+		"entity_id", request.ProductID,
+		"changed_by", uid,
+		slog.Any("after", map[string]any{
+			"product_id": request.ProductID,
+			"quantity":   request.Quantity,
+		}),
+		slog.Any("changed_fields", []string{"product_id", "quantity"}),
+	)
+
 	context.JSON(http.StatusOK, addedCart)
 }
 
@@ -86,22 +115,52 @@ func (api CartAPI) AddCartHandler(context *gin.Context) {
 // @Failure 500
 // @Router /api/v1/cart [put]
 func (api CartAPI) UpdateCartHandler(context *gin.Context) {
+	ctx := context.Request.Context()
+	uid := context.GetInt("userID")
+
 	var request cart.SubmitedCart
 	if err := context.BindJSON(&request); err != nil {
+		slog.ErrorContext(ctx, "Update cart bad request",
+			"log_type", "error",
+			"error_code", "INVALID_REQUEST",
+			"error_message", err.Error(),
+			"user_id", uid,
+		)
 		context.String(http.StatusBadRequest, err.Error())
-		slog.Error("bad request", "error", err)
 		return
 	}
 
-	ctx := context.Request.Context()
-	uid := context.GetInt("userID")
 	updatedCart, err := api.CartService.UpdateCart(ctx, uid, request)
 	if err != nil {
-		slog.ErrorContext(ctx, "CartService.UpdateCart internal error", "error", err)
+		slog.ErrorContext(ctx, "CartService.UpdateCart failed",
+			"log_type", "error",
+			"error_code", "CART_UPDATE_FAILED",
+			"error_message", err.Error(),
+			"user_id", uid,
+			slog.Any("request", map[string]any{"product_id": request.ProductID, "quantity": request.Quantity}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
+	action := "cart_item_updated"
+	if request.Quantity <= 0 {
+		action = "cart_item_removed"
+	}
+	slog.InfoContext(ctx, "Cart item changed",
+		"log_type", "state_change",
+		"entity_type", "cart",
+		"entity_id", request.ProductID,
+		"changed_by", uid,
+		slog.Any("after", map[string]any{
+			"product_id": request.ProductID,
+			"quantity":   request.Quantity,
+			"action":     action,
+		}),
+		slog.Any("changed_fields", []string{"quantity"}),
+	)
+
 	context.JSON(http.StatusOK, updatedCart)
 }

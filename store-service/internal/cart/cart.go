@@ -20,7 +20,8 @@ type CartService struct {
 func (cartService CartService) GetCart(ctx context.Context, uid int) (CartResult, error) {
 	carts, err := cartService.CartRepository.GetCartDetail(ctx, uid)
 	if err != nil {
-		slog.ErrorContext(ctx, "CartRepository.GetCartDetail internal error", "error", err)
+		slog.ErrorContext(ctx, "CartRepository.GetCartDetail failed",
+			"log_type", "error", "error_code", "CART_QUERY_FAILED", "error_message", err.Error(), "user_id", uid)
 	}
 
 	totalPrice := 0.0
@@ -64,7 +65,9 @@ func (cartService CartService) AddCart(ctx context.Context, uid int, submitedCar
 	if err == sql.ErrNoRows {
 		_, err := cartService.CartRepository.CreateCart(ctx, uid, submitedCart.ProductID, submitedCart.Quantity)
 		if err != nil {
-			slog.ErrorContext(ctx, "CartRepository.CreateCart internal error", "error", err)
+			slog.ErrorContext(ctx, "CartRepository.CreateCart failed",
+				"log_type", "error", "error_code", "CART_INSERT_FAILED", "error_message", err.Error(),
+				"user_id", uid, "product_id", submitedCart.ProductID)
 			return CartResult{Carts: []CartDetail{}, Summary: CartSummary{}}, err
 		}
 		cartResult, err := cartService.GetCart(ctx, uid)
@@ -76,7 +79,9 @@ func (cartService CartService) AddCart(ctx context.Context, uid int, submitedCar
 
 	err = cartService.CartRepository.UpdateCart(ctx, uid, submitedCart.ProductID, submitedCart.Quantity+cart.Quantity)
 	if err != nil {
-		slog.ErrorContext(ctx, "CartRepository.UpdateCart internal error", "error", err)
+		slog.ErrorContext(ctx, "CartRepository.UpdateCart failed",
+			"log_type", "error", "error_code", "CART_UPDATE_FAILED", "error_message", err.Error(),
+			"user_id", uid, "product_id", submitedCart.ProductID)
 		return CartResult{Carts: []CartDetail{}, Summary: CartSummary{}}, err
 	}
 
@@ -91,7 +96,9 @@ func (cartService CartService) UpdateCart(ctx context.Context, uid int, submited
 	if submitedCart.Quantity <= 0 {
 		err := cartService.CartRepository.DeleteCart(ctx, uid, submitedCart.ProductID)
 		if err != nil {
-			slog.ErrorContext(ctx, "CartRepository.DeleteCart internal error", "error", err)
+			slog.ErrorContext(ctx, "CartRepository.DeleteCart failed",
+				"log_type", "error", "error_code", "CART_DELETE_FAILED", "error_message", err.Error(),
+				"user_id", uid, "product_id", submitedCart.ProductID)
 			return CartResult{
 				Carts:   []CartDetail{},
 				Summary: CartSummary{},
@@ -100,7 +107,9 @@ func (cartService CartService) UpdateCart(ctx context.Context, uid int, submited
 	} else {
 		err := cartService.CartRepository.UpdateCart(ctx, uid, submitedCart.ProductID, submitedCart.Quantity)
 		if err != nil {
-			slog.ErrorContext(ctx, "CartRepository.UpdateCart internal error", "error", err)
+			slog.ErrorContext(ctx, "CartRepository.UpdateCart failed",
+				"log_type", "error", "error_code", "CART_UPDATE_FAILED", "error_message", err.Error(),
+				"user_id", uid, "product_id", submitedCart.ProductID)
 			return CartResult{
 				Carts:   []CartDetail{},
 				Summary: CartSummary{},

@@ -25,10 +25,17 @@ type PointAPI struct {
 // @Failure 500
 // @Router /api/v1/point [post]
 func (api PointAPI) DeductPointHandler(context *gin.Context) {
+	ctx := context.Request.Context()
+
 	var request point.SubmitedPoint
 	if err := context.BindJSON(&request); err != nil {
+		slog.ErrorContext(ctx, "Point deduct bad request",
+			"log_type", "error",
+			"error_code", "INVALID_REQUEST",
+			"error_message", err.Error(),
+			"user_id", 0,
+		)
 		context.String(http.StatusBadRequest, err.Error())
-		slog.Error("bad request", "error", err)
 		return
 	}
 
@@ -37,14 +44,33 @@ func (api PointAPI) DeductPointHandler(context *gin.Context) {
 		uid = 1
 	}
 
-	ctx := context.Request.Context()
 	res, err := api.PointService.DeductPoint(ctx, uid, request)
 	if err != nil {
+		slog.ErrorContext(ctx, "PointService.DeductPoint failed",
+			"log_type", "error",
+			"error_code", "POINT_DEDUCTION_FAILED",
+			"error_message", err.Error(),
+			"user_id", uid,
+			slog.Any("request", map[string]any{"amount": request.Amount}),
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
+	slog.InfoContext(ctx, "Points deducted",
+		"log_type", "business",
+		"event", "points_deducted",
+		"entity_type", "point",
+		"entity_id", uid,
+		"actor_id", uid,
+		slog.Any("metadata", map[string]any{
+			"amount":          request.Amount,
+			"remaining_point": res.Point,
+		}),
+	)
+
 	context.JSON(http.StatusOK, res)
 }
 
@@ -61,11 +87,17 @@ func (api PointAPI) TotalPointHandler(context *gin.Context) {
 	if uidErr != nil {
 		uid = 1
 	}
-	
+
 	ctx := context.Request.Context()
 	res, err := api.PointService.TotalPoint(ctx, uid)
 
 	if err != nil {
+		slog.ErrorContext(ctx, "PointService.TotalPoint failed",
+			"log_type", "error",
+			"error_code", "POINT_QUERY_FAILED",
+			"error_message", err.Error(),
+			"user_id", uid,
+		)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
