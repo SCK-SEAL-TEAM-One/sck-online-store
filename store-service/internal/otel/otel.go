@@ -7,17 +7,15 @@ import (
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	otellog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func InitOtel(ctx context.Context, serviceName, collectorURL, insecureMode string) (func(), error) {
@@ -30,17 +28,21 @@ func InitOtel(ctx context.Context, serviceName, collectorURL, insecureMode strin
 		return nil, err
 	}
 
-	var dialOpts []grpc.DialOption
+	var traceOpts []otlptracehttp.Option
+	var metricOpts []otlpmetrichttp.Option
+	var logOpts []otlploghttp.Option
+
+	traceOpts = append(traceOpts, otlptracehttp.WithEndpoint(collectorURL))
+	metricOpts = append(metricOpts, otlpmetrichttp.WithEndpoint(collectorURL))
+	logOpts = append(logOpts, otlploghttp.WithEndpoint(collectorURL))
+
 	if insecureMode == "true" {
-		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		traceOpts = append(traceOpts, otlptracehttp.WithInsecure())
+		metricOpts = append(metricOpts, otlpmetrichttp.WithInsecure())
+		logOpts = append(logOpts, otlploghttp.WithInsecure())
 	}
 
-	conn, err := grpc.NewClient(collectorURL, dialOpts...)
-	if err != nil {
-		return nil, err
-	}
-
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
+	traceExporter, err := otlptracehttp.New(ctx, traceOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +53,7 @@ func InitOtel(ctx context.Context, serviceName, collectorURL, insecureMode strin
 	)
 	otel.SetTracerProvider(tp)
 
-	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(conn))
+	metricExporter, err := otlpmetrichttp.New(ctx, metricOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +69,7 @@ func InitOtel(ctx context.Context, serviceName, collectorURL, insecureMode strin
 		propagation.Baggage{},
 	))
 
-	logExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithGRPCConn(conn))
+	logExporter, err := otlploghttp.New(ctx, logOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +88,6 @@ func InitOtel(ctx context.Context, serviceName, collectorURL, insecureMode strin
 		_ = tp.Shutdown(shutdownCtx)
 		_ = mp.Shutdown(shutdownCtx)
 		_ = lp.Shutdown(shutdownCtx)
-		_ = conn.Close()
 	}
 
 	return cleanup, nil
