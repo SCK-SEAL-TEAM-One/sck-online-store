@@ -45,6 +45,7 @@
     "@opentelemetry/sdk-trace-base": "^1.27.0",
     "@opentelemetry/semantic-conventions": "^0.24.0",
     "@opentelemetry/tracing": "^0.24.0",
+    "@pyroscope/nodejs": "^0.4.10",
     "mysql2": "^3.9.1",
     "n": "^10.0.0",
     "opentelemetry-instrumentation-typeorm": "^0.41.0",

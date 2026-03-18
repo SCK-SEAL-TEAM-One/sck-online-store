@@ -83,6 +83,22 @@ make build_frontend        # Docker build store-web
 make gen-swagger           # Generate Swagger docs from Go annotations
 ```
 
+### Build & Push for EKS Deployment
+The EKS cluster runs on **linux/amd64** nodes. When building on Apple Silicon (ARM), always use `--platform linux/amd64` to avoid `exec format error` on the cluster:
+```bash
+# Build for EKS (from project root)
+docker build --platform linux/amd64 -t siamchamnankit/store-service:<tag> store-service/
+docker build --platform linux/amd64 -t siamchamnankit/point-service:<tag> point-service/
+
+# Push to Docker Hub
+docker push siamchamnankit/store-service:<tag>
+docker push siamchamnankit/point-service:<tag>
+
+# Deploy to EKS (update image tag in manifests first)
+kubectl apply -f deploy/k8s/store-service/service.yml
+kubectl apply -f deploy/k8s/point-service/service.yml
+```
+
 ## Architecture
 
 ```

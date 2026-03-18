@@ -88,23 +88,60 @@ resource "helm_release" "tempo" {
   namespace        = "monitoring"
   create_namespace = true
 
-  values = [yamlencode({
-    tempo = {
-      metricsGenerator = {
-        enabled       = true
-        remoteWriteUrl = "http://prometheus-server:80/api/v1/write"
-      }
-      resources = {
-        requests = {
-          cpu    = "100m"
-          memory = "256Mi"
-        }
-        limits = {
-          memory = "512Mi"
-        }
-      }
-    }
-  })]
+  values = [<<-EOT
+tempo:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      memory: "2Gi"
+config: |
+  multitenancy_enabled: false
+  usage_report:
+    reporting_enabled: true
+  compactor:
+    compaction:
+      block_retention: 24h
+  distributor:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+  ingester: {}
+  server:
+    http_listen_port: 3100
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+  querier: {}
+  query_frontend: {}
+  overrides:
+    per_tenant_override_config: /conf/overrides.yaml
+    metrics_generator_processors:
+      - local-blocks
+      - service-graphs
+      - span-metrics
+  metrics_generator:
+    storage:
+      path: /tmp/tempo
+      remote_write:
+        - url: http://prometheus-server:80/api/v1/write
+          send_exemplars: true
+    traces_storage:
+      path: /var/tempo/generator/traces
+    processor:
+      local_blocks:
+        filter_server_spans: false
+EOT
+  ]
 
   depends_on = [module.monitoring_eks]
 }
@@ -122,7 +159,8 @@ resource "helm_release" "prometheus" {
   values = [yamlencode({
     server = {
       extraFlags = [
-        "web.enable-remote-write-receiver"
+        "web.enable-remote-write-receiver",
+        "enable-feature=exemplar-storage"
       ]
       persistentVolume = {
         storageClass = "gp2"
@@ -155,6 +193,54 @@ resource "helm_release" "prometheus" {
   depends_on = [module.monitoring_eks]
 }
 
+resource "helm_release" "pyroscope" {
+  provider = helm.monitoring
+
+  name             = "pyroscope"
+  repository       = "https://grafana.github.io/helm-charts"
+  chart            = "pyroscope"
+  version          = "1.7.1"
+  namespace        = "monitoring"
+  create_namespace = true
+
+  values = [yamlencode({
+    pyroscope = {
+      extraArgs = {
+        "store-gateway.sharding-ring.replication-factor" = "1"
+      }
+      resources = {
+        requests = {
+          cpu    = "100m"
+          memory = "256Mi"
+        }
+        limits = {
+          memory = "512Mi"
+        }
+      }
+      persistence = {
+        enabled          = true
+        storageClassName = "gp2"
+        size             = "10Gi"
+      }
+    }
+    alloy = {
+      enabled = false
+    }
+    minio = {
+      enabled = false
+    }
+    service = {
+      type = "LoadBalancer"
+      annotations = {
+        "service.beta.kubernetes.io/aws-load-balancer-type"   = "nlb"
+        "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+      }
+    }
+  })]
+
+  depends_on = [module.monitoring_eks]
+}
+
 resource "helm_release" "grafana" {
   provider = helm.monitoring
 
@@ -168,10 +254,24 @@ resource "helm_release" "grafana" {
   values = [yamlencode({
     adminUser     = "admin"
     adminPassword = "workshop"
-    plugins = [
-      "grafana-lokiexplore-app",
-      "grafana-exploretraces-app",
-      "grafana-metricsdrilldown-app"
+    extraInitContainers = [
+      {
+        name  = "install-plugins"
+        image = "grafana/grafana:12.3.1"
+        command = ["sh", "-c", <<-EOT
+          grafana cli --pluginsDir /var/lib/grafana/plugins plugins install grafana-lokiexplore-app &&
+          grafana cli --pluginsDir /var/lib/grafana/plugins plugins install grafana-exploretraces-app &&
+          grafana cli --pluginsDir /var/lib/grafana/plugins plugins install grafana-metricsdrilldown-app &&
+          grafana cli --pluginsDir /var/lib/grafana/plugins plugins install grafana-pyroscope-app
+        EOT
+        ]
+        volumeMounts = [
+          {
+            name      = "storage"
+            mountPath = "/var/lib/grafana"
+          }
+        ]
+      }
     ]
     "grafana.ini" = {
       "plugin.grafana-lokiexplore-app" = {
@@ -181,6 +281,9 @@ resource "helm_release" "grafana" {
         enabled = true
       }
       "plugin.grafana-metricsdrilldown-app" = {
+        enabled = true
+      }
+      "plugin.grafana-pyroscope-app" = {
         enabled = true
       }
     }
@@ -213,7 +316,20 @@ resource "helm_release" "grafana" {
               tracesToLogsV2 = {
                 datasourceUid = "loki"
               }
+              tracesToProfilesV2 = {
+                datasourceUid = "pyroscope"
+                customQuery   = false
+                profileTypeId = "process_cpu:cpu:nanoseconds:cpu:nanoseconds"
+              }
             }
+            isDefault = false
+          },
+          {
+            name      = "Pyroscope"
+            type      = "grafana-pyroscope-datasource"
+            uid       = "pyroscope"
+            access    = "proxy"
+            url       = "http://pyroscope:4040"
             isDefault = false
           },
           {
@@ -223,6 +339,14 @@ resource "helm_release" "grafana" {
             access    = "proxy"
             url       = "http://prometheus-server:80"
             isDefault = true
+            jsonData = {
+              exemplarTraceIdDestinations = [
+                {
+                  name          = "trace_id"
+                  datasourceUid = "tempo"
+                }
+              ]
+            }
           }
         ]
       }
@@ -256,6 +380,29 @@ resource "helm_release" "grafana" {
         mysql-overview = {
           json = file("${path.module}/../../monitoring/grafana/dashboards/mysql-overview.json")
         }
+        node-exporter = {
+          json = file("${path.module}/../../monitoring/grafana/dashboards/node-exporter.json")
+        }
+        node-exporter-full = {
+          gnetId     = 1860
+          revision   = 37
+          datasource = "Prometheus"
+        }
+        node-exporter-for-prometheus = {
+          gnetId     = 11074
+          revision   = 9
+          datasource = "Prometheus"
+        }
+        k8s-cluster-resources = {
+          gnetId     = 7249
+          revision   = 1
+          datasource = "Prometheus"
+        }
+        k8s-node-pods-resources = {
+          gnetId     = 15760
+          revision   = 2
+          datasource = "Prometheus"
+        }
       }
     }
   })]
@@ -274,7 +421,7 @@ resource "helm_release" "otel_collector" {
   create_namespace = true
 
   values = [yamlencode({
-    mode = "deployment"
+    mode         = "deployment"
     replicaCount = 1
     image = {
       repository = "otel/opentelemetry-collector-contrib"
@@ -337,13 +484,16 @@ resource "helm_release" "otel_collector" {
             { name = "http.route" },
             { name = "http.status_code" }
           ]
-          dimensions_cache_size = 1000
+          exemplars = {
+            enabled = true
+          }
+          dimensions_cache_size   = 1000
           aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE"
-          metrics_flush_interval = "15s"
+          metrics_flush_interval  = "15s"
         }
         servicegraph = {
           latency_histogram_buckets = ["5ms", "10ms", "25ms", "50ms", "100ms", "250ms", "500ms", "1s", "2.5s", "5s"]
-          dimensions              = ["http.method", "http.route"]
+          dimensions                = ["http.method", "http.route"]
           store = {
             ttl       = "10s"
             max_items = 1000
@@ -359,6 +509,9 @@ resource "helm_release" "otel_collector" {
         }
         prometheusremotewrite = {
           endpoint = "http://prometheus-server:80/api/v1/write"
+          resource_to_telemetry_conversion = {
+            enabled = true
+          }
         }
       }
       service = {

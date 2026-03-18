@@ -44,7 +44,7 @@
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;username&quot;:&quot;user_${__threadNum}&quot;,&quot;password&quot;:&quot;P@ssw0rd&quot;}</stringProp>
+                <stringProp name="Argument.value">{&quot;username&quot;:&quot;user_${__intSum(${__P(startId,1)},${__threadNum},-1)}&quot;,&quot;password&quot;:&quot;P@ssw0rd&quot;}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
@@ -313,7 +313,8 @@ for (int i = 1; i &lt;= cartCount; i++) {
     ])
 }
 
-def userId = ctx.getThreadNum() + 1
+def startId = Integer.parseInt(props.get(&quot;startId&quot;) ?: &quot;1&quot;)
+def userId = startId + ctx.getThreadNum()
 def shippingMethodId = new Random().nextInt(3) + 1
 def paymentMethodId = new Random().nextInt(2) + 1
 def totalPrice = (vars.get(&quot;total_price_thb&quot;) ?: &quot;0&quot;).toDouble()

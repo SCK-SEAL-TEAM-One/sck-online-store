@@ -1,5 +1,7 @@
 FROM node:20-alpine3.19 AS builder
 
+RUN apk add --no-cache python3 make g++
+
 ENV NODE_ENV build
 
 USER node

@@ -50,7 +50,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "mysql_uptime",
+          "expr": "mysql_uptime_seconds_total",
           "legendFormat": "",
           "refId": "A"
         }
@@ -96,7 +96,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "mysql_query_slow_count",
+          "expr": "mysql_query_slow_count_total",
           "legendFormat": "",
           "refId": "A"
         }
@@ -120,7 +120,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(mysql_query_count[5m])",
+          "expr": "rate(mysql_query_count_total[5m])",
           "legendFormat": "",
           "refId": "A"
         }
@@ -173,7 +173,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(mysql_connection_errors[5m])",
+          "expr": "rate(mysql_connection_errors_total[5m])",
           "legendFormat": "{{ error }}",
           "refId": "A"
         }
@@ -204,7 +204,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(mysql_commands[5m]) > 0",
+          "expr": "rate(mysql_commands_total[5m]) > 0",
           "legendFormat": "{{ command }}",
           "refId": "A"
         }
@@ -228,7 +228,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(mysql_row_operations[5m])",
+          "expr": "rate(mysql_row_operations_total[5m])",
           "legendFormat": "{{ operation }}",
           "refId": "A"
         }
@@ -282,7 +282,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(mysql_buffer_pool_operations[5m]) > 0",
+          "expr": "rate(mysql_buffer_pool_operations_total[5m]) > 0",
           "legendFormat": "{{ operation }}",
           "refId": "A"
         }
@@ -343,7 +343,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "topk(20, mysql_statement_event_wait_time)",
+          "expr": "topk(20, mysql_statement_event_wait_time_nanoseconds)",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -376,7 +376,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(mysql_table_io_wait_count[5m]) > 0",
+          "expr": "rate(mysql_table_io_wait_count_total[5m]) > 0",
           "legendFormat": "{{ schema }}.{{ table }} ({{ operation }})",
           "refId": "A"
         }
@@ -400,7 +400,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(mysql_sorts[5m])",
+          "expr": "rate(mysql_sorts_total[5m])",
           "legendFormat": "{{ kind }}",
           "refId": "A"
         }
@@ -432,7 +432,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "${DS_LOKI}" },
-          "expr": "{source=\"mysql-slow-query\"}",
+          "expr": "{service_name=\"mysql\"}",
           "refId": "A"
         }
       ]

@@ -15,6 +15,7 @@ import (
 	"store-service/internal/metrics"
 	storeOtel "store-service/internal/otel"
 	"store-service/internal/order"
+	"store-service/internal/profiling"
 	"store-service/internal/payment"
 	"store-service/internal/shipping"
 	"store-service/internal/user"
@@ -25,9 +26,11 @@ import (
 
 	"github.com/XSAM/otelsql"
 	"github.com/gin-contrib/cors"
+	otelpyroscope "github.com/grafana/otel-profiling-go"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"go.opentelemetry.io/otel"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	_ "store-service/cmd/docs"
@@ -44,6 +47,7 @@ var (
 	serviceName  = os.Getenv("OTEL_SERVICE_NAME")
 	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	insecure     = os.Getenv("INSECURE_MODE")
+	pyroscopeURL = os.Getenv("PYROSCOPE_URL")
 )
 
 func main() {
@@ -57,6 +61,20 @@ func main() {
 		}
 		defer cleanup()
 		metrics.Init()
+	}
+
+	if pyroscopeURL != "" {
+		profiler, err := profiling.StartPyroscope(pyroscopeURL, serviceName)
+		if err != nil {
+			log.Printf("failed to start Pyroscope profiler: %v", err)
+		} else {
+			defer profiler.Stop()
+			otel.SetTracerProvider(otelpyroscope.NewTracerProvider(otel.GetTracerProvider(),
+				otelpyroscope.WithAppName(serviceName),
+				otelpyroscope.WithPyroscopeURL(pyroscopeURL),
+				otelpyroscope.WithProfileURL(true),
+			))
+		}
 	}
 
 	http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)

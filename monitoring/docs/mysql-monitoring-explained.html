@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL Monitoring — OTel Collector vs mysqld_exporter</title>
+<style>
+  :root {
+    --transition: 0.3s ease;
+  }
+  [data-theme="dark"] {
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card-alt: #334155;
+    --bg-code: #0d1117;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-heading: #f1f5f9;
+    --accent: #38bdf8;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --accent4: #fb923c;
+    --border: #334155;
+    --highlight: rgba(56, 189, 248, 0.1);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --tag-bg: rgba(56, 189, 248, 0.15);
+    --tag-text: #38bdf8;
+    --flow-line: #475569;
+    --table-stripe: #1a2332;
+    --toggle-bg: #334155;
+    --toggle-dot: #f1f5f9;
+    --sun: #94a3b8;
+    --moon: #fbbf24;
+  }
+  [data-theme="light"] {
+    --bg: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-card-alt: #f1f5f9;
+    --bg-code: #f6f8fa;
+    --text: #334155;
+    --text-muted: #64748b;
+    --text-heading: #0f172a;
+    --accent: #0284c7;
+    --accent2: #7c3aed;
+    --accent3: #059669;
+    --accent4: #ea580c;
+    --border: #e2e8f0;
+    --highlight: rgba(2, 132, 199, 0.08);
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --tag-bg: rgba(2, 132, 199, 0.1);
+    --tag-text: #0284c7;
+    --flow-line: #cbd5e1;
+    --table-stripe: #f8fafc;
+    --toggle-bg: #e2e8f0;
+    --toggle-dot: #ffffff;
+    --sun: #f59e0b;
+    --moon: #94a3b8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    transition: background var(--transition), color var(--transition);
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+  header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    letter-spacing: -0.02em;
+  }
+  header h1 span { color: var(--accent); }
+
+  /* Theme toggle */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .theme-toggle svg { width: 18px; height: 18px; transition: color var(--transition); }
+  .sun-icon { color: var(--sun); }
+  .moon-icon { color: var(--moon); }
+  .toggle-track {
+    width: 44px;
+    height: 24px;
+    background: var(--toggle-bg);
+    border-radius: 12px;
+    position: relative;
+    transition: background var(--transition);
+  }
+  .toggle-dot {
+    width: 18px;
+    height: 18px;
+    background: var(--toggle-dot);
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform var(--transition), background var(--transition);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  [data-theme="light"] .toggle-dot { transform: translateX(20px); }
+
+  /* Section */
+  section { margin-bottom: 3rem; }
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin: 1.5rem 0 0.75rem;
+  }
+  p { margin-bottom: 0.75rem; color: var(--text); }
+  .muted { color: var(--text-muted); font-size: 0.9rem; }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: var(--shadow);
+    transition: background var(--transition), border var(--transition), box-shadow var(--transition);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--text-heading);
+    font-size: 0.95rem;
+  }
+  .card-header .icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .icon-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+  .icon-purple { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
+  .icon-green { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+  .icon-orange { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+
+  /* Code blocks */
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    margin: 0.75rem 0;
+    transition: background var(--transition), border var(--transition);
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.82rem;
+  }
+  .keyword { color: var(--accent2); }
+  .string { color: var(--accent3); }
+  .comment { color: var(--text-muted); font-style: italic; }
+  .value { color: var(--accent4); }
+  .key { color: var(--accent); }
+
+  /* Inline code */
+  p code, li code, td code {
+    background: var(--bg-card-alt);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: var(--accent);
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tag-metrics { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+  .tag-logs { background: rgba(167, 139, 250, 0.15); color: var(--accent2); }
+  .tag-push { background: rgba(52, 211, 153, 0.15); color: var(--accent3); }
+  .tag-pull { background: rgba(251, 146, 60, 0.15); color: var(--accent4); }
+
+  /* Architecture diagram */
+  .diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    transition: background var(--transition), border var(--transition);
+  }
+  .diagram svg { display: block; margin: 0 auto; }
+
+  /* Flow animation */
+  @keyframes flowRight {
+    0% { stroke-dashoffset: 16; }
+    100% { stroke-dashoffset: 0; }
+  }
+  @keyframes flowDown {
+    0% { stroke-dashoffset: 16; }
+    100% { stroke-dashoffset: 0; }
+  }
+  .flow-animated {
+    stroke-dasharray: 8 8;
+    animation: flowRight 1s linear infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+
+  /* Table */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 1rem 0;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th {
+    background: var(--bg-card-alt);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-heading);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--table-stripe); }
+  tr:last-child td { border-bottom: none; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 0;
+  }
+  .tab-btn {
+    padding: 0.65rem 1.25rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: color var(--transition);
+    font-family: inherit;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .tab-panel { display: none; padding: 1.25rem 0; }
+  .tab-panel.active { display: block; }
+
+  /* Collapsible */
+  .collapsible {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 0.75rem 0;
+    overflow: hidden;
+    transition: border var(--transition);
+  }
+  .collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    background: var(--bg-card);
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-heading);
+    transition: background var(--transition);
+  }
+  .collapsible-header:hover { background: var(--bg-card-alt); }
+  .collapsible-chevron {
+    transition: transform 0.2s ease;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+  .collapsible.open .collapsible-chevron { transform: rotate(180deg); }
+  .collapsible-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: var(--bg-card);
+  }
+  .collapsible.open .collapsible-body { max-height: 1200px; }
+  .collapsible-body-inner { padding: 0 1.25rem 1rem; }
+
+  /* Lists */
+  ul { margin: 0.5rem 0 0.75rem 1.25rem; }
+  li { margin-bottom: 0.35rem; }
+  li::marker { color: var(--accent); }
+
+  /* Verdict box */
+  .verdict {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(167, 139, 250, 0.08));
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .verdict h3 { margin-top: 0; color: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .container { padding: 1rem; }
+    header h1 { font-size: 1.25rem; }
+    pre { font-size: 0.75rem; padding: 0.75rem; }
+    .diagram { padding: 1rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>MySQL Monitoring <span>Explained</span></h1>
+  <div class="theme-toggle" onclick="toggleTheme()">
+    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <div class="toggle-track"><div class="toggle-dot"></div></div>
+    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </div>
+</header>
+
+<!-- ============================================ -->
+<!-- SECTION 1: my.cnf -->
+<!-- ============================================ -->
+<section>
+  <h2><span class="num">1</span> Enable MySQL Instrumentation</h2>
+  <p>Everything starts with <code>monitoring/database/my.cnf</code>, mounted into MySQL as <code>/etc/mysql/conf.d/slow-query.cnf</code>.</p>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="icon icon-blue">&#9881;</div>
+      my.cnf Configuration
+    </div>
+<pre><code><span class="comment"># monitoring/database/my.cnf</span>
+<span class="key">[mysqld]</span>
+<span class="key">slow_query_log</span>              = <span class="value">1</span>                        <span class="comment"># Enable slow query logging</span>
+<span class="key">slow_query_log_file</span>         = <span class="string">/var/log/mysql/slow.log</span>  <span class="comment"># Output file path</span>
+<span class="key">long_query_time</span>             = <span class="value">0.5</span>                      <span class="comment"># Threshold: queries > 500ms</span>
+<span class="key">log_queries_not_using_indexes</span> = <span class="value">1</span>                      <span class="comment"># Also log full-scan queries</span>
+<span class="key">performance_schema</span>          = <span class="value">ON</span>                       <span class="comment"># Enable internal stats tables</span></code></pre>
+
+    <p class="muted">This unlocks two data sources from MySQL:</p>
+    <ul>
+      <li><strong>Slow query log file</strong> — raw text log of every slow / unindexed query</li>
+      <li><strong>Performance Schema tables</strong> — structured stats like <code>events_statements_summary_by_digest</code>, <code>table_io_waits_summary_by_table</code></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 2: Architecture Diagram -->
+<!-- ============================================ -->
+<section>
+  <h2><span class="num">2</span> Architecture — OTel Collector Approach</h2>
+  <p>A single OTel Collector sidecar handles <span class="tag tag-metrics">metrics</span> and <span class="tag tag-logs">logs</span> in one unified pipeline.</p>
+
+  <div class="diagram" id="otel-diagram">
+    <svg viewBox="0 0 820 340" width="100%" style="max-width:820px">
+      <!-- MySQL box -->
+      <rect x="20" y="60" width="180" height="220" rx="12" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+      <text x="110" y="48" text-anchor="middle" fill="var(--text-heading)" font-weight="700" font-size="14" font-family="Inter, system-ui">MySQL Pod</text>
+      <!-- MySQL container -->
+      <rect x="35" y="80" width="150" height="80" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="110" y="110" text-anchor="middle" fill="var(--accent)" font-weight="600" font-size="12" font-family="Inter, system-ui">MySQL 8.3</text>
+      <text x="110" y="130" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="monospace">:3306</text>
+      <text x="110" y="148" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">performance_schema</text>
+      <!-- Slow log -->
+      <rect x="35" y="185" width="150" height="35" rx="6" fill="var(--highlight)" stroke="var(--accent2)" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="110" y="207" text-anchor="middle" fill="var(--accent2)" font-size="10" font-family="monospace">slow.log</text>
+      <!-- Shared volume label -->
+      <text x="110" y="245" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Inter, system-ui">emptyDir volume</text>
+      <text x="110" y="258" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Inter, system-ui">/var/log/mysql/</text>
+
+      <!-- Arrow MySQL → slow.log -->
+      <line x1="110" y1="160" x2="110" y2="185" stroke="var(--accent2)" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+      <!-- OTel Collector box -->
+      <rect x="280" y="60" width="230" height="220" rx="12" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+      <text x="395" y="48" text-anchor="middle" fill="var(--text-heading)" font-weight="700" font-size="14" font-family="Inter, system-ui">OTel Collector Contrib</text>
+      <text x="395" y="30" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="Inter, system-ui">(sidecar container)</text>
+
+      <!-- mysql receiver -->
+      <rect x="295" y="80" width="200" height="55" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="395" y="100" text-anchor="middle" fill="var(--accent)" font-weight="600" font-size="11" font-family="Inter, system-ui">mysql receiver</text>
+      <text x="395" y="118" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">SQL queries every 15s</text>
+      <text x="470" y="78" text-anchor="middle" fill="var(--accent)" font-size="9" font-weight="600" font-family="Inter, system-ui">METRICS</text>
+
+      <!-- filelog receiver -->
+      <rect x="295" y="155" width="200" height="55" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent2)" stroke-width="1.5"/>
+      <text x="395" y="175" text-anchor="middle" fill="var(--accent2)" font-weight="600" font-size="11" font-family="Inter, system-ui">filelog receiver</text>
+      <text x="395" y="193" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">tails slow.log</text>
+      <text x="470" y="153" text-anchor="middle" fill="var(--accent2)" font-size="9" font-weight="600" font-family="Inter, system-ui">LOGS</text>
+
+      <!-- resource processor -->
+      <rect x="295" y="230" width="200" height="35" rx="6" fill="var(--highlight)" stroke="var(--border)" stroke-width="1"/>
+      <text x="395" y="252" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="monospace">resource/mysql processor</text>
+
+      <!-- Arrows: MySQL → OTel -->
+      <line x1="185" y1="115" x2="295" y2="107" stroke="var(--accent)" stroke-width="1.5" class="flow-animated"/>
+      <line x1="185" y1="202" x2="295" y2="182" stroke="var(--accent2)" stroke-width="1.5" class="flow-animated"/>
+
+      <!-- Monitoring Cluster box -->
+      <rect x="580" y="20" width="220" height="300" rx="12" fill="none" stroke="var(--accent3)" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <text x="690" y="14" text-anchor="middle" fill="var(--accent3)" font-weight="600" font-size="11" font-family="Inter, system-ui">Monitoring Cluster</text>
+
+      <!-- OTel Collector (monitoring) -->
+      <rect x="600" y="40" width="180" height="45" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent3)" stroke-width="1.5"/>
+      <text x="690" y="60" text-anchor="middle" fill="var(--accent3)" font-weight="600" font-size="11" font-family="Inter, system-ui">OTel Collector</text>
+      <text x="690" y="76" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">NLB :4318 (HTTP)</text>
+
+      <!-- Prometheus -->
+      <rect x="600" y="110" width="180" height="45" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent4)" stroke-width="1.5"/>
+      <text x="690" y="130" text-anchor="middle" fill="var(--accent4)" font-weight="600" font-size="11" font-family="Inter, system-ui">Prometheus</text>
+      <text x="690" y="146" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">remote write</text>
+
+      <!-- Loki -->
+      <rect x="600" y="180" width="180" height="45" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent2)" stroke-width="1.5"/>
+      <text x="690" y="200" text-anchor="middle" fill="var(--accent2)" font-weight="600" font-size="11" font-family="Inter, system-ui">Loki</text>
+      <text x="690" y="216" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">OTLP ingest</text>
+
+      <!-- Grafana -->
+      <rect x="620" y="255" width="140" height="50" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent3)" stroke-width="2"/>
+      <text x="690" y="278" text-anchor="middle" fill="var(--accent3)" font-weight="700" font-size="13" font-family="Inter, system-ui">Grafana</text>
+      <text x="690" y="296" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">dashboards</text>
+
+      <!-- Arrows: OTel sidecar → Monitoring OTel -->
+      <path d="M510,107 C545,107 565,62 600,62" fill="none" stroke="var(--accent)" stroke-width="1.5" class="flow-animated" marker-end="url(#arrowBlue)"/>
+      <path d="M510,182 C545,182 565,62 600,62" fill="none" stroke="var(--accent2)" stroke-width="1.5" class="flow-animated" marker-end="url(#arrowPurple)"/>
+
+      <!-- Arrows: Monitoring OTel → Prometheus/Loki -->
+      <line x1="690" y1="85" x2="690" y2="110" stroke="var(--accent4)" stroke-width="1.5" marker-end="url(#arrowOrange)"/>
+      <line x1="690" y1="85" x2="690" y2="180" stroke="var(--accent2)" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+      <!-- Arrows: Prom/Loki → Grafana -->
+      <line x1="660" y1="155" x2="660" y2="255" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="720" y1="225" x2="720" y2="255" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3 3"/>
+
+      <!-- Labels on arrows -->
+      <text x="540" y="55" text-anchor="middle" fill="var(--accent)" font-size="9" font-weight="600" font-family="Inter, system-ui" class="pulse">OTLP/HTTP</text>
+      <text x="245" y="102" text-anchor="middle" fill="var(--accent)" font-size="8" font-family="Inter, system-ui">SQL</text>
+      <text x="245" y="190" text-anchor="middle" fill="var(--accent2)" font-size="8" font-family="Inter, system-ui">file read</text>
+
+      <!-- Marker definitions -->
+      <defs>
+        <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/></marker>
+        <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent2)"/></marker>
+        <marker id="arrowOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent4)"/></marker>
+        <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent3)"/></marker>
+      </defs>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 3: OTel Collector Config -->
+<!-- ============================================ -->
+<section>
+  <h2><span class="num">3</span> OTel Collector Configuration</h2>
+  <p>The sidecar config has two receivers feeding two pipelines through one exporter.</p>
+
+  <div class="collapsible open" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header">
+      <span><span class="tag tag-metrics">metrics</span>&ensp;mysql receiver — SQL-based scraping</span>
+      <span class="collapsible-chevron">&#9660;</span>
+    </div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="key">receivers</span>:
+  <span class="key">mysql</span>:
+    <span class="key">endpoint</span>: <span class="string">127.0.0.1:3306</span>          <span class="comment"># localhost in same pod</span>
+    <span class="key">username</span>: <span class="string">${env:DB_USERNAME}</span>       <span class="comment"># from K8s secret</span>
+    <span class="key">password</span>: <span class="string">${env:DB_PASSWORD}</span>
+    <span class="key">collection_interval</span>: <span class="value">15s</span>
+    <span class="key">statement_events</span>:               <span class="comment"># queries performance_schema</span>
+      <span class="key">digest_text_limit</span>: <span class="value">120</span>
+      <span class="key">time_limit</span>: <span class="value">24h</span>
+      <span class="key">limit</span>: <span class="value">250</span></code></pre>
+      <p class="muted">Internally runs SQL like <code>SHOW GLOBAL STATUS</code>, <code>SELECT ... FROM performance_schema.events_statements_summary_by_digest</code>, etc.</p>
+      <p class="muted">Produces metrics: <code>mysql_commands_total</code>, <code>mysql_query_count_total</code>, <code>mysql_threads</code>, <code>mysql_table_io_wait_count_total</code>, <code>mysql_statement_event_count</code>, and 28 more.</p>
+    </div></div>
+  </div>
+
+  <div class="collapsible" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header">
+      <span><span class="tag tag-logs">logs</span>&ensp;filelog receiver — tailing slow.log</span>
+      <span class="collapsible-chevron">&#9660;</span>
+    </div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="key">receivers</span>:
+  <span class="key">filelog/slow_query</span>:
+    <span class="key">include</span>:
+      - <span class="string">/var/log/mysql/slow.log</span>    <span class="comment"># shared emptyDir volume</span>
+    <span class="key">multiline</span>:
+      <span class="key">line_start_pattern</span>: <span class="string">'^# Time:'</span> <span class="comment"># each entry starts with timestamp</span></code></pre>
+      <p class="muted">Groups multi-line slow query entries into single log records:</p>
+<pre><code><span class="comment"># Time: 2026-03-17T22:43:24.799660Z</span>
+<span class="comment"># User@Host: user[user] @ [10.0.1.209]  Id: 10</span>
+<span class="comment"># Query_time: 0.52  Lock_time: 0.00  Rows_sent: 150  Rows_examined: 15000</span>
+<span class="string">SELECT * FROM orders WHERE status = 'pending';</span></code></pre>
+    </div></div>
+  </div>
+
+  <div class="collapsible" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header">
+      <span>Pipelines — how data flows through</span>
+      <span class="collapsible-chevron">&#9660;</span>
+    </div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="key">service</span>:
+  <span class="key">pipelines</span>:
+    <span class="key">metrics</span>:                         <span class="comment"># Pipeline 1: MySQL stats → Prometheus</span>
+      <span class="key">receivers</span>:  [<span class="string">mysql</span>]
+      <span class="key">processors</span>: [<span class="string">resource/mysql</span>]
+      <span class="key">exporters</span>:  [<span class="string">otlphttp</span>]          <span class="comment"># → monitoring cluster NLB :4318</span>
+    <span class="key">logs</span>:                             <span class="comment"># Pipeline 2: slow.log → Loki</span>
+      <span class="key">receivers</span>:  [<span class="string">filelog/slow_query</span>]
+      <span class="key">processors</span>: [<span class="string">resource/mysql</span>]    <span class="comment"># adds service.name=mysql</span>
+      <span class="key">exporters</span>:  [<span class="string">otlphttp</span>]          <span class="comment"># → same endpoint, routed to Loki</span></code></pre>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 4: What Grafana Sees -->
+<!-- ============================================ -->
+<section>
+  <h2><span class="num">4</span> What Grafana Dashboard Shows</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>Panel</th><th>Source</th><th>Query</th><th>What It Answers</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Commands / sec</td>
+          <td><span class="tag tag-metrics">prometheus</span></td>
+          <td><code>rate(mysql_commands_total[5m])</code></td>
+          <td>SELECT vs INSERT vs UPDATE breakdown</td>
+        </tr>
+        <tr>
+          <td>Queries / sec</td>
+          <td><span class="tag tag-metrics">prometheus</span></td>
+          <td><code>rate(mysql_query_count_total[5m])</code></td>
+          <td>Total query throughput</td>
+        </tr>
+        <tr>
+          <td>Threads</td>
+          <td><span class="tag tag-metrics">prometheus</span></td>
+          <td><code>mysql_threads</code></td>
+          <td>Connection pool usage</td>
+        </tr>
+        <tr>
+          <td>Table I/O Waits</td>
+          <td><span class="tag tag-metrics">prometheus</span></td>
+          <td><code>rate(mysql_table_io_wait_count_total[5m])</code></td>
+          <td>Which tables are hot?</td>
+        </tr>
+        <tr>
+          <td>Top Statements</td>
+          <td><span class="tag tag-metrics">prometheus</span></td>
+          <td><code>mysql_statement_event_count</code></td>
+          <td>Heaviest queries by exec count</td>
+        </tr>
+        <tr>
+          <td>Buffer Pool Pages</td>
+          <td><span class="tag tag-metrics">prometheus</span></td>
+          <td><code>mysql_buffer_pool_pages</code></td>
+          <td>InnoDB cache hit ratio</td>
+        </tr>
+        <tr>
+          <td>Slow Query Log</td>
+          <td><span class="tag tag-logs">loki</span></td>
+          <td><code>{service_name="mysql"}</code></td>
+          <td>Actual slow SQL text for debugging</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 5: Alternative — mysqld_exporter -->
+<!-- ============================================ -->
+<section>
+  <h2><span class="num">5</span> Alternative: mysqld_exporter</h2>
+  <p>The <strong>Prometheus community mysqld_exporter</strong> is the traditional approach. Key difference: it's <span class="tag tag-pull">pull</span> based vs OTel's <span class="tag tag-push">push</span> model.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 820 200" width="100%" style="max-width:820px">
+      <!-- MySQL -->
+      <rect x="30" y="60" width="160" height="80" rx="10" fill="var(--bg-card-alt)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="110" y="95" text-anchor="middle" fill="var(--accent)" font-weight="600" font-size="13" font-family="Inter, system-ui">MySQL</text>
+      <text x="110" y="115" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="monospace">:3306</text>
+
+      <!-- mysqld_exporter -->
+      <rect x="260" y="60" width="200" height="80" rx="10" fill="var(--bg-card-alt)" stroke="var(--accent4)" stroke-width="1.5"/>
+      <text x="360" y="90" text-anchor="middle" fill="var(--accent4)" font-weight="600" font-size="13" font-family="Inter, system-ui">mysqld_exporter</text>
+      <text x="360" y="112" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="monospace">:9104/metrics</text>
+      <text x="360" y="128" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Inter, system-ui">Prometheus format</text>
+
+      <!-- Prometheus -->
+      <rect x="530" y="60" width="160" height="80" rx="10" fill="var(--bg-card-alt)" stroke="var(--accent4)" stroke-width="1.5"/>
+      <text x="610" y="95" text-anchor="middle" fill="var(--accent4)" font-weight="600" font-size="13" font-family="Inter, system-ui">Prometheus</text>
+      <text x="610" y="115" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="monospace">scrape_configs</text>
+
+      <!-- Grafana -->
+      <rect x="700" y="70" width="100" height="60" rx="10" fill="var(--bg-card-alt)" stroke="var(--accent3)" stroke-width="2"/>
+      <text x="750" y="105" text-anchor="middle" fill="var(--accent3)" font-weight="700" font-size="13" font-family="Inter, system-ui">Grafana</text>
+
+      <!-- Arrows -->
+      <line x1="190" y1="100" x2="260" y2="100" stroke="var(--accent)" stroke-width="1.5" class="flow-animated" marker-end="url(#arrowBlue)"/>
+      <text x="225" y="92" text-anchor="middle" fill="var(--text-muted)" font-size="8" font-family="Inter, system-ui">SQL</text>
+
+      <line x1="530" y1="100" x2="460" y2="100" stroke="var(--accent4)" stroke-width="1.5" class="flow-animated" marker-start="url(#arrowOrange)"/>
+      <text x="495" y="92" text-anchor="middle" fill="var(--accent4)" font-size="8" font-weight="600" font-family="Inter, system-ui">PULL</text>
+      <text x="495" y="120" text-anchor="middle" fill="var(--text-muted)" font-size="8" font-family="Inter, system-ui">/metrics</text>
+
+      <line x1="690" y1="100" x2="700" y2="100" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="3 3"/>
+
+      <!-- No logs label -->
+      <rect x="260" y="155" width="200" height="28" rx="6" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="360" y="174" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="Inter, system-ui">No logs support</text>
+    </svg>
+  </div>
+
+  <!-- Tabs: side-by-side config comparison -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(event, 'tab-exporter')">mysqld_exporter Config</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-scrape')">Prometheus scrape_config</button>
+  </div>
+
+  <div id="tab-exporter" class="tab-panel active">
+    <div class="card">
+      <div class="card-header"><div class="icon icon-orange">&#9881;</div> K8s Deployment (sidecar)</div>
+<pre><code><span class="key">- name</span>: <span class="string">mysqld-exporter</span>
+  <span class="key">image</span>: <span class="string">prom/mysqld-exporter:latest</span>
+  <span class="key">env</span>:
+    - <span class="key">name</span>: <span class="string">DATA_SOURCE_NAME</span>
+      <span class="key">value</span>: <span class="string">"user:password@(127.0.0.1:3306)/"</span>
+  <span class="key">args</span>:
+    - <span class="string">--collect.info_schema.tables</span>
+    - <span class="string">--collect.perf_schema.tableiowaits</span>
+    - <span class="string">--collect.perf_schema.eventsstatements</span>
+  <span class="key">ports</span>:
+    - <span class="key">containerPort</span>: <span class="value">9104</span></code></pre>
+    </div>
+  </div>
+
+  <div id="tab-scrape" class="tab-panel">
+    <div class="card">
+      <div class="card-header"><div class="icon icon-orange">&#9881;</div> Prometheus Configuration</div>
+<pre><code><span class="key">scrape_configs</span>:
+  - <span class="key">job_name</span>: <span class="string">mysql</span>
+    <span class="key">scrape_interval</span>: <span class="value">15s</span>
+    <span class="key">static_configs</span>:
+      - <span class="key">targets</span>: [<span class="string">'mysql:9104'</span>]    <span class="comment"># K8s service pointing to exporter</span></code></pre>
+      <p class="muted">Prometheus must be able to reach the exporter. In a cross-cluster setup, this requires either:</p>
+      <ul>
+        <li>Prometheus in the same cluster as MySQL</li>
+        <li>Prometheus federation or remote-write from a local Prometheus</li>
+        <li>ServiceMonitor CRD if using Prometheus Operator</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SECTION 6: Comparison Table -->
+<!-- ============================================ -->
+<section>
+  <h2><span class="num">6</span> Head-to-Head Comparison</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th style="color:var(--accent)">OTel Collector mysql receiver</th>
+          <th style="color:var(--accent4)">mysqld_exporter</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Model</strong></td>
+          <td><span class="tag tag-push">push</span> OTLP → remote write</td>
+          <td><span class="tag tag-pull">pull</span> Prometheus scrapes /metrics</td>
+        </tr>
+        <tr>
+          <td><strong>Metrics</strong></td>
+          <td><code>mysql_commands_total</code>, <code>mysql_threads</code>, etc.</td>
+          <td><code>mysql_global_status_com_select</code>, <code>mysql_global_status_threads_connected</code></td>
+        </tr>
+        <tr>
+          <td><strong>Logs</strong></td>
+          <td>Yes — filelog receiver tails slow.log</td>
+          <td>No — metrics only</td>
+        </tr>
+        <tr>
+          <td><strong>Cross-cluster</strong></td>
+          <td>Easy — push to NLB endpoint</td>
+          <td>Hard — need Prometheus in app cluster or federation</td>
+        </tr>
+        <tr>
+          <td><strong>Community dashboards</strong></td>
+          <td>Custom (must match OTel metric names)</td>
+          <td>Grafana ID 7362, 14057 (pre-built, battle-tested)</td>
+        </tr>
+        <tr>
+          <td><strong>Config complexity</strong></td>
+          <td>YAML receivers/pipelines/exporters</td>
+          <td>One env var + collector flags</td>
+        </tr>
+        <tr>
+          <td><strong>Ecosystem fit</strong></td>
+          <td>Best when already using OTel (unified pipeline)</td>
+          <td>Best for pure Prometheus stack</td>
+        </tr>
+        <tr>
+          <td><strong>Maintained by</strong></td>
+          <td>OpenTelemetry (CNCF)</td>
+          <td>Prometheus (CNCF)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="verdict">
+    <h3>Why OTel Collector for this project?</h3>
+    <ul>
+      <li><strong>Unified pipeline</strong> — one sidecar handles both metrics AND slow query logs</li>
+      <li><strong>Cross-cluster push</strong> — workshop cluster pushes to monitoring cluster NLB, no need for Prometheus in app cluster</li>
+      <li><strong>Consistent with other services</strong> — store-service, point-service, thirdparty all use OTLP already</li>
+      <li><strong>Single exporter</strong> — everything goes through one OTLP/HTTP endpoint</li>
+    </ul>
+    <p class="muted" style="margin-top:0.75rem">If you were running a pure Prometheus stack with everything in one cluster, <code>mysqld_exporter</code> + a separate log shipper (Promtail/Alloy) would be a perfectly valid choice with better community dashboard support.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+}
+
+function toggleCollapsible(el) {
+  el.classList.toggle('open');
+}
+
+function switchTab(e, tabId) {
+  const container = e.target.closest('section');
+  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+</body>
+</html>

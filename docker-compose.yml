@@ -16,6 +16,7 @@ services:
       - INSECURE_MODE=true
       - OTEL_SERVICE_NAME=store-service
       - JWT_SECRET=my-secret-key
+      - PYROSCOPE_URL=http://lgtm:4040
 
     depends_on:
       db:
@@ -42,6 +43,7 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4317
       - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
       - NODE_DEBUG=otel
+      - PYROSCOPE_URL=http://lgtm:4040
     restart: always
 
   db:
@@ -152,6 +154,7 @@ services:
     image: grafana/otel-lgtm
     container_name: lgtm
     ports:
+      - "4040:4040"
       - "4317:4317"
       - "4318:4318"
       - "3001:3000" # dashboard

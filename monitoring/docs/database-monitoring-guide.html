@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Monitoring Guide — MySQL / PostgreSQL / MSSQL / Oracle</title>
+<style>
+  :root { --transition: 0.3s ease; }
+  [data-theme="dark"] {
+    --bg: #0f172a; --bg-card: #1e293b; --bg-card-alt: #334155; --bg-code: #0d1117;
+    --text: #e2e8f0; --text-muted: #94a3b8; --text-heading: #f1f5f9;
+    --accent: #38bdf8; --accent2: #a78bfa; --accent3: #34d399; --accent4: #fb923c; --accent5: #f472b6;
+    --border: #334155; --highlight: rgba(56,189,248,0.1); --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --table-stripe: #1a2332; --toggle-bg: #334155; --toggle-dot: #f1f5f9;
+    --sun: #94a3b8; --moon: #fbbf24;
+    --mysql-color: #00758f; --pg-color: #336791; --mssql-color: #cc2927; --oracle-color: #f80000;
+    --mysql-bg: rgba(0,117,143,0.12); --pg-bg: rgba(51,103,145,0.12); --mssql-bg: rgba(204,41,39,0.12); --oracle-bg: rgba(248,0,0,0.10);
+  }
+  [data-theme="light"] {
+    --bg: #f8fafc; --bg-card: #ffffff; --bg-card-alt: #f1f5f9; --bg-code: #f6f8fa;
+    --text: #334155; --text-muted: #64748b; --text-heading: #0f172a;
+    --accent: #0284c7; --accent2: #7c3aed; --accent3: #059669; --accent4: #ea580c; --accent5: #db2777;
+    --border: #e2e8f0; --highlight: rgba(2,132,199,0.08); --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --table-stripe: #f8fafc; --toggle-bg: #e2e8f0; --toggle-dot: #ffffff;
+    --sun: #f59e0b; --moon: #94a3b8;
+    --mysql-color: #00678a; --pg-color: #336791; --mssql-color: #cc2927; --oracle-color: #c74634;
+    --mysql-bg: rgba(0,103,138,0.08); --pg-bg: rgba(51,103,145,0.08); --mssql-bg: rgba(204,41,39,0.06); --oracle-bg: rgba(199,70,52,0.06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; transition: background var(--transition), color var(--transition); }
+  .container { max-width: 1020px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Header */
+  header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+  header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-heading); letter-spacing: -0.02em; }
+  header h1 span { color: var(--accent); }
+  .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+
+  /* Theme toggle */
+  .theme-toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; flex-shrink: 0; }
+  .theme-toggle svg { width: 18px; height: 18px; transition: color var(--transition); }
+  .sun-icon { color: var(--sun); } .moon-icon { color: var(--moon); }
+  .toggle-track { width: 44px; height: 24px; background: var(--toggle-bg); border-radius: 12px; position: relative; transition: background var(--transition); }
+  .toggle-dot { width: 18px; height: 18px; background: var(--toggle-dot); border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform var(--transition), background var(--transition); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  [data-theme="light"] .toggle-dot { transform: translateX(20px); }
+
+  /* Database selector */
+  .db-selector { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .db-btn {
+    padding: 0.55rem 1.1rem; border: 2px solid var(--border); border-radius: 10px;
+    background: var(--bg-card); color: var(--text-muted); font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s ease; font-family: inherit; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .db-btn:hover { border-color: var(--text-muted); color: var(--text); }
+  .db-btn.active { color: var(--text-heading); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .db-btn[data-db="mysql"].active { border-color: var(--mysql-color); background: var(--mysql-bg); }
+  .db-btn[data-db="pg"].active { border-color: var(--pg-color); background: var(--pg-bg); }
+  .db-btn[data-db="mssql"].active { border-color: var(--mssql-color); background: var(--mssql-bg); }
+  .db-btn[data-db="oracle"].active { border-color: var(--oracle-color); background: var(--oracle-bg); }
+  .db-logo { width: 22px; height: 22px; border-radius: 4px; }
+
+  /* DB content panels */
+  .db-panel { display: none; }
+  .db-panel.active { display: block; }
+
+  /* Section */
+  section { margin-bottom: 2.5rem; }
+  h2 { font-size: 1.25rem; font-weight: 700; color: var(--text-heading); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; letter-spacing: -0.01em; }
+  h2 .num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; color: #fff; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+  .num-mysql { background: var(--mysql-color); } .num-pg { background: var(--pg-color); } .num-mssql { background: var(--mssql-color); } .num-oracle { background: var(--oracle-color); }
+  h3 { font-size: 1rem; font-weight: 600; color: var(--text-heading); margin: 1.25rem 0 0.5rem; }
+  p { margin-bottom: 0.75rem; } .muted { color: var(--text-muted); font-size: 0.88rem; }
+
+  /* Cards */
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; margin: 1rem 0; box-shadow: var(--shadow); transition: background var(--transition), border var(--transition); }
+  .card-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-heading); font-size: 0.95rem; }
+  .card-header .icon { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+
+  /* Code */
+  pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.15rem; overflow-x: auto; font-size: 0.8rem; line-height: 1.6; margin: 0.75rem 0; transition: background var(--transition), border var(--transition); }
+  code { font-family: 'JetBrains Mono','Fira Code','Cascadia Code',monospace; font-size: 0.8rem; }
+  .kw { color: var(--accent2); } .st { color: var(--accent3); } .cm { color: var(--text-muted); font-style: italic; } .vl { color: var(--accent4); } .ky { color: var(--accent); }
+  p code, li code, td code { background: var(--bg-card-alt); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.83em; color: var(--accent); }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 0.12em 0.55em; border-radius: 5px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tag-metrics { background: rgba(56,189,248,0.15); color: var(--accent); }
+  .tag-logs { background: rgba(167,139,250,0.15); color: var(--accent2); }
+  .tag-push { background: rgba(52,211,153,0.15); color: var(--accent3); }
+  .tag-pull { background: rgba(251,146,60,0.15); color: var(--accent4); }
+  .tag-otel { background: rgba(56,189,248,0.12); color: var(--accent); }
+  .tag-exporter { background: rgba(251,146,60,0.12); color: var(--accent4); }
+
+  /* Diagram */
+  .diagram { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem 1.25rem; margin: 1.25rem 0; box-shadow: var(--shadow); overflow-x: auto; transition: background var(--transition); }
+  .diagram svg { display: block; margin: 0 auto; }
+  @keyframes flowRight { 0% { stroke-dashoffset: 16; } 100% { stroke-dashoffset: 0; } }
+  .flow-animated { stroke-dasharray: 8 8; animation: flowRight 1s linear infinite; }
+  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+
+  /* Table */
+  .table-wrapper { overflow-x: auto; margin: 1rem 0; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  th { background: var(--bg-card-alt); padding: 0.65rem 1rem; text-align: left; font-weight: 600; color: var(--text-heading); border-bottom: 2px solid var(--border); white-space: nowrap; }
+  td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--table-stripe); }
+  tr:last-child td { border-bottom: none; }
+
+  /* Collapsible */
+  .collapsible { border: 1px solid var(--border); border-radius: 10px; margin: 0.65rem 0; overflow: hidden; }
+  .collapsible-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.15rem; background: var(--bg-card); cursor: pointer; user-select: none; font-weight: 600; font-size: 0.88rem; color: var(--text-heading); transition: background var(--transition); }
+  .collapsible-header:hover { background: var(--bg-card-alt); }
+  .collapsible-chevron { transition: transform 0.2s ease; color: var(--text-muted); font-size: 0.75rem; }
+  .collapsible.open .collapsible-chevron { transform: rotate(180deg); }
+  .collapsible-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; background: var(--bg-card); }
+  .collapsible.open .collapsible-body { max-height: 2000px; }
+  .collapsible-body-inner { padding: 0 1.15rem 1rem; }
+
+  /* Tabs inside sections */
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 0; }
+  .tab-btn { padding: 0.6rem 1.1rem; background: none; border: none; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; position: relative; transition: color var(--transition); font-family: inherit; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--accent); border-radius: 1px; }
+  .tab-panel { display: none; padding: 1rem 0; }
+  .tab-panel.active { display: block; }
+
+  /* Verdict */
+  .verdict { background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(167,139,250,0.08)); border: 1px solid var(--accent); border-radius: 12px; padding: 1.15rem 1.35rem; margin-top: 1.25rem; }
+  .verdict h3 { margin-top: 0; color: var(--accent); }
+
+  /* Lists */
+  ul { margin: 0.4rem 0 0.75rem 1.25rem; }
+  li { margin-bottom: 0.3rem; }
+  li::marker { color: var(--accent); }
+
+  /* Two-column grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Sticky nav indicator */
+  .db-indicator { height: 3px; border-radius: 2px; margin-top: 0.5rem; transition: background 0.3s ease; }
+  .db-indicator.mysql { background: var(--mysql-color); }
+  .db-indicator.pg { background: var(--pg-color); }
+  .db-indicator.mssql { background: var(--mssql-color); }
+  .db-indicator.oracle { background: var(--oracle-color); }
+
+  @media (max-width: 640px) { .container { padding: 1rem; } header h1 { font-size: 1.2rem; } pre { font-size: 0.73rem; padding: 0.7rem; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div>
+    <h1>Database Monitoring <span>Guide</span></h1>
+    <div class="subtitle">OTel Collector Receivers vs Traditional Exporters</div>
+  </div>
+  <div class="theme-toggle" onclick="toggleTheme()">
+    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <div class="toggle-track"><div class="toggle-dot"></div></div>
+    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </div>
+</header>
+
+<!-- Database selector -->
+<div class="db-selector">
+  <button class="db-btn active" data-db="mysql" onclick="switchDB('mysql')">
+    <svg class="db-logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="var(--mysql-color)"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700" font-family="system-ui">My</text></svg>
+    MySQL
+  </button>
+  <button class="db-btn" data-db="pg" onclick="switchDB('pg')">
+    <svg class="db-logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="var(--pg-color)"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700" font-family="system-ui">Pg</text></svg>
+    PostgreSQL
+  </button>
+  <button class="db-btn" data-db="mssql" onclick="switchDB('mssql')">
+    <svg class="db-logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="var(--mssql-color)"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700" font-family="system-ui">SQ</text></svg>
+    SQL Server
+  </button>
+  <button class="db-btn" data-db="oracle" onclick="switchDB('oracle')">
+    <svg class="db-logo" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="var(--oracle-color)"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="700" font-family="system-ui">Or</text></svg>
+    Oracle
+  </button>
+</div>
+<div class="db-indicator mysql" id="dbIndicator"></div>
+
+<!-- =================================================================== -->
+<!-- MYSQL PANEL -->
+<!-- =================================================================== -->
+<div class="db-panel active" id="panel-mysql">
+
+<section>
+  <h2><span class="num num-mysql">1</span> Enable MySQL Instrumentation</h2>
+  <p>Mount a custom <code>my.cnf</code> into MySQL to enable slow query logging and performance schema.</p>
+  <div class="card">
+    <div class="card-header"><div class="icon" style="background:var(--mysql-bg);color:var(--mysql-color)">&#9881;</div> monitoring/database/my.cnf</div>
+<pre><code><span class="ky">[mysqld]</span>
+<span class="ky">slow_query_log</span>              = <span class="vl">1</span>                        <span class="cm"># Enable slow query logging</span>
+<span class="ky">slow_query_log_file</span>         = <span class="st">/var/log/mysql/slow.log</span>  <span class="cm"># Output path</span>
+<span class="ky">long_query_time</span>             = <span class="vl">0.5</span>                      <span class="cm"># Threshold: > 500ms</span>
+<span class="ky">log_queries_not_using_indexes</span> = <span class="vl">1</span>                      <span class="cm"># Log full-scan queries</span>
+<span class="ky">performance_schema</span>          = <span class="vl">ON</span>                       <span class="cm"># Enable stats tables</span></code></pre>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-mysql">2</span> OTel Collector — mysql receiver</h2>
+  <p>The <code>mysql</code> receiver connects via SQL, scrapes <code>SHOW GLOBAL STATUS</code> and <code>performance_schema</code> tables every 15 seconds.</p>
+
+  <div class="collapsible open" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-otel">OTel Receiver</span>&ensp;mysql receiver config</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="ky">receivers</span>:
+  <span class="ky">mysql</span>:
+    <span class="ky">endpoint</span>: <span class="st">127.0.0.1:3306</span>
+    <span class="ky">username</span>: <span class="st">${env:DB_USERNAME}</span>
+    <span class="ky">password</span>: <span class="st">${env:DB_PASSWORD}</span>
+    <span class="ky">collection_interval</span>: <span class="vl">15s</span>
+    <span class="ky">statement_events</span>:
+      <span class="ky">digest_text_limit</span>: <span class="vl">120</span>
+      <span class="ky">time_limit</span>: <span class="vl">24h</span>
+      <span class="ky">limit</span>: <span class="vl">250</span>
+    <span class="ky">metrics</span>:
+      <span class="ky">mysql.commands</span>:             { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">mysql.query.count</span>:           { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">mysql.query.slow.count</span>:      { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">mysql.connection.count</span>:      { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">mysql.connection.errors</span>:     { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">mysql.statement_event.count</span>: { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">mysql.statement_event.wait.time</span>: { <span class="ky">enabled</span>: <span class="vl">true</span> }</code></pre>
+      <p class="muted"><strong>Key metrics:</strong> <code>mysql_commands_total</code>, <code>mysql_query_count_total</code>, <code>mysql_threads</code>, <code>mysql_table_io_wait_count_total</code>, <code>mysql_statement_event_count</code>, <code>mysql_buffer_pool_pages</code></p>
+    </div></div>
+  </div>
+
+  <div class="collapsible" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-logs">logs</span>&ensp;filelog receiver — tailing slow.log</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="ky">receivers</span>:
+  <span class="ky">filelog/slow_query</span>:
+    <span class="ky">include</span>: [<span class="st">/var/log/mysql/slow.log</span>]
+    <span class="ky">multiline</span>:
+      <span class="ky">line_start_pattern</span>: <span class="st">'^# Time:'</span>    <span class="cm"># group multi-line entries</span>
+<span class="ky">processors</span>:
+  <span class="ky">resource/mysql</span>:
+    <span class="ky">attributes</span>:
+      - { <span class="ky">key</span>: <span class="st">service.name</span>, <span class="ky">value</span>: <span class="st">mysql</span>, <span class="ky">action</span>: <span class="st">upsert</span> }</code></pre>
+      <p class="muted">Requires shared volume (<code>emptyDir</code>) between MySQL container and OTel sidecar. OTel sidecar runs as <code>runAsUser: 999</code> (mysql user) to read the log file.</p>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-mysql">3</span> Alternative: mysqld_exporter</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:var(--mysql-bg);color:var(--mysql-color)">&#9881;</div>K8s Sidecar</div>
+<pre><code><span class="ky">- name</span>: <span class="st">mysqld-exporter</span>
+  <span class="ky">image</span>: <span class="st">prom/mysqld-exporter:latest</span>
+  <span class="ky">env</span>:
+    - <span class="ky">name</span>: <span class="st">DATA_SOURCE_NAME</span>
+      <span class="ky">value</span>: <span class="st">"user:pass@(127.0.0.1:3306)/"</span>
+  <span class="ky">args</span>:
+    - <span class="st">--collect.perf_schema.tableiowaits</span>
+    - <span class="st">--collect.perf_schema.eventsstatements</span>
+  <span class="ky">ports</span>:
+    - <span class="ky">containerPort</span>: <span class="vl">9104</span></code></pre>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:rgba(251,146,60,0.15);color:var(--accent4)">&#9881;</div>Prometheus Scrape</div>
+<pre><code><span class="ky">scrape_configs</span>:
+  - <span class="ky">job_name</span>: <span class="st">mysql</span>
+    <span class="ky">static_configs</span>:
+      - <span class="ky">targets</span>: [<span class="st">'mysql:9104'</span>]</code></pre>
+      <p class="muted">Community dashboards: Grafana <strong>#7362</strong>, <strong>#14057</strong></p>
+      <p class="muted">Metric names: <code>mysql_global_status_com_select</code>, <code>mysql_global_status_threads_connected</code></p>
+    </div>
+  </div>
+</section>
+
+</div><!-- end mysql panel -->
+
+<!-- =================================================================== -->
+<!-- POSTGRESQL PANEL -->
+<!-- =================================================================== -->
+<div class="db-panel" id="panel-pg">
+
+<section>
+  <h2><span class="num num-pg">1</span> Enable PostgreSQL Instrumentation</h2>
+  <p>PostgreSQL needs <code>pg_stat_statements</code> extension and optionally slow query logging via <code>postgresql.conf</code>.</p>
+  <div class="card">
+    <div class="card-header"><div class="icon" style="background:var(--pg-bg);color:var(--pg-color)">&#9881;</div> postgresql.conf</div>
+<pre><code><span class="cm"># Load pg_stat_statements extension for query-level stats</span>
+<span class="ky">shared_preload_libraries</span> = <span class="st">'pg_stat_statements'</span>
+
+<span class="cm"># Slow query logging</span>
+<span class="ky">log_min_duration_statement</span> = <span class="vl">500</span>       <span class="cm"># Log queries > 500ms</span>
+<span class="ky">log_statement</span>              = <span class="st">'none'</span>    <span class="cm"># Don't log all statements</span>
+<span class="ky">log_destination</span>            = <span class="st">'csvlog'</span>  <span class="cm"># Structured CSV format</span>
+<span class="ky">logging_collector</span>          = <span class="vl">on</span>
+<span class="ky">log_directory</span>              = <span class="st">'/var/log/postgresql'</span>
+<span class="ky">log_filename</span>               = <span class="st">'slow.log'</span>
+<span class="ky">log_line_prefix</span>            = <span class="st">'%t [%p]: db=%d,user=%u '</span></code></pre>
+    <p class="muted">Then run <code>CREATE EXTENSION IF NOT EXISTS pg_stat_statements;</code> in each database.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-pg">2</span> OTel Collector — postgresql receiver</h2>
+
+  <div class="collapsible open" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-otel">OTel Receiver</span>&ensp;postgresql receiver config</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="ky">receivers</span>:
+  <span class="ky">postgresql</span>:
+    <span class="ky">endpoint</span>: <span class="st">127.0.0.1:5432</span>
+    <span class="ky">username</span>: <span class="st">${env:DB_USERNAME}</span>
+    <span class="ky">password</span>: <span class="st">${env:DB_PASSWORD}</span>
+    <span class="ky">databases</span>: [<span class="st">myapp</span>]                <span class="cm"># specific databases to monitor</span>
+    <span class="ky">collection_interval</span>: <span class="vl">15s</span>
+    <span class="ky">tls</span>:
+      <span class="ky">insecure</span>: <span class="vl">true</span>                  <span class="cm"># or configure cert paths</span>
+    <span class="ky">metrics</span>:
+      <span class="ky">postgresql.backends</span>:           { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.bgwriter.buffers.allocated</span>: { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.bgwriter.buffers.writes</span>:    { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.blocks_read</span>:        { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.commits</span>:            { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.db_size</span>:            { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.deadlocks</span>:          { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.index.scans</span>:        { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.index.size</span>:         { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.operations</span>:         { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.rollbacks</span>:          { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.rows</span>:               { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.table.count</span>:        { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.table.size</span>:         { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">postgresql.wal.age</span>:            { <span class="ky">enabled</span>: <span class="vl">true</span> }</code></pre>
+      <p class="muted"><strong>Key metrics:</strong> <code>postgresql_commits_total</code>, <code>postgresql_backends</code>, <code>postgresql_db_size_bytes</code>, <code>postgresql_deadlocks_total</code>, <code>postgresql_operations_total</code> (ins/upd/del/hot_upd), <code>postgresql_rows</code> (live/dead — indicates VACUUM need)</p>
+    </div></div>
+  </div>
+
+  <div class="collapsible" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-logs">logs</span>&ensp;filelog receiver — tailing slow query log</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="ky">receivers</span>:
+  <span class="ky">filelog/pg_slow</span>:
+    <span class="ky">include</span>: [<span class="st">/var/log/postgresql/slow.log</span>]
+    <span class="ky">multiline</span>:
+      <span class="ky">line_start_pattern</span>: <span class="st">'^\\d{4}-\\d{2}-\\d{2}'</span>  <span class="cm"># timestamp prefix</span>
+<span class="ky">processors</span>:
+  <span class="ky">resource/pg</span>:
+    <span class="ky">attributes</span>:
+      - { <span class="ky">key</span>: <span class="st">service.name</span>, <span class="ky">value</span>: <span class="st">postgresql</span>, <span class="ky">action</span>: <span class="st">upsert</span> }
+      - { <span class="ky">key</span>: <span class="st">source</span>, <span class="ky">value</span>: <span class="st">pg-slow-query</span>, <span class="ky">action</span>: <span class="st">upsert</span> }</code></pre>
+      <p class="muted">Same pattern as MySQL: shared <code>emptyDir</code> volume between PostgreSQL container and OTel sidecar. PostgreSQL log format is more structured if using <code>csvlog</code>.</p>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-pg">3</span> Alternative: postgres_exporter</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:var(--pg-bg);color:var(--pg-color)">&#9881;</div>K8s Sidecar</div>
+<pre><code><span class="ky">- name</span>: <span class="st">postgres-exporter</span>
+  <span class="ky">image</span>: <span class="st">prometheuscommunity/postgres-exporter:latest</span>
+  <span class="ky">env</span>:
+    - <span class="ky">name</span>: <span class="st">DATA_SOURCE_URI</span>
+      <span class="ky">value</span>: <span class="st">"127.0.0.1:5432/myapp?sslmode=disable"</span>
+    - <span class="ky">name</span>: <span class="st">DATA_SOURCE_USER</span>
+      <span class="ky">valueFrom</span>:
+        <span class="ky">secretKeyRef</span>: { <span class="ky">name</span>: <span class="st">db-creds</span>, <span class="ky">key</span>: <span class="st">user</span> }
+    - <span class="ky">name</span>: <span class="st">DATA_SOURCE_PASS</span>
+      <span class="ky">valueFrom</span>:
+        <span class="ky">secretKeyRef</span>: { <span class="ky">name</span>: <span class="st">db-creds</span>, <span class="ky">key</span>: <span class="st">password</span> }
+  <span class="ky">args</span>:
+    - <span class="st">--auto-discover-databases</span>
+    - <span class="st">--collector.stat_statements</span>
+  <span class="ky">ports</span>:
+    - <span class="ky">containerPort</span>: <span class="vl">9187</span></code></pre>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:rgba(251,146,60,0.15);color:var(--accent4)">&#9881;</div>Prometheus Scrape</div>
+<pre><code><span class="ky">scrape_configs</span>:
+  - <span class="ky">job_name</span>: <span class="st">postgresql</span>
+    <span class="ky">static_configs</span>:
+      - <span class="ky">targets</span>: [<span class="st">'postgres:9187'</span>]</code></pre>
+      <p class="muted">Community dashboards: Grafana <strong>#9628</strong>, <strong>#455</strong></p>
+      <p class="muted">Metric names: <code>pg_stat_database_tup_fetched</code>, <code>pg_stat_activity_count</code>, <code>pg_stat_statements_calls_total</code></p>
+      <p class="muted">Supports custom SQL queries via <code>queries.yaml</code> file for app-specific metrics.</p>
+    </div>
+  </div>
+</section>
+
+</div><!-- end pg panel -->
+
+<!-- =================================================================== -->
+<!-- MSSQL PANEL -->
+<!-- =================================================================== -->
+<div class="db-panel" id="panel-mssql">
+
+<section>
+  <h2><span class="num num-mssql">1</span> Enable SQL Server Instrumentation</h2>
+  <p>SQL Server has built-in Dynamic Management Views (DMVs) — no config file needed. Just ensure the monitoring user has <code>VIEW SERVER STATE</code> permission.</p>
+  <div class="card">
+    <div class="card-header"><div class="icon" style="background:var(--mssql-bg);color:var(--mssql-color)">&#9881;</div> SQL Server Setup</div>
+<pre><code><span class="cm">-- Grant monitoring permissions</span>
+<span class="kw">CREATE LOGIN</span> <span class="st">otel_monitor</span> <span class="kw">WITH PASSWORD</span> = <span class="st">'SecurePass!'</span>;
+<span class="kw">GRANT VIEW SERVER STATE TO</span> <span class="st">otel_monitor</span>;
+<span class="kw">GRANT VIEW ANY DEFINITION TO</span> <span class="st">otel_monitor</span>;
+
+<span class="cm">-- Optional: enable Query Store (built-in slow query tracking)</span>
+<span class="kw">ALTER DATABASE</span> mydb <span class="kw">SET QUERY_STORE</span> = <span class="vl">ON</span>;
+<span class="kw">ALTER DATABASE</span> mydb <span class="kw">SET QUERY_STORE</span> (
+  <span class="ky">OPERATION_MODE</span> = <span class="vl">READ_WRITE</span>,
+  <span class="ky">MAX_STORAGE_SIZE_MB</span> = <span class="vl">256</span>,
+  <span class="ky">INTERVAL_LENGTH_MINUTES</span> = <span class="vl">5</span>
+);</code></pre>
+    <p class="muted">SQL Server uses <strong>DMVs</strong> instead of performance_schema: <code>sys.dm_os_performance_counters</code>, <code>sys.dm_exec_query_stats</code>, <code>sys.dm_os_wait_stats</code></p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-mssql">2</span> OTel Collector — sqlserver receiver</h2>
+
+  <div class="collapsible open" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-otel">OTel Receiver</span>&ensp;sqlserver receiver config</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="ky">receivers</span>:
+  <span class="ky">sqlserver</span>:
+    <span class="ky">collection_interval</span>: <span class="vl">15s</span>
+    <span class="ky">server</span>: <span class="st">127.0.0.1</span>
+    <span class="ky">port</span>: <span class="vl">1433</span>
+    <span class="ky">username</span>: <span class="st">${env:DB_USERNAME}</span>
+    <span class="ky">password</span>: <span class="st">${env:DB_PASSWORD}</span>
+    <span class="ky">metrics</span>:
+      <span class="ky">sqlserver.batch.request.rate</span>:     { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.batch.sql_compilation.rate</span>: { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.lock.wait.rate</span>:          { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.page.buffer_cache.hit_ratio</span>: { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.transaction_log.growth.count</span>: { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.user.connection.count</span>:  { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.database.io.read_latency</span>: { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.transaction.rate</span>:        { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">sqlserver.processes.blocked</span>:       { <span class="ky">enabled</span>: <span class="vl">true</span> }</code></pre>
+      <p class="muted"><strong>Key metrics:</strong> <code>sqlserver_batch_request_rate</code>, <code>sqlserver_user_connection_count</code>, <code>sqlserver_page_buffer_cache_hit_ratio</code>, <code>sqlserver_lock_wait_rate</code>, <code>sqlserver_processes_blocked</code>, <code>sqlserver_database_io_read_latency</code></p>
+      <p class="muted">Internally queries <code>sys.dm_os_performance_counters</code> and <code>sys.dm_os_wait_stats</code></p>
+    </div></div>
+  </div>
+
+  <div class="collapsible" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-logs">logs</span>&ensp;SQL Server Error Log / slow queries</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="cm"># SQL Server doesn't have a native slow query log file like MySQL.</span>
+<span class="cm"># Options for query-level logging:</span>
+
+<span class="cm"># Option A: Extended Events (XEvents) → file → filelog receiver</span>
+<span class="ky">receivers</span>:
+  <span class="ky">filelog/sqlserver</span>:
+    <span class="ky">include</span>: [<span class="st">/var/opt/mssql/log/errorlog</span>]    <span class="cm"># Error log</span>
+    <span class="ky">multiline</span>:
+      <span class="ky">line_start_pattern</span>: <span class="st">'^\\d{4}-\\d{2}-\\d{2}'</span>
+
+<span class="cm"># Option B: Query Store → custom SQL receiver (advanced)</span>
+<span class="cm"># Use sqlquery receiver to periodically query sys.query_store_*</span></code></pre>
+      <p class="muted">SQL Server has no built-in slow query log file. Use <strong>Extended Events</strong> (XEvents) to capture slow queries to a file target, then tail with filelog receiver. Or use <strong>Query Store</strong> (built-in since SQL Server 2016) and query it directly.</p>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-mssql">3</span> Alternative: mssql_exporter / sql_exporter</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:var(--mssql-bg);color:var(--mssql-color)">&#9881;</div>K8s Sidecar (sql_exporter)</div>
+<pre><code><span class="ky">- name</span>: <span class="st">sql-exporter</span>
+  <span class="ky">image</span>: <span class="st">burningalchemist/sql_exporter:latest</span>
+  <span class="ky">env</span>:
+    - <span class="ky">name</span>: <span class="st">SQLEXPORTER_TARGET_DSN</span>
+      <span class="ky">value</span>: >-
+        <span class="st">sqlserver://user:pass@127.0.0.1:1433</span>
+  <span class="ky">args</span>:
+    - <span class="st">-config.file=/etc/sql_exporter/config.yml</span>
+  <span class="ky">ports</span>:
+    - <span class="ky">containerPort</span>: <span class="vl">9399</span></code></pre>
+      <p class="muted"><code>sql_exporter</code> is DB-agnostic — works with any SQL database via custom queries defined in a config file. Very flexible.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:rgba(251,146,60,0.15);color:var(--accent4)">&#9881;</div>Custom Query Example</div>
+<pre><code><span class="cm"># sql_exporter collector config</span>
+<span class="ky">collector_name</span>: <span class="st">mssql_performance</span>
+<span class="ky">metrics</span>:
+  - <span class="ky">metric_name</span>: <span class="st">mssql_batch_requests</span>
+    <span class="ky">type</span>: <span class="st">counter</span>
+    <span class="ky">help</span>: <span class="st">"Batch requests/sec"</span>
+    <span class="ky">values</span>: [<span class="st">cntr_value</span>]
+    <span class="ky">query</span>: |
+      <span class="kw">SELECT</span> cntr_value
+      <span class="kw">FROM</span> sys.dm_os_performance_counters
+      <span class="kw">WHERE</span> counter_name = <span class="st">'Batch Requests/sec'</span></code></pre>
+      <p class="muted">Community dashboards: Grafana <strong>#13919</strong></p>
+    </div>
+  </div>
+</section>
+
+</div><!-- end mssql panel -->
+
+<!-- =================================================================== -->
+<!-- ORACLE PANEL -->
+<!-- =================================================================== -->
+<div class="db-panel" id="panel-oracle">
+
+<section>
+  <h2><span class="num num-oracle">1</span> Enable Oracle Instrumentation</h2>
+  <p>Oracle has built-in instrumentation via <code>V$</code> views and ASH (Active Session History). Grant monitoring permissions to the OTel user.</p>
+  <div class="card">
+    <div class="card-header"><div class="icon" style="background:var(--oracle-bg);color:var(--oracle-color)">&#9881;</div> Oracle Setup</div>
+<pre><code><span class="cm">-- Create monitoring user with required permissions</span>
+<span class="kw">CREATE USER</span> otel_monitor <span class="kw">IDENTIFIED BY</span> <span class="st">"SecurePass"</span>;
+<span class="kw">GRANT CREATE SESSION TO</span> otel_monitor;
+<span class="kw">GRANT SELECT_CATALOG_ROLE TO</span> otel_monitor;
+<span class="kw">GRANT SELECT ON</span> V_$SESSION <span class="kw">TO</span> otel_monitor;
+<span class="kw">GRANT SELECT ON</span> V_$SYSSTAT <span class="kw">TO</span> otel_monitor;
+<span class="kw">GRANT SELECT ON</span> V_$SQL <span class="kw">TO</span> otel_monitor;
+<span class="kw">GRANT SELECT ON</span> DBA_TABLESPACE_USAGE_METRICS <span class="kw">TO</span> otel_monitor;
+
+<span class="cm">-- Optional: enable AWR snapshots for historical analysis</span>
+<span class="kw">EXEC</span> DBMS_WORKLOAD_REPOSITORY.MODIFY_SNAPSHOT_SETTINGS(
+  <span class="ky">interval</span> => <span class="vl">15</span>,        <span class="cm">-- minutes</span>
+  <span class="ky">retention</span> => <span class="vl">43200</span>    <span class="cm">-- 30 days</span>
+);</code></pre>
+    <p class="muted">Oracle exposes stats via <strong>V$ views</strong>: <code>V$SYSSTAT</code>, <code>V$SESSION</code>, <code>V$SQL</code>, <code>V$SYSTEM_WAIT_CLASS</code>, <code>DBA_TABLESPACE_USAGE_METRICS</code></p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-oracle">2</span> OTel Collector — oracledb receiver</h2>
+
+  <div class="collapsible open" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-otel">OTel Receiver</span>&ensp;oracledb receiver config</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="ky">receivers</span>:
+  <span class="ky">oracledb</span>:
+    <span class="ky">datasource</span>: <span class="st">"oracle://${env:DB_USERNAME}:${env:DB_PASSWORD}@127.0.0.1:1521/ORCL"</span>
+    <span class="ky">collection_interval</span>: <span class="vl">15s</span>
+    <span class="ky">metrics</span>:
+      <span class="ky">oracledb.cpu_time</span>:              { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.physical_reads</span>:         { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.logical_reads</span>:          { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.sessions.usage</span>:         { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.enqueue_deadlocks</span>:      { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.hard_parses</span>:            { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.parse_count</span>:            { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.user_commits</span>:           { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.user_rollbacks</span>:         { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.tablespace_size.limit</span>:  { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.tablespace_size.usage</span>:  { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.db_block_gets</span>:          { <span class="ky">enabled</span>: <span class="vl">true</span> }
+      <span class="ky">oracledb.consistent_gets</span>:        { <span class="ky">enabled</span>: <span class="vl">true</span> }</code></pre>
+      <p class="muted"><strong>Key metrics:</strong> <code>oracledb_sessions_usage</code>, <code>oracledb_cpu_time</code>, <code>oracledb_physical_reads_total</code>, <code>oracledb_tablespace_size_usage_bytes</code>, <code>oracledb_enqueue_deadlocks_total</code>, <code>oracledb_user_commits_total</code></p>
+      <p class="muted">Internally queries <code>V$SYSSTAT</code>, <code>V$SESSION</code>, <code>DBA_TABLESPACE_USAGE_METRICS</code></p>
+    </div></div>
+  </div>
+
+  <div class="collapsible" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header"><span><span class="tag tag-logs">logs</span>&ensp;Oracle alert log and listener log</span><span class="collapsible-chevron">&#9660;</span></div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+<pre><code><span class="ky">receivers</span>:
+  <span class="ky">filelog/oracle_alert</span>:
+    <span class="ky">include</span>:
+      - <span class="st">/opt/oracle/diag/rdbms/*/*/trace/alert_*.log</span>
+    <span class="ky">multiline</span>:
+      <span class="ky">line_start_pattern</span>: <span class="st">'^\\d{4}-\\d{2}-\\d{2}T'</span>
+  <span class="ky">filelog/oracle_listener</span>:
+    <span class="ky">include</span>:
+      - <span class="st">/opt/oracle/diag/tnslsnr/*/*/trace/listener.log</span>
+<span class="ky">processors</span>:
+  <span class="ky">resource/oracle</span>:
+    <span class="ky">attributes</span>:
+      - { <span class="ky">key</span>: <span class="st">service.name</span>, <span class="ky">value</span>: <span class="st">oracledb</span>, <span class="ky">action</span>: <span class="st">upsert</span> }</code></pre>
+      <p class="muted">Oracle has no single "slow query log." Use the <strong>alert log</strong> for ORA- errors and the <strong>listener log</strong> for connection issues. For slow SQL, query <code>V$SQL</code> or use <strong>AWR/ASH</strong> reports.</p>
+    </div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num num-oracle">3</span> Alternative: oracledb_exporter</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:var(--oracle-bg);color:var(--oracle-color)">&#9881;</div>K8s Sidecar</div>
+<pre><code><span class="ky">- name</span>: <span class="st">oracledb-exporter</span>
+  <span class="ky">image</span>: <span class="st">iamseth/oracledb_exporter:latest</span>
+  <span class="ky">env</span>:
+    - <span class="ky">name</span>: <span class="st">DATA_SOURCE_NAME</span>
+      <span class="ky">value</span>: >-
+        <span class="st">oracle://user:pass@127.0.0.1:1521/ORCL</span>
+  <span class="ky">args</span>:
+    - <span class="st">--custom.metrics=/etc/oracledb_exporter/custom-metrics.toml</span>
+  <span class="ky">ports</span>:
+    - <span class="ky">containerPort</span>: <span class="vl">9161</span></code></pre>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon" style="background:rgba(251,146,60,0.15);color:var(--accent4)">&#9881;</div>Custom Query Example</div>
+<pre><code><span class="cm"># custom-metrics.toml</span>
+[[<span class="ky">metric</span>]]
+<span class="ky">context</span>  = <span class="st">"sessions"</span>
+<span class="ky">request</span>  = <span class="st">"SELECT status, COUNT(*) as value FROM v$session GROUP BY status"</span>
+<span class="ky">labels</span>   = [<span class="st">"status"</span>]
+
+[[<span class="ky">metric</span>]]
+<span class="ky">context</span>  = <span class="st">"tablespace"</span>
+<span class="ky">request</span>  = <span class="st">"SELECT tablespace_name, used_percent FROM dba_tablespace_usage_metrics"</span>
+<span class="ky">labels</span>   = [<span class="st">"tablespace_name"</span>]</code></pre>
+      <p class="muted">Community dashboards: Grafana <strong>#3333</strong></p>
+      <p class="muted">Supports custom SQL queries via TOML config for app-specific metrics.</p>
+    </div>
+  </div>
+</section>
+
+</div><!-- end oracle panel -->
+
+<!-- =================================================================== -->
+<!-- CROSS-DATABASE COMPARISON (always visible) -->
+<!-- =================================================================== -->
+<!-- =================================================================== -->
+<!-- SEMANTIC CONVENTIONS SECTION (always visible) -->
+<!-- =================================================================== -->
+<section style="margin-top: 1rem;">
+  <h2 style="color: var(--accent2)">Two Layers of Database Metrics</h2>
+  <p>This is the key insight: there are <strong>two completely different layers</strong> of database metrics, and only one has shared semantic conventions.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 820 380" width="100%" style="max-width:820px">
+      <defs>
+        <marker id="arrBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/></marker>
+        <marker id="arrPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent2)"/></marker>
+        <marker id="arrOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent4)"/></marker>
+      </defs>
+
+      <!-- Layer 1 box -->
+      <rect x="15" y="15" width="790" height="145" rx="12" fill="none" stroke="var(--accent3)" stroke-width="2" stroke-dasharray="6 4"/>
+      <rect x="15" y="15" width="790" height="145" rx="12" fill="var(--accent3)" fill-opacity="0.04"/>
+      <text x="30" y="38" fill="var(--accent3)" font-weight="700" font-size="13" font-family="Inter, system-ui">Layer 1: Application-Side (OTel SDK in your app code)</text>
+      <text x="710" y="38" fill="var(--accent3)" font-weight="600" font-size="10" font-family="Inter, system-ui">STABLE</text>
+      <rect x="700" y="27" width="56" height="16" rx="4" fill="none" stroke="var(--accent3)" stroke-width="1"/>
+
+      <!-- App boxes -->
+      <rect x="35" y="55" width="120" height="50" rx="8" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+      <text x="95" y="78" text-anchor="middle" fill="var(--text-heading)" font-weight="600" font-size="11" font-family="Inter, system-ui">Go App</text>
+      <text x="95" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">OTel SDK</text>
+
+      <rect x="175" y="55" width="120" height="50" rx="8" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+      <text x="235" y="78" text-anchor="middle" fill="var(--text-heading)" font-weight="600" font-size="11" font-family="Inter, system-ui">Java App</text>
+      <text x="235" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">OTel SDK</text>
+
+      <rect x="315" y="55" width="120" height="50" rx="8" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="1"/>
+      <text x="375" y="78" text-anchor="middle" fill="var(--text-heading)" font-weight="600" font-size="11" font-family="Inter, system-ui">Python App</text>
+      <text x="375" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">OTel SDK</text>
+
+      <!-- Arrow to shared metric -->
+      <line x1="155" y1="105" x2="530" y2="125" stroke="var(--accent3)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="295" y1="105" x2="530" y2="125" stroke="var(--accent3)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="435" y1="105" x2="530" y2="125" stroke="var(--accent3)" stroke-width="1" stroke-dasharray="3 3"/>
+
+      <!-- Shared metric box -->
+      <rect x="480" y="55" width="310" height="90" rx="8" fill="var(--bg-card-alt)" stroke="var(--accent3)" stroke-width="2"/>
+      <text x="635" y="78" text-anchor="middle" fill="var(--accent3)" font-weight="700" font-size="12" font-family="monospace">db.client.operation.duration</text>
+      <text x="635" y="97" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="Inter, system-ui">Same metric name for ALL databases</text>
+      <text x="635" y="115" text-anchor="middle" fill="var(--accent)" font-size="9" font-family="monospace">db.system.name = "mysql" | "postgresql" | ...</text>
+      <text x="635" y="132" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="monospace">+ db.operation.name, db.namespace, ...</text>
+
+      <!-- Layer 2 box -->
+      <rect x="15" y="185" width="790" height="180" rx="12" fill="none" stroke="var(--accent4)" stroke-width="2" stroke-dasharray="6 4"/>
+      <rect x="15" y="185" width="790" height="180" rx="12" fill="var(--accent4)" fill-opacity="0.04"/>
+      <text x="30" y="208" fill="var(--accent4)" font-weight="700" font-size="13" font-family="Inter, system-ui">Layer 2: Server-Side (OTel Collector scraping the DB engine)</text>
+      <text x="668" y="208" fill="var(--accent4)" font-weight="600" font-size="10" font-family="Inter, system-ui">NO SHARED NAMES</text>
+      <rect x="658" y="197" width="110" height="16" rx="4" fill="none" stroke="var(--accent4)" stroke-width="1"/>
+
+      <!-- DB-specific boxes -->
+      <rect x="35" y="225" width="170" height="65" rx="8" fill="var(--bg-card-alt)" stroke="var(--mysql-color)" stroke-width="1.5"/>
+      <text x="120" y="248" text-anchor="middle" fill="var(--mysql-color)" font-weight="600" font-size="11" font-family="Inter, system-ui">mysql receiver</text>
+      <text x="120" y="265" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">mysql_commands_total</text>
+      <text x="120" y="278" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">mysql_threads</text>
+
+      <rect x="220" y="225" width="170" height="65" rx="8" fill="var(--bg-card-alt)" stroke="var(--pg-color)" stroke-width="1.5"/>
+      <text x="305" y="248" text-anchor="middle" fill="var(--pg-color)" font-weight="600" font-size="11" font-family="Inter, system-ui">postgresql receiver</text>
+      <text x="305" y="265" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">postgresql_commits_total</text>
+      <text x="305" y="278" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">postgresql_backends</text>
+
+      <rect x="405" y="225" width="170" height="65" rx="8" fill="var(--bg-card-alt)" stroke="var(--mssql-color)" stroke-width="1.5"/>
+      <text x="490" y="248" text-anchor="middle" fill="var(--mssql-color)" font-weight="600" font-size="11" font-family="Inter, system-ui">sqlserver receiver</text>
+      <text x="490" y="265" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">sqlserver_batch_request_rate</text>
+      <text x="490" y="278" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">sqlserver_lock_wait_rate</text>
+
+      <rect x="590" y="225" width="170" height="65" rx="8" fill="var(--bg-card-alt)" stroke="var(--oracle-color)" stroke-width="1.5"/>
+      <text x="675" y="248" text-anchor="middle" fill="var(--oracle-color)" font-weight="600" font-size="11" font-family="Inter, system-ui">oracledb receiver</text>
+      <text x="675" y="265" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">oracledb_physical_reads_total</text>
+      <text x="675" y="278" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="monospace">oracledb_sessions_usage</text>
+
+      <!-- "Each DB is different" label -->
+      <text x="400" y="315" text-anchor="middle" fill="var(--accent4)" font-size="10" font-family="Inter, system-ui">Each database has completely different internal stats</text>
+      <text x="400" y="330" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Inter, system-ui">performance_schema &nbsp;&bull;&nbsp; pg_stat_* &nbsp;&bull;&nbsp; sys.dm_* DMVs &nbsp;&bull;&nbsp; V$ views</text>
+      <text x="400" y="350" text-anchor="middle" fill="var(--accent4)" font-size="10" font-weight="600" font-family="Inter, system-ui">&#10060; No semantic convention — each receiver defines its own names</text>
+    </svg>
+  </div>
+
+  <!-- Detailed explanation cards -->
+  <div class="grid-2">
+    <div class="card" style="border-color: var(--accent3);">
+      <div class="card-header">
+        <div class="icon" style="background:rgba(52,211,153,0.15);color:var(--accent3)">&#10003;</div>
+        Layer 1: Shared Semantic Conventions
+      </div>
+      <p class="muted">The OTel SDK in your <strong>application code</strong> auto-instruments database client calls. These follow the <strong><code>db.client.*</code></strong> semantic conventions.</p>
+
+      <h3>Stable Metric (same for ALL databases)</h3>
+<pre><code><span class="cm"># This metric is identical whether you use MySQL, PostgreSQL, MSSQL, or Oracle</span>
+<span class="ky">db.client.operation.duration</span>  <span class="cm"># Histogram (seconds)</span>
+
+<span class="cm"># The database type is just an attribute:</span>
+  <span class="ky">db.system.name</span> = <span class="st">"mysql"</span>          <span class="cm"># or "postgresql", "mssql", "oracle"</span>
+  <span class="ky">db.operation.name</span> = <span class="st">"SELECT"</span>      <span class="cm"># the SQL operation</span>
+  <span class="ky">db.namespace</span> = <span class="st">"store"</span>           <span class="cm"># database/schema name</span>
+  <span class="ky">db.collection.name</span> = <span class="st">"orders"</span>    <span class="cm"># table name</span>
+  <span class="ky">db.response.status_code</span> = <span class="st">"42P01"</span> <span class="cm"># DB-specific error code</span></code></pre>
+
+      <h3>Connection Pool Metrics (experimental)</h3>
+<pre><code><span class="ky">db.client.connection.count</span>            <span class="cm"># UpDownCounter</span>
+<span class="ky">db.client.connection.idle.max</span>         <span class="cm"># UpDownCounter</span>
+<span class="ky">db.client.connection.max</span>              <span class="cm"># UpDownCounter</span>
+<span class="ky">db.client.connection.pending_requests</span> <span class="cm"># UpDownCounter</span>
+<span class="ky">db.client.connection.timeouts</span>         <span class="cm"># Counter</span>
+<span class="ky">db.client.connection.create_time</span>      <span class="cm"># Histogram</span>
+<span class="ky">db.client.connection.wait_time</span>        <span class="cm"># Histogram</span>
+<span class="ky">db.client.connection.use_time</span>         <span class="cm"># Histogram</span>
+<span class="ky">db.client.response.returned_rows</span>      <span class="cm"># Histogram</span></code></pre>
+
+      <p class="muted"><strong>Key benefit:</strong> Switch from PostgreSQL to MySQL? Your dashboards still work — same metric name, same attributes. Just filter by <code>db.system.name</code>.</p>
+    </div>
+
+    <div class="card" style="border-color: var(--accent4);">
+      <div class="card-header">
+        <div class="icon" style="background:rgba(251,146,60,0.15);color:var(--accent4)">&#10060;</div>
+        Layer 2: No Shared Convention
+      </div>
+      <p class="muted">The OTel Collector <strong>receivers</strong> scrape the database engine directly. Each database has fundamentally different internals, so metric names are <strong>completely different</strong>.</p>
+
+      <h3>Same concept, different names</h3>
+      <div class="table-wrapper" style="margin-top:0.5rem">
+        <table>
+          <thead><tr><th>Concept</th><th style="color:var(--mysql-color)">MySQL</th><th style="color:var(--pg-color)">PostgreSQL</th><th style="color:var(--mssql-color)">SQL Server</th><th style="color:var(--oracle-color)">Oracle</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Active connections</strong></td><td><code>mysql_threads</code></td><td><code>postgresql_backends</code></td><td><code>sqlserver_user_connection_count</code></td><td><code>oracledb_sessions_usage</code></td></tr>
+            <tr><td><strong>Query throughput</strong></td><td><code>mysql_query_count_total</code></td><td><code>postgresql_commits_total</code></td><td><code>sqlserver_batch_request_rate</code></td><td><code>oracledb_user_commits_total</code></td></tr>
+            <tr><td><strong>Cache efficiency</strong></td><td><code>mysql_buffer_pool_pages</code></td><td><code>postgresql_blocks_read</code></td><td><code>sqlserver_page_buffer_cache_hit_ratio</code></td><td><code>oracledb_consistent_gets</code></td></tr>
+            <tr><td><strong>Lock issues</strong></td><td><code>mysql_table_io_wait_count_total</code></td><td><code>postgresql_deadlocks_total</code></td><td><code>sqlserver_lock_wait_rate</code></td><td><code>oracledb_enqueue_deadlocks_total</code></td></tr>
+            <tr><td><strong>Storage</strong></td><td><em>(via InnoDB metrics)</em></td><td><code>postgresql_db_size_bytes</code></td><td><em>(via DMVs)</em></td><td><code>oracledb_tablespace_size_usage_bytes</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="muted"><strong>Why no convention?</strong> Because these come from completely different sources: MySQL <code>SHOW GLOBAL STATUS</code> / <code>performance_schema</code>, PostgreSQL <code>pg_stat_*</code> views, SQL Server <code>sys.dm_*</code> DMVs, Oracle <code>V$</code> views. The underlying concepts don't map 1:1.</p>
+    </div>
+  </div>
+
+  <!-- Stability status -->
+  <div class="collapsible" onclick="toggleCollapsible(this)">
+    <div class="collapsible-header">
+      <span>OTel Semantic Convention Stability Status (as of 2026)</span>
+      <span class="collapsible-chevron">&#9660;</span>
+    </div>
+    <div class="collapsible-body"><div class="collapsible-body-inner">
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Convention</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>db.client.operation.duration</code></td><td style="color:var(--accent3)"><strong>Stable</strong></td><td>For MySQL, PostgreSQL, MariaDB, SQL Server</td></tr>
+            <tr><td><code>db.client.connection.count</code></td><td style="color:var(--accent4)"><strong>Development</strong></td><td>Connection pool metrics</td></tr>
+            <tr><td><code>db.client.connection.timeouts</code></td><td style="color:var(--accent4)"><strong>Development</strong></td><td>Connection pool metrics</td></tr>
+            <tr><td><code>db.client.response.returned_rows</code></td><td style="color:var(--accent4)"><strong>Development</strong></td><td>Row count histogram</td></tr>
+            <tr><td>Database spans</td><td style="color:var(--accent3)"><strong>Stable</strong></td><td>For MySQL, PostgreSQL, MariaDB, SQL Server</td></tr>
+            <tr><td>Oracle spans/metrics</td><td style="color:var(--accent4)"><strong>Development</strong></td><td>Not yet stabilized</td></tr>
+            <tr><td>Server-side receiver metrics</td><td style="color:var(--text-muted)"><strong>N/A</strong></td><td>No semantic convention exists — each receiver is independent</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">Use <code>OTEL_SEMCONV_STABILITY_OPT_IN=database</code> to emit stable conventions, or <code>database/dup</code> to emit both stable and experimental during migration.</p>
+    </div></div>
+  </div>
+
+  <!-- What this means in practice -->
+  <div class="verdict" style="border-color: var(--accent2);">
+    <h3 style="color: var(--accent2)">What this means in practice</h3>
+    <div class="grid-2">
+      <div>
+        <p><strong>If you want a "universal database dashboard":</strong></p>
+        <ul>
+          <li>Use <strong>Layer 1</strong> (<code>db.client.operation.duration</code>)</li>
+          <li>One dashboard works for ALL databases</li>
+          <li>Shows: query latency, throughput, errors</li>
+          <li>Filter by <code>db.system.name</code> attribute</li>
+          <li>Limitation: only sees what the <em>app</em> sees (client-side)</li>
+        </ul>
+      </div>
+      <div>
+        <p><strong>If you want deep DB engine internals:</strong></p>
+        <ul>
+          <li>Use <strong>Layer 2</strong> (database-specific receivers)</li>
+          <li>Each database needs its own dashboard</li>
+          <li>Shows: buffer pools, locks, I/O waits, replication, tablespaces</li>
+          <li>Metric names are unique per database engine</li>
+          <li>Can't build a "one dashboard fits all"</li>
+        </ul>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:0.75rem">Most production setups use <strong>both layers</strong>: Layer 1 for application-level SLIs (latency, error rate) and Layer 2 for DBA-level deep diagnostics (buffer pool hit ratio, lock contention, slow query analysis).</p>
+  </div>
+</section>
+
+<section style="margin-top: 1rem;">
+  <h2 style="color: var(--accent)">Comparison Across All Databases</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th></th><th style="color:var(--mysql-color)">MySQL</th><th style="color:var(--pg-color)">PostgreSQL</th><th style="color:var(--mssql-color)">SQL Server</th><th style="color:var(--oracle-color)">Oracle</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>OTel Receiver</strong></td>
+          <td><code>mysql</code></td>
+          <td><code>postgresql</code></td>
+          <td><code>sqlserver</code></td>
+          <td><code>oracledb</code></td>
+        </tr>
+        <tr>
+          <td><strong>Prometheus Exporter</strong></td>
+          <td><code>mysqld_exporter</code><br><span class="muted">:9104</span></td>
+          <td><code>postgres_exporter</code><br><span class="muted">:9187</span></td>
+          <td><code>sql_exporter</code><br><span class="muted">:9399</span></td>
+          <td><code>oracledb_exporter</code><br><span class="muted">:9161</span></td>
+        </tr>
+        <tr>
+          <td><strong>Internal Stats</strong></td>
+          <td><code>performance_schema</code><br><code>SHOW GLOBAL STATUS</code></td>
+          <td><code>pg_stat_*</code> views<br><code>pg_stat_statements</code></td>
+          <td><code>sys.dm_*</code> DMVs<br>Query Store</td>
+          <td><code>V$</code> views<br>AWR / ASH</td>
+        </tr>
+        <tr>
+          <td><strong>Slow Query Log</strong></td>
+          <td>Built-in file<br><code>slow.log</code></td>
+          <td>Built-in file<br><code>log_min_duration</code></td>
+          <td>Extended Events<br>(XEvents → file)</td>
+          <td>No file log<br>Use <code>V$SQL</code> / AWR</td>
+        </tr>
+        <tr>
+          <td><strong>Log Receiver</strong></td>
+          <td><code>filelog</code><br>multiline <code>'^# Time:'</code></td>
+          <td><code>filelog</code><br>multiline timestamp</td>
+          <td><code>filelog</code><br>or XEvent parser</td>
+          <td><code>filelog</code><br>alert + listener logs</td>
+        </tr>
+        <tr>
+          <td><strong>Grafana Dashboards</strong></td>
+          <td>#7362, #14057</td>
+          <td>#9628, #455</td>
+          <td>#13919</td>
+          <td>#3333</td>
+        </tr>
+        <tr>
+          <td><strong>Connection String</strong></td>
+          <td><code>user:pass@(host:3306)/</code></td>
+          <td><code>host:5432/db?sslmode=disable</code></td>
+          <td><code>sqlserver://user:pass@host:1433</code></td>
+          <td><code>oracle://user:pass@host:1521/SID</code></td>
+        </tr>
+        <tr>
+          <td><strong>Setup Complexity</strong></td>
+          <td style="color:var(--accent3)">Low</td>
+          <td style="color:var(--accent3)">Low</td>
+          <td style="color:var(--accent4)">Medium</td>
+          <td style="color:var(--accent5)">High (licensing, InstantClient)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="verdict">
+    <h3>When to use which approach?</h3>
+    <div class="grid-2">
+      <div>
+        <p><strong><span class="tag tag-otel">OTel Collector</span> is best when:</strong></p>
+        <ul>
+          <li>Already using OTel for application tracing/metrics</li>
+          <li>Need unified metrics + logs pipeline</li>
+          <li>Cross-cluster push model (no Prometheus in app cluster)</li>
+          <li>Want a single standard across all databases</li>
+        </ul>
+      </div>
+      <div>
+        <p><strong><span class="tag tag-exporter">Prometheus Exporter</span> is best when:</strong></p>
+        <ul>
+          <li>Pure Prometheus stack, everything in one cluster</li>
+          <li>Want pre-built community dashboards immediately</li>
+          <li>Need custom SQL queries for app-specific metrics</li>
+          <li>Using Prometheus Operator with ServiceMonitor CRDs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- container -->
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+
+function switchDB(db) {
+  document.querySelectorAll('.db-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.db-btn[data-db="${db}"]`).classList.add('active');
+  document.querySelectorAll('.db-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${db}`).classList.add('active');
+  const ind = document.getElementById('dbIndicator');
+  ind.className = `db-indicator ${db}`;
+}
+
+function toggleCollapsible(el) {
+  el.classList.toggle('open');
+}
+
+function switchTab(e, tabId) {
+  const container = e.target.closest('section');
+  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+</script>
+</body>
+</html>

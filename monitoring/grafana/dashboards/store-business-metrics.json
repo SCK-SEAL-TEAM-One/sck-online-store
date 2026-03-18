@@ -68,6 +68,7 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(rate(orders_created_total[5m])) by (payment_method)",
           "legendFormat": "{{payment_method}}",
+          "exemplar": true,
           "refId": "A"
         }
       ],
@@ -120,6 +121,7 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(rate(order_revenue_total[5m]))",
           "legendFormat": "Revenue",
+          "exemplar": true,
           "refId": "A"
         }
       ]
@@ -266,6 +268,7 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "sum(rate(payment_attempts_total[5m])) by (status)",
           "legendFormat": "{{status}}",
+          "exemplar": true,
           "refId": "A"
         }
       ],
@@ -318,18 +321,21 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "histogram_quantile(0.50, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p50",
+          "exemplar": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "histogram_quantile(0.95, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p95",
+          "exemplar": true,
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "histogram_quantile(0.99, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p99",
+          "exemplar": true,
           "refId": "C"
         }
       ],

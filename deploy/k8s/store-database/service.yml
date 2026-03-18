@@ -1,4 +1,80 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-slow-query-config
+data:
+  slow-query.cnf: |
+    [mysqld]
+    slow_query_log              = 1
+    slow_query_log_file         = /var/log/mysql/slow.log
+    long_query_time             = 0.5
+    log_queries_not_using_indexes = 1
+    performance_schema          = ON
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-otel-collector-config
+data:
+  config.yaml: |
+    receivers:
+      mysql:
+        endpoint: 127.0.0.1:3306
+        username: ${env:DB_USERNAME}
+        password: ${env:DB_PASSWORD}
+        collection_interval: 15s
+        statement_events:
+          digest_text_limit: 120
+          time_limit: 24h
+          limit: 250
+        metrics:
+          mysql.commands:
+            enabled: true
+          mysql.query.count:
+            enabled: true
+          mysql.query.slow.count:
+            enabled: true
+          mysql.connection.count:
+            enabled: true
+          mysql.connection.errors:
+            enabled: true
+          mysql.joins:
+            enabled: true
+          mysql.table_open_cache:
+            enabled: true
+          mysql.statement_event.count:
+            enabled: true
+          mysql.statement_event.wait.time:
+            enabled: true
+      filelog/slow_query:
+        include:
+          - /var/log/mysql/slow.log
+        multiline:
+          line_start_pattern: '^# Time:'
+    processors:
+      resource/mysql:
+        attributes:
+          - key: service.name
+            value: mysql
+            action: upsert
+          - key: source
+            value: mysql-slow-query
+            action: upsert
+    exporters:
+      otlphttp:
+        endpoint: http://ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4318
+    service:
+      pipelines:
+        metrics:
+          receivers: [mysql]
+          processors: [resource/mysql]
+          exporters: [otlphttp]
+        logs:
+          receivers: [filelog/slow_query]
+          processors: [resource/mysql]
+          exporters: [otlphttp]
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: mysql
@@ -45,6 +121,13 @@ spec:
                 secretKeyRef:
                   name: db-credentials
                   key: mysql-password
+          volumeMounts:
+            - name: mysql-config
+              mountPath: /etc/mysql/conf.d/slow-query.cnf
+              subPath: slow-query.cnf
+              readOnly: true
+            - name: mysql-logs
+              mountPath: /var/log/mysql
           livenessProbe:
             exec:
               command:
@@ -65,3 +148,42 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 5
             failureThreshold: 3
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:latest
+          args:
+            - --config=/etc/otelcol/config.yaml
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-password
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otelcol
+            - name: mysql-logs
+              mountPath: /var/log/mysql
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: mysql-config
+          configMap:
+            name: mysql-slow-query-config
+        - name: otel-config
+          configMap:
+            name: mysql-otel-collector-config
+        - name: mysql-logs
+          emptyDir: {}

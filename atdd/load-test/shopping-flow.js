@@ -3,11 +3,14 @@ import { check, sleep } from "k6"
 
 const BASE_URL = __ENV.BASE_URL || "http://localhost"
 const PASSWORD = "P@ssw0rd"
+const START_ID = parseInt(__ENV.START_ID || "1")
+const END_ID = parseInt(__ENV.END_ID || "1000")
+const VUS = parseInt(__ENV.VUS || "20")
 
 export const options = {
   stages: [
-    { duration: "30s", target: 20 },
-    { duration: "2m30s", target: 20 },
+    { duration: "30s", target: VUS },
+    { duration: "2m30s", target: VUS },
     { duration: "30s", target: 0 },
   ],
   thresholds: {
@@ -34,7 +37,8 @@ function authHeaders(token) {
 }
 
 export default function () {
-  const userId = (__VU % 84) + 1
+  const userRange = END_ID - START_ID + 1
+  const userId = START_ID + (__VU % userRange)
   const username = `user_${userId}`
 
   // Step 1: Login

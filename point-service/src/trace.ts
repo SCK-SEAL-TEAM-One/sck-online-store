@@ -7,6 +7,29 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc';
 
+// Pyroscope profiler init — must be before OTel SDK start
+let Pyroscope: any = null
+const pyroscopeUrl = process.env.PYROSCOPE_URL
+if (pyroscopeUrl) {
+  try {
+    Pyroscope = require('@pyroscope/nodejs')
+    if (Pyroscope.default) Pyroscope = Pyroscope.default
+    Pyroscope.init({
+      serverAddress: pyroscopeUrl,
+      appName: 'point-service',
+      wall: {
+        collectCpuTime: true,
+      },
+    })
+    Pyroscope.startWallProfiling()
+    Pyroscope.startHeapProfiling()
+    console.log(`[Pyroscope] Profiler started, sending to ${pyroscopeUrl}`)
+  } catch (err) {
+    console.warn('[Pyroscope] Failed to initialize profiler:', err.message)
+    Pyroscope = null
+  }
+}
+
 const grpcExporter = new OTLPTraceExporter({
   headers: {},
   concurrencyLimit: 10,
@@ -57,6 +80,11 @@ console.log('[OTEL] SDK started');
 // gracefully shut down the SDK on process exit
 process.on('SIGTERM', () => {
   console.log('[OTEL] Shutting down OpenTelemetry SDK');
+  if (Pyroscope) {
+    Pyroscope.stopWallProfiling();
+    Pyroscope.stopHeapProfiling();
+    console.log('[Pyroscope] Profiler stopped');
+  }
   otelSDK
     .shutdown()
     .then(

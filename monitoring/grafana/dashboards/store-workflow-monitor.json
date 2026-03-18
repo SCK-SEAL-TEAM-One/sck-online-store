@@ -220,6 +220,7 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "sum(rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (service)",
           "legendFormat": "{{service}}",
+          "exemplar": true,
           "refId": "A"
         }
       ]
@@ -261,6 +262,7 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "sum(rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\", status_code=\"STATUS_CODE_ERROR\"}[5m])) by (service)",
           "legendFormat": "{{service}}",
+          "exemplar": true,
           "refId": "A"
         }
       ]
@@ -300,8 +302,9 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le, service))",
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le, service))",
           "legendFormat": "{{service}}",
+          "exemplar": true,
           "refId": "A"
         }
       ]
@@ -356,6 +359,7 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"store-service\", http_route=~\"/api/v1/login|/api/v1/product|/api/v1/addCart|/api/v1/order|/api/v1/confirmPayment|/api/v1/point\"}[5m])) by (http_request_method, http_route)",
           "legendFormat": "{{http_request_method}} {{http_route}}",
+          "exemplar": true,
           "refId": "A"
         }
       ],
@@ -403,6 +407,7 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=\"store-service\", http_route=~\"/api/v1/login|/api/v1/product|/api/v1/addCart|/api/v1/order|/api/v1/confirmPayment|/api/v1/point\", http_response_status_code=~\"4..|5..\"}[5m])) by (http_request_method, http_route, http_response_status_code)",
           "legendFormat": "{{http_request_method}} {{http_route}} [{{http_response_status_code}}]",
+          "exemplar": true,
           "refId": "A"
         }
       ],
@@ -451,6 +456,7 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket{service_name=\"store-service\", http_route=~\"/api/v1/login|/api/v1/product|/api/v1/addCart|/api/v1/order|/api/v1/confirmPayment|/api/v1/point\"}[5m])) by (le, http_request_method, http_route))",
           "legendFormat": "{{http_request_method}} {{http_route}}",
+          "exemplar": true,
           "refId": "A"
         }
       ],
@@ -506,12 +512,14 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "histogram_quantile(0.50, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p50",
+          "exemplar": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "histogram_quantile(0.95, sum(rate(payment_duration_bucket[5m])) by (le))",
           "legendFormat": "p95",
+          "exemplar": true,
           "refId": "B"
         }
       ],
@@ -560,12 +568,14 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "histogram_quantile(0.50, sum(rate(traces_service_graph_request_client_seconds_bucket{client=\"store-service\", server=\"point-service\"}[5m])) by (le))",
           "legendFormat": "p50",
+          "exemplar": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "histogram_quantile(0.95, sum(rate(traces_service_graph_request_client_seconds_bucket{client=\"store-service\", server=\"point-service\"}[5m])) by (le))",
           "legendFormat": "p95",
+          "exemplar": true,
           "refId": "B"
         }
       ],
@@ -612,14 +622,16 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_latency_bucket{service=\"thirdparty-gateway\", span_name=\"POST /shipping\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_duration_milliseconds_bucket{service=\"thirdparty-gateway\", span_name=\"POST /shipping\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
           "legendFormat": "p50",
+          "exemplar": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{service=\"thirdparty-gateway\", span_name=\"POST /shipping\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_duration_milliseconds_bucket{service=\"thirdparty-gateway\", span_name=\"POST /shipping\", span_kind=\"SPAN_KIND_SERVER\"}[5m])) by (le))",
           "legendFormat": "p95",
+          "exemplar": true,
           "refId": "B"
         }
       ],
@@ -668,6 +680,7 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "sum(rate(traces_service_graph_request_total{client=\"store-service\"}[5m])) by (server)",
           "legendFormat": "→ {{server}}",
+          "exemplar": true,
           "refId": "A"
         }
       ]
@@ -716,6 +729,7 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "rate(mysql_commands_total[5m]) > 0",
           "legendFormat": "{{command}}",
+          "exemplar": true,
           "refId": "A"
         }
       ]
@@ -831,20 +845,23 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_latency_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(traces_spanmetrics_duration_milliseconds_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
           "legendFormat": "p50",
+          "exemplar": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_duration_milliseconds_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
           "legendFormat": "p95",
+          "exemplar": true,
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.99, sum(rate(traces_spanmetrics_latency_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(traces_spanmetrics_duration_milliseconds_bucket{service=\"store-service\", span_name=~\"sql.stmt.query|sql.stmt.exec|sql.conn.query\"}[5m])) by (le))",
           "legendFormat": "p99",
+          "exemplar": true,
           "refId": "C"
         }
       ],
