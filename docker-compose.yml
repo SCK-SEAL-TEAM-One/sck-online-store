@@ -63,11 +63,11 @@ services:
       - "3306:3306"
     restart: always
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 3s
+      test: ["CMD", "mysql", "-u", "user", "-ppassword", "-e", "USE store;"]
+      interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 5s
+      start_period: 30s
 
   liquibase:
     build:
