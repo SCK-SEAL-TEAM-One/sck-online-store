@@ -320,6 +320,12 @@ resource "helm_release" "grafana" {
                 datasourceUid = "pyroscope"
                 customQuery   = false
                 profileTypeId = "process_cpu:cpu:nanoseconds:cpu:nanoseconds"
+                tags = [
+                  {
+                    key   = "service.name"
+                    value = "service_name"
+                  }
+                ]
               }
             }
             isDefault = false

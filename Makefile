@@ -205,4 +205,41 @@ test_all: code_analysis_all unit_test_all start_test_suite run_newman run_robot 
 	@echo "All tests passed!"
 
 gen-swagger:
-	cd store-service && swag init -g cmd/main.go -o cmd/docs 
+	cd store-service && swag init -g cmd/main.go -o cmd/docs
+
+# --- EKS Build & Deploy ---
+# Image tag format: eks-YYMMDD-HHMM (e.g., eks-260319-1045)
+EKS_TAG := eks-$(shell date +%y%m%d-%H%M)
+DOCKER_REPO := siamchamnankit
+
+eks_build_store:
+	docker build --platform linux/amd64 -t $(DOCKER_REPO)/store-service:$(EKS_TAG) store-service/
+	@echo "Built $(DOCKER_REPO)/store-service:$(EKS_TAG)"
+
+eks_build_point:
+	docker build --platform linux/amd64 -t $(DOCKER_REPO)/point-service:$(EKS_TAG) point-service/
+	@echo "Built $(DOCKER_REPO)/point-service:$(EKS_TAG)"
+
+eks_build_all: eks_build_store eks_build_point
+
+eks_push_store: eks_build_store
+	docker push $(DOCKER_REPO)/store-service:$(EKS_TAG)
+
+eks_push_point: eks_build_point
+	docker push $(DOCKER_REPO)/point-service:$(EKS_TAG)
+
+eks_push_all: eks_push_store eks_push_point
+
+eks_deploy_store: eks_push_store
+	sed -i '' 's|image: $(DOCKER_REPO)/store-service:.*|image: $(DOCKER_REPO)/store-service:$(EKS_TAG)|' deploy/k8s/store-service/service.yml
+	kubectl apply -f deploy/k8s/store-service/service.yml
+	kubectl rollout status deployment/store-service-deployment --timeout=120s
+	@echo "Deployed store-service:$(EKS_TAG)"
+
+eks_deploy_point: eks_push_point
+	sed -i '' 's|image: $(DOCKER_REPO)/point-service:.*|image: $(DOCKER_REPO)/point-service:$(EKS_TAG)|' deploy/k8s/point-service/service.yml
+	kubectl apply -f deploy/k8s/point-service/service.yml
+	kubectl rollout status deployment/point-service-deployment --timeout=120s
+	@echo "Deployed point-service:$(EKS_TAG)"
+
+eks_deploy_all: eks_deploy_store eks_deploy_point

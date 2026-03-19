@@ -83,21 +83,38 @@ make build_frontend        # Docker build store-web
 make gen-swagger           # Generate Swagger docs from Go annotations
 ```
 
-### Build & Push for EKS Deployment
-The EKS cluster runs on **linux/amd64** nodes. When building on Apple Silicon (ARM), always use `--platform linux/amd64` to avoid `exec format error` on the cluster:
+### Build & Deploy to EKS
+
+**IMPORTANT — Always use Makefile targets for EKS builds.** They auto-generate a unique date-time tag (`eks-YYMMDD-HHMM`), build for `linux/amd64`, push to Docker Hub, update the K8s manifest, and deploy. This prevents stale image cache issues caused by reusing the same tag.
+
 ```bash
-# Build for EKS (from project root)
-docker build --platform linux/amd64 -t siamchamnankit/store-service:<tag> store-service/
-docker build --platform linux/amd64 -t siamchamnankit/point-service:<tag> point-service/
+# Build + push + deploy a single service
+make eks_deploy_store        # store-service only
+make eks_deploy_point        # point-service only
+make eks_deploy_all          # both services
 
-# Push to Docker Hub
-docker push siamchamnankit/store-service:<tag>
-docker push siamchamnankit/point-service:<tag>
+# Build + push only (no deploy)
+make eks_push_store
+make eks_push_point
+make eks_push_all
 
-# Deploy to EKS (update image tag in manifests first)
-kubectl apply -f deploy/k8s/store-service/service.yml
-kubectl apply -f deploy/k8s/point-service/service.yml
+# Build only (no push, no deploy)
+make eks_build_store
+make eks_build_point
+make eks_build_all
 ```
+
+**Never reuse an existing image tag.** Each build must get a new tag. The Makefile handles this automatically with the `eks-YYMMDD-HHMM` format (e.g., `eks-260319-1022`). The deploy targets also update the image tag in `deploy/k8s/*/service.yml` and run `kubectl apply` automatically.
+
+**Platform requirement:** The EKS cluster runs on `linux/amd64` nodes. Building on Apple Silicon (ARM) without `--platform linux/amd64` causes `exec format error`. The Makefile targets handle this automatically.
+
+**Docker Hub repo:** `siamchamnankit/store-service`, `siamchamnankit/point-service`
+
+**K8s manifests:** `deploy/k8s/store-service/service.yml`, `deploy/k8s/point-service/service.yml`
+
+**Cluster contexts:**
+- App cluster: `arn:aws:eks:ap-southeast-7:517425940836:cluster/sck-workshop`
+- Monitoring cluster: `arn:aws:eks:ap-southeast-7:517425940836:cluster/sck-monitoring`
 
 ## Architecture
 

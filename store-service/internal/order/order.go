@@ -175,6 +175,15 @@ func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submi
 			),
 		)
 		metrics.OrderItemsCount.Record(ctx, int64(len(submitedOrder.Cart)))
+		slog.InfoContext(ctx, "Recording order.price metric",
+			"total_price", orderDetail.TotalPrice,
+			"metric_nil", metrics.OrderTotalPrice == nil,
+		)
+		metrics.OrderTotalPrice.Record(ctx, orderDetail.TotalPrice,
+			metric.WithAttributes(
+				attribute.String("payment_method", PaymentMethod[submitedOrder.PaymentMethodID]),
+			),
+		)
 	}
 
 	return Order{

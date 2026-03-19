@@ -66,14 +66,13 @@ func main() {
 	if pyroscopeURL != "" {
 		profiler, err := profiling.StartPyroscope(pyroscopeURL, serviceName)
 		if err != nil {
-			log.Printf("failed to start Pyroscope profiler: %v", err)
+			fmt.Fprintf(os.Stderr, "[Pyroscope] failed to start profiler: %v\n", err)
 		} else {
 			defer profiler.Stop()
-			otel.SetTracerProvider(otelpyroscope.NewTracerProvider(otel.GetTracerProvider(),
-				otelpyroscope.WithAppName(serviceName),
-				otelpyroscope.WithPyroscopeURL(pyroscopeURL),
-				otelpyroscope.WithProfileURL(true),
-			))
+			fmt.Fprintf(os.Stderr, "[Pyroscope] profiler started, wrapping TracerProvider\n")
+			fmt.Fprintf(os.Stderr, "[Pyroscope] TracerProvider BEFORE: %T\n", otel.GetTracerProvider())
+			otel.SetTracerProvider(otelpyroscope.NewTracerProvider(otel.GetTracerProvider()))
+			fmt.Fprintf(os.Stderr, "[Pyroscope] TracerProvider AFTER: %T\n", otel.GetTracerProvider())
 		}
 	}
 

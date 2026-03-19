@@ -1,16 +1,19 @@
 package metrics
 
 import (
+	"log/slog"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 )
 
 var (
-	OrdersCreated   metric.Int64Counter
-	OrderRevenue    metric.Float64Counter
-	OrderItemsCount metric.Int64Histogram
-	PaymentAttempts metric.Int64Counter
-	PaymentDuration metric.Float64Histogram
+	OrdersCreated    metric.Int64Counter
+	OrderRevenue     metric.Float64Counter
+	OrderItemsCount  metric.Int64Histogram
+	OrderTotalPrice  metric.Float64Histogram
+	PaymentAttempts  metric.Int64Counter
+	PaymentDuration  metric.Float64Histogram
 )
 
 func Init() {
@@ -27,6 +30,16 @@ func Init() {
 	OrderItemsCount, _ = meter.Int64Histogram("order.items.count",
 		metric.WithDescription("Number of items per order"),
 	)
+
+	var err error
+	OrderTotalPrice, err = meter.Float64Histogram("order.price",
+		metric.WithDescription("Total price per order in THB"),
+	)
+	if err != nil {
+		slog.Error("Failed to create OrderTotalPrice metric", "error", err)
+	} else {
+		slog.Info("OrderTotalPrice metric created successfully")
+	}
 
 	PaymentAttempts, _ = meter.Int64Counter("payment.attempts",
 		metric.WithDescription("Number of payment attempts"),
