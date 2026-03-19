@@ -175,16 +175,27 @@ func (orderService OrderService) CreateOrder(ctx context.Context, uid int, submi
 			),
 		)
 		metrics.OrderItemsCount.Record(ctx, int64(len(submitedOrder.Cart)))
-		slog.InfoContext(ctx, "Recording order.price metric",
-			"total_price", orderDetail.TotalPrice,
-			"metric_nil", metrics.OrderTotalPrice == nil,
-		)
-		metrics.OrderTotalPrice.Record(ctx, orderDetail.TotalPrice,
-			metric.WithAttributes(
-				attribute.String("payment_method", PaymentMethod[submitedOrder.PaymentMethodID]),
-			),
-		)
+		metrics.OrderTotalPrice.Record(ctx, orderDetail.TotalPrice)
 	}
+
+	slog.InfoContext(ctx, "Order completed",
+		"log_type", "business",
+		"event", "order_completed",
+		"entity_type", "order",
+		"entity_id", orderNumber,
+		"actor_id", uid,
+		slog.Any("metadata", map[string]any{
+			"subtotal_thb":     orderDetail.SubTotalPrice,
+			"discount_thb":     orderDetail.DiscountPrice,
+			"shipping_fee_thb": orderDetail.ShippingFee,
+			"total_price_thb":  orderDetail.TotalPrice,
+			"burn_point":       orderDetail.BurnPoint,
+			"earn_point":       orderDetail.EarnPoint,
+			"payment_method":   PaymentMethod[submitedOrder.PaymentMethodID],
+			"shipping_method":  ShippingMethod[submitedOrder.ShippingMethodID],
+			"item_count":       len(submitedOrder.Cart),
+		}),
+	)
 
 	return Order{
 		OrderNumber: orderNumber,

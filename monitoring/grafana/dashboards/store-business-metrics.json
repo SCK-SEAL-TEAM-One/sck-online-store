@@ -210,21 +210,21 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "histogram_quantile(0.50, sum(rate(order_price_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(order_total_thb_bucket[5m])) by (le))",
           "legendFormat": "p50",
           "exemplar": true,
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "histogram_quantile(0.95, sum(rate(order_price_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(order_total_thb_bucket[5m])) by (le))",
           "legendFormat": "p95",
           "exemplar": true,
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "histogram_quantile(0.99, sum(rate(order_price_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(order_total_thb_bucket[5m])) by (le))",
           "legendFormat": "p99",
           "exemplar": true,
           "refId": "C"
@@ -270,7 +270,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "sum(increase(order_price_bucket[5m])) by (le)",
+          "expr": "sum(increase(order_total_thb_bucket[5m])) by (le)",
           "legendFormat": "{{le}}",
           "format": "heatmap",
           "exemplar": true,

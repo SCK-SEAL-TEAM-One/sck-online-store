@@ -12,8 +12,8 @@ services:
       - POINT_GATEWAY=point-service:8001
       - STORE_WEB_HOST=http://localhost
       - DB_CONNECTION=user:password@(db:3306)/store?parseTime=true
-      - OTEL_EXPORTER_OTLP_ENDPOINT=lgtm:4317
-      - INSECURE_MODE=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
       - OTEL_SERVICE_NAME=store-service
       - JWT_SECRET=my-secret-key
       - PYROSCOPE_URL=http://lgtm:4040
@@ -92,8 +92,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      seed:
-        condition: service_completed_successfully
     working_dir: /liquibase/changelog
     volumes:
       - ./db:/liquibase/changelog
@@ -141,8 +139,8 @@ services:
       context: nginx
     ports:
       - "80:80"
-    # volumes:
-    #   - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: always
     depends_on:
       store-service:

@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: store-service
-          image: siamchamnankit/store-service:eks-260319-1022
+          image: siamchamnankit/store-service:eks-260319-1240
           imagePullPolicy: Always
           env:
             - name: BANK_GATEWAY
@@ -43,9 +43,9 @@ spec:
                   name: app-secrets
                   key: jwt-secret
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4318
-            - name: INSECURE_MODE
-              value: "true"
+              value: http://ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
             - name: OTEL_SERVICE_NAME
               value: store-service
             - name: PYROSCOPE_URL

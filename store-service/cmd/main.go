@@ -45,8 +45,6 @@ import (
 
 var (
 	serviceName  = os.Getenv("OTEL_SERVICE_NAME")
-	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-	insecure     = os.Getenv("INSECURE_MODE")
 	pyroscopeURL = os.Getenv("PYROSCOPE_URL")
 )
 
@@ -54,8 +52,8 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	if collectorURL != "" {
-		cleanup, err := storeOtel.InitOtel(ctx, serviceName, collectorURL, insecure)
+	if os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
+		cleanup, err := storeOtel.InitOtel(ctx)
 		if err != nil {
 			log.Fatalf("failed to initialize OpenTelemetry: %v", err)
 		}
@@ -69,10 +67,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "[Pyroscope] failed to start profiler: %v\n", err)
 		} else {
 			defer profiler.Stop()
-			fmt.Fprintf(os.Stderr, "[Pyroscope] profiler started, wrapping TracerProvider\n")
-			fmt.Fprintf(os.Stderr, "[Pyroscope] TracerProvider BEFORE: %T\n", otel.GetTracerProvider())
 			otel.SetTracerProvider(otelpyroscope.NewTracerProvider(otel.GetTracerProvider()))
-			fmt.Fprintf(os.Stderr, "[Pyroscope] TracerProvider AFTER: %T\n", otel.GetTracerProvider())
 		}
 	}
 
