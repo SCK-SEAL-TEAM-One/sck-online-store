@@ -69,21 +69,6 @@ services:
       retries: 10
       start_period: 5s
 
-  seed:
-    image: golang:1.25
-    container_name: seed-users
-    working_dir: /app/store-service
-    volumes:
-      - .:/app
-      - shared_data:/shared
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - DB_CONNECTION=user:password@(db:3306)/store
-      - OUTPUT_DIR=/shared
-    command: ["go", "run", "./cmd/seed/main.go"]
-
   liquibase:
     build:
       context: .
