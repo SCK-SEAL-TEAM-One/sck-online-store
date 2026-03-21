@@ -58,3 +58,7 @@ Uses `@nestjs/testing` TestingModule. Mock dependencies with `jest.fn()`. Arrang
 ## Observability
 
 OpenTelemetry auto-instrumentation for HTTP, MySQL2, and NestJS. OTLP gRPC exporter sends traces to `lgtm:4317`. SDK initializes before NestJS app in `main.ts`.
+
+Pyroscope wall-time profiling via `@pyroscope/nodejs`. Requires `p-limit` override to v3.1.0 in package.json (v4+ is ESM-only, incompatible with Pyroscope's CJS `require()`).
+
+**Known constraint:** No span-level profile linking. "Profiles for this span" button does NOT appear in Grafana Tempo for point-service spans. Root cause: no Node.js equivalent of `grafana/otel-profiling-go` exists to inject `pyroscope.profile.id` into spans. Continuous profiling (flame graphs by service name) works fine. See `monitoring/docs/profiling-constraints.md` for full details and when to revisit.

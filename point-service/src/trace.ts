@@ -43,12 +43,12 @@ console.log(
 );
 
 export const otelSDK = new NodeSDK({
-  spanProcessor: new BatchSpanProcessor(grpcExporter, {
+  spanProcessors: [new BatchSpanProcessor(grpcExporter, {
     maxQueueSize: 2048,
     maxExportBatchSize: 512,
     scheduledDelayMillis: 5000,
     exportTimeoutMillis: 30000,
-  }),
+  }) as any],
 
   logRecordProcessors: [new BatchLogRecordProcessor(logExporter)],
 
@@ -56,6 +56,19 @@ export const otelSDK = new NodeSDK({
     getNodeAutoInstrumentations({
       '@opentelemetry/instrumentation-http': {
         enabled: true,
+        ignoreOutgoingRequestHook: (request) => {
+          const host = request.hostname || request.host || '';
+          return host.includes('lgtm');
+        },
+      },
+      '@opentelemetry/instrumentation-dns': { enabled: false },
+      '@opentelemetry/instrumentation-net': { enabled: false },
+      '@opentelemetry/instrumentation-undici': {
+        enabled: true,
+        ignoreRequestHook: (request) => {
+          const origin = request.origin || '';
+          return origin.includes('lgtm');
+        },
       },
       '@opentelemetry/instrumentation-mysql2': {
         enabled: true,

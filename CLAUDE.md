@@ -187,3 +187,9 @@ make eks_build_all
 
 ### Commit Messages
 Use prefix tags: `[Created]`, `[Edited]`, `[Added]`, `[Deleted]` — include details about what changed and where.
+
+## Known Constraints
+
+### Profiling: No span-level profile linking for point-service (Node.js)
+
+"Profiles for this span" and "Open in Profiles Drilldown" buttons in Grafana Tempo only work for **store-service (Go)**, not point-service (Node.js). Root cause: requires `pyroscope.profile.id` span attribute, which is injected by `grafana/otel-profiling-go` — **no Node.js equivalent exists**. Pyroscope has OTel bridges for Go, Java, Ruby, .NET, Python, but not Node.js. Continuous profiling (flame graphs by service) still works. See `monitoring/docs/profiling-constraints.md` for full details and when to revisit.
