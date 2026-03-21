@@ -143,6 +143,7 @@ services:
       - "3001:3000" # dashboard
     volumes:
       - ./monitoring/grafana/provisioning/dashboards.yml:/otel-lgtm/grafana/conf/provisioning/dashboards/custom-dashboards.yaml
+      - ./monitoring/grafana/provisioning/datasources.yml:/otel-lgtm/grafana/conf/provisioning/datasources/grafana-datasources.yaml
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
 
   beyla-thirdparty:

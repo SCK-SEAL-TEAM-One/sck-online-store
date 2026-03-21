@@ -314,9 +314,11 @@ resource "helm_release" "grafana" {
             url    = "http://tempo:3100"
             jsonData = {
               tracesToLogsV2 = {
-                datasourceUid = "loki"
+                datasourceUid          = "loki"
+                spanStartTimeShift     = "-1m"
+                spanEndTimeShift       = "1m"
               }
-              tracesToProfilesV2 = {
+              tracesToProfiles = {
                 datasourceUid = "pyroscope"
                 customQuery   = false
                 profileTypeId = "process_cpu:cpu:nanoseconds:cpu:nanoseconds"
