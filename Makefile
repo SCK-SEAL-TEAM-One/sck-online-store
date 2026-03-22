@@ -232,14 +232,14 @@ eks_push_all: eks_push_store eks_push_point
 
 eks_deploy_store: eks_push_store
 	sed -i '' 's|image: $(DOCKER_REPO)/store-service:.*|image: $(DOCKER_REPO)/store-service:$(EKS_TAG)|' deploy/k8s/app/store-service/service.yml
-	kubectl apply -f deploy/k8s/app/monitoring-endpoints.yml
+	sed 's|REPLACE_OTEL_ENDPOINT|$(EKS_OTEL_GATEWAY)|g' deploy/k8s/app/monitoring-endpoints.yml | kubectl apply -f -
 	kubectl apply -f deploy/k8s/app/store-service/service.yml
 	kubectl rollout status deployment/store-service-deployment --timeout=120s
 	@echo "Deployed store-service:$(EKS_TAG)"
 
 eks_deploy_point: eks_push_point
 	sed -i '' 's|image: $(DOCKER_REPO)/point-service:.*|image: $(DOCKER_REPO)/point-service:$(EKS_TAG)|' deploy/k8s/app/point-service/service.yml
-	kubectl apply -f deploy/k8s/app/monitoring-endpoints.yml
+	sed 's|REPLACE_OTEL_ENDPOINT|$(EKS_OTEL_GATEWAY)|g' deploy/k8s/app/monitoring-endpoints.yml | kubectl apply -f -
 	kubectl apply -f deploy/k8s/app/point-service/service.yml
 	kubectl rollout status deployment/point-service-deployment --timeout=120s
 	@echo "Deployed point-service:$(EKS_TAG)"
@@ -247,7 +247,7 @@ eks_deploy_point: eks_push_point
 eks_deploy_all: eks_deploy_store eks_deploy_point
 
 eks_deploy_app:
-	kubectl apply -f deploy/k8s/app/monitoring-endpoints.yml
+	sed 's|REPLACE_OTEL_ENDPOINT|$(EKS_OTEL_GATEWAY)|g' deploy/k8s/app/monitoring-endpoints.yml | kubectl apply -f -
 	kubectl apply -f deploy/k8s/app/store-database/service.yml
 	kubectl apply -f deploy/k8s/app/store-service/service.yml
 	kubectl apply -f deploy/k8s/app/point-service/service.yml
@@ -256,10 +256,13 @@ eks_deploy_app:
 	kubectl apply -f deploy/k8s/app/ingress.yml
 	@echo "Deployed all app manifests"
 
+# OTel Gateway address on the app cluster (deployed by Terraform to monitoring namespace)
+EKS_OTEL_GATEWAY := otel-gateway-opentelemetry-collector.monitoring
+
 eks_deploy_monitoring:
-	kubectl apply -f deploy/k8s/monitoring/store-database-with-otel.yml
-	kubectl apply -f deploy/k8s/monitoring/thirdparty-with-beyla.yml
-	@echo "Deployed monitoring overlays"
+	sed 's|REPLACE_OTEL_ENDPOINT|$(EKS_OTEL_GATEWAY)|g' deploy/k8s/monitoring/store-database-with-otel.yml | kubectl apply -f -
+	sed 's|REPLACE_OTEL_ENDPOINT|$(EKS_OTEL_GATEWAY)|g' deploy/k8s/monitoring/thirdparty-with-beyla.yml | kubectl apply -f -
+	@echo "Deployed monitoring overlays (endpoints → $(EKS_OTEL_GATEWAY))"
 
 eks_deploy_full: eks_deploy_app eks_deploy_monitoring
 

@@ -5,7 +5,9 @@
 # Environment variables:
 #   K8S_CONTEXT          kubectl context (default: k3d-sck-workshop)
 #   K8S_NAMESPACE        target namespace (default: public)
-#   OTEL_ENDPOINT        OTel collector endpoint, e.g. http://k3d-sck-monitoring-serverlb:4317
+#   OTEL_ENDPOINT        Remote OTel collector (monitoring cluster), e.g. http://k3d-sck-monitoring-serverlb:4317
+#                        When set, deploys a local otel-gateway that receives all telemetry
+#                        from services and forwards to this remote endpoint
 #   PYROSCOPE_ENDPOINT   Pyroscope endpoint, e.g. http://k3d-sck-monitoring-serverlb:4040
 #
 # Prerequisites:
@@ -21,12 +23,16 @@ CONTEXT="${K8S_CONTEXT:-k3d-sck-workshop}"
 OTEL_ENDPOINT="${OTEL_ENDPOINT:-}"
 PYROSCOPE_ENDPOINT="${PYROSCOPE_ENDPOINT:-}"
 
+# When monitoring is enabled, services send to local otel-gateway (not directly to remote collector)
+GATEWAY_SVC="otel-gateway-opentelemetry-collector.$NAMESPACE"
+
 echo "=== Deploying to k3d (namespace: $NAMESPACE, context: $CONTEXT) ==="
 
-# Apply monitoring-endpoints ConfigMap, patching if endpoints are provided
+# Apply monitoring-endpoints ConfigMap
+# When monitoring is enabled, point services to the local otel-gateway (not the remote collector)
 if [ -n "$OTEL_ENDPOINT" ] || [ -n "$PYROSCOPE_ENDPOINT" ]; then
-  echo "Patching monitoring-endpoints with custom values..."
-  OTEL_VALUE="${OTEL_ENDPOINT:-http://REPLACE_OTEL_ENDPOINT:4317}"
+  echo "Patching monitoring-endpoints to use local otel-gateway..."
+  OTEL_VALUE="http://$GATEWAY_SVC:4317"
   PYRO_VALUE="${PYROSCOPE_ENDPOINT:-http://REPLACE_PYROSCOPE_ENDPOINT:4040}"
   sed "s|http://REPLACE_OTEL_ENDPOINT:4317|$OTEL_VALUE|;s|http://REPLACE_PYROSCOPE_ENDPOINT:4040|$PYRO_VALUE|" \
     "$SCRIPT_DIR/app/monitoring-endpoints.yml" | kubectl apply --context "$CONTEXT" -n "$NAMESPACE" -f -
@@ -40,7 +46,7 @@ if [ -n "$OTEL_ENDPOINT" ]; then
   echo "Deploying store-database with OTel Collector sidecar..."
   sed "s|image: siamchamnankit/store-database:.*|image: sck/store-database:k3d|" \
     "$SCRIPT_DIR/monitoring/store-database-with-otel.yml" \
-    | sed "s|http://REPLACE_OTEL_ENDPOINT:4318|${OTEL_ENDPOINT%:4317}:4318|" \
+    | sed "s|http://REPLACE_OTEL_ENDPOINT:4318|http://$GATEWAY_SVC:4318|" \
     | kubectl apply --context "$CONTEXT" -n "$NAMESPACE" -f -
 else
   sed 's|image: siamchamnankit/store-database:.*|image: sck/store-database:k3d|;s|imagePullPolicy: Always|imagePullPolicy: Never|' \
@@ -80,7 +86,7 @@ if [ -n "$OTEL_ENDPOINT" ]; then
   echo "Deploying thirdparty with Beyla sidecar..."
   sed "s|image: siamchamnankit/store-shipping-gateway:.*|image: sck/store-shipping-gateway:k3d|" \
     "$SCRIPT_DIR/monitoring/thirdparty-with-beyla.yml" \
-    | sed "s|http://REPLACE_OTEL_ENDPOINT:4317|$OTEL_ENDPOINT|" \
+    | sed "s|http://REPLACE_OTEL_ENDPOINT:4317|http://$GATEWAY_SVC:4317|" \
     | kubectl apply --context "$CONTEXT" -n "$NAMESPACE" -f -
 else
   sed 's|image: siamchamnankit/store-shipping-gateway:.*|image: sck/store-shipping-gateway:k3d|;s|imagePullPolicy: Always|imagePullPolicy: Never|' \
@@ -124,10 +130,10 @@ if [ -n "$OTEL_ENDPOINT" ]; then
     --namespace "$NAMESPACE" --kube-context "$CONTEXT" \
     --set fullnameOverride=kube-state-metrics
 
-  # OTel Collector to scrape node-exporter & kube-state-metrics, forward to monitoring cluster
+  # OTel Gateway — receives all local telemetry + scrapes prometheus, forwards to monitoring cluster
   OTEL_GRPC_ENDPOINT=$(echo "$OTEL_ENDPOINT" | sed 's|^http://||;s|^https://||')
-  echo "Installing metrics-collector (forwards to $OTEL_GRPC_ENDPOINT)..."
-  helm upgrade --install metrics-collector open-telemetry/opentelemetry-collector \
+  echo "Installing otel-gateway (local telemetry gateway, forwards to $OTEL_GRPC_ENDPOINT)..."
+  helm upgrade --install otel-gateway open-telemetry/opentelemetry-collector \
     --version 0.97.1 \
     --namespace "$NAMESPACE" --kube-context "$CONTEXT" \
     --values - <<EOF
@@ -136,15 +142,16 @@ replicaCount: 1
 image:
   repository: otel/opentelemetry-collector-contrib
 ports:
-  metrics:
-    enabled: true
-    containerPort: 8888
-    servicePort: 8888
-    protocol: TCP
   otlp:
-    enabled: false
+    enabled: true
+    containerPort: 4317
+    servicePort: 4317
+    protocol: TCP
   otlp-http:
-    enabled: false
+    enabled: true
+    containerPort: 4318
+    servicePort: 4318
+    protocol: TCP
   jaeger-compact:
     enabled: false
   jaeger-thrift:
@@ -155,6 +162,12 @@ ports:
     enabled: false
 config:
   receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
     prometheus:
       config:
         scrape_configs:
@@ -170,15 +183,41 @@ config:
               - targets: ['kube-state-metrics:8080']
                 labels:
                   cluster: sck-workshop
+  processors:
+    batch:
+      send_batch_size: 1024
+      timeout: 5s
+    memory_limiter:
+      check_interval: 5s
+      limit_mib: 256
+      spike_limit_mib: 64
   exporters:
     otlp:
       endpoint: ${OTEL_GRPC_ENDPOINT}
       tls:
         insecure: true
+      sending_queue:
+        enabled: true
+        num_consumers: 4
+        queue_size: 256
+      retry_on_failure:
+        enabled: true
+        initial_interval: 5s
+        max_interval: 30s
+        max_elapsed_time: 300s
   service:
     pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [otlp]
       metrics:
-        receivers: [prometheus]
+        receivers: [otlp, prometheus]
+        processors: [memory_limiter, batch]
+        exporters: [otlp]
+      logs:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
         exporters: [otlp]
 EOF
 fi

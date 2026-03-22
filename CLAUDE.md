@@ -125,6 +125,7 @@ make eks_deploy_full           # Both: app + monitoring
 
 ## Architecture
 
+### Application Services
 ```
                     ┌──────────┐
                     │  nginx   │ :80
@@ -145,6 +146,21 @@ make eks_deploy_full           # Both: app + monitoring
              │  :8001    │ └──────────┘  └────────────┘
              └───────────┘
 ```
+
+### Observability (Agent-Gateway Pattern)
+```
+APP CLUSTER (sck-workshop)                    MONITORING CLUSTER (sck-monitoring)
+┌───────────────────────────────────┐         ┌─────────────────────────────────────┐
+│ store-service ──┐                 │         │                                     │
+│ point-service ──┤                 │  OTLP   │ OTel Collector                      │
+│ Beyla sidecar ──┼► OTel Gateway ─┼──gRPC──►│ ► spanmetrics/servicegraph          │
+│ MySQL sidecar ──┤  (forwarder)   │         │ ► export to Tempo, Loki, Prometheus │
+│ node-exporter ──┤  batch/retry   │         │                                     │
+│ kube-state-m  ──┘                │         │ Pyroscope ◄── direct from services  │
+└───────────────────────────────────┘         │ Grafana                             │
+                                              └─────────────────────────────────────┘
+```
+No processing duplication — the app cluster gateway is a lightweight forwarder. All connectors (spanmetrics, servicegraph) and backend routing stay in the monitoring cluster.
 
 ### store-service (Go) internal structure
 - `cmd/main.go` — Entry point

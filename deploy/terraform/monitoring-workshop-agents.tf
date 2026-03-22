@@ -1,7 +1,9 @@
-# Workshop Cluster Monitoring: node-exporter + kube-state-metrics + OTel Collector scraper
-# Deployed to the workshop cluster (default provider) — pushes metrics to monitoring cluster
+# Workshop Cluster Monitoring: node-exporter + kube-state-metrics + OTel Gateway
+# Deployed to the workshop cluster (default provider)
+# The OTel Gateway receives all local telemetry and forwards to the monitoring cluster's OTel Collector
 
 # Look up the OTel Collector NLB hostname in the monitoring cluster
+# The gateway forwards to this endpoint (gRPC)
 data "kubernetes_service" "otel_collector" {
   provider = kubernetes.monitoring
 
@@ -14,7 +16,8 @@ data "kubernetes_service" "otel_collector" {
 }
 
 locals {
-  otel_collector_endpoint = "http://${data.kubernetes_service.otel_collector.status[0].load_balancer[0].ingress[0].hostname}:4318"
+  # Remote monitoring cluster endpoint — the gateway forwards all telemetry here
+  otel_collector_grpc_endpoint = "${data.kubernetes_service.otel_collector.status[0].load_balancer[0].ingress[0].hostname}:4317"
 }
 
 resource "helm_release" "workshop_node_exporter" {
@@ -64,8 +67,8 @@ resource "helm_release" "workshop_kube_state_metrics" {
   depends_on = [module.eks]
 }
 
-resource "helm_release" "workshop_otel_scraper" {
-  name             = "otel-scraper"
+resource "helm_release" "workshop_otel_gateway" {
+  name             = "otel-gateway"
   repository       = "https://open-telemetry.github.io/opentelemetry-helm-charts"
   chart            = "opentelemetry-collector"
   version          = "0.97.1"
@@ -78,15 +81,18 @@ resource "helm_release" "workshop_otel_scraper" {
     image = {
       repository = "otel/opentelemetry-collector-contrib"
     }
-    service = {
-      enabled = false
-    }
     ports = {
       otlp = {
-        enabled = false
+        enabled       = true
+        containerPort = 4317
+        servicePort   = 4317
+        protocol      = "TCP"
       }
       otlp-http = {
-        enabled = false
+        enabled       = true
+        containerPort = 4318
+        servicePort   = 4318
+        protocol      = "TCP"
       }
       jaeger-compact = {
         enabled = false
@@ -103,6 +109,16 @@ resource "helm_release" "workshop_otel_scraper" {
     }
     config = {
       receivers = {
+        otlp = {
+          protocols = {
+            grpc = {
+              endpoint = "0.0.0.0:4317"
+            }
+            http = {
+              endpoint = "0.0.0.0:4318"
+            }
+          }
+        }
         prometheus = {
           config = {
             scrape_configs = [
@@ -130,16 +146,52 @@ resource "helm_release" "workshop_otel_scraper" {
           }
         }
       }
+      processors = {
+        batch = {
+          send_batch_size = 1024
+          timeout         = "5s"
+        }
+        memory_limiter = {
+          check_interval  = "5s"
+          limit_mib       = 256
+          spike_limit_mib = 64
+        }
+      }
       exporters = {
-        otlphttp = {
-          endpoint = local.otel_collector_endpoint
+        otlp = {
+          endpoint = local.otel_collector_grpc_endpoint
+          tls = {
+            insecure = true
+          }
+          sending_queue = {
+            enabled       = true
+            num_consumers = 4
+            queue_size    = 256
+          }
+          retry_on_failure = {
+            enabled          = true
+            initial_interval = "5s"
+            max_interval     = "30s"
+            max_elapsed_time = "300s"
+          }
         }
       }
       service = {
         pipelines = {
+          traces = {
+            receivers  = ["otlp"]
+            processors = ["memory_limiter", "batch"]
+            exporters  = ["otlp"]
+          }
           metrics = {
-            receivers = ["prometheus"]
-            exporters = ["otlphttp"]
+            receivers  = ["otlp", "prometheus"]
+            processors = ["memory_limiter", "batch"]
+            exporters  = ["otlp"]
+          }
+          logs = {
+            receivers  = ["otlp"]
+            processors = ["memory_limiter", "batch"]
+            exporters  = ["otlp"]
           }
         }
       }
