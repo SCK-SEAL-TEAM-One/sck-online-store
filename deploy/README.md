@@ -71,7 +71,7 @@ docker build -t sck/store-service:k3d store-service/
 docker build -t sck/point-service:k3d point-service/
 docker build -t sck/store-web:k3d store-web/
 docker build -t sck/store-shipping-gateway:k3d thirdparty/
-docker build -t sck/liquibase:k3d db/
+docker build -t sck/liquibase:k3d -f db/Dockerfile .
 docker build -t sck/mysql-seed:k3d -f deploy/k8s/app/store-database/Dockerfile.seed .
 
 # 3. Import images into app cluster
@@ -102,34 +102,149 @@ make k3d_connect
 
 ### Verify the Setup
 
+#### Step 1: Check all pods are running
+
 ```bash
-# Login (credentials: user_1 / P@ssw0rd)
-TOKEN=$(curl -s -X POST http://localhost/api/v1/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"user_1","password":"P@ssw0rd"}' \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
-
-# Browse products
-curl -s http://localhost/api/v1/product \
-  -H "Authorization: Bearer $TOKEN" | python3 -c "
-import sys,json; data=json.load(sys.stdin)
-print(f'Products: {len(data[\"products\"])} items')"
-
-# Add item to cart
-curl -s -X PUT http://localhost/api/v1/addCart \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"product_id":1,"quantity":2}'
-
-# View cart
-curl -s http://localhost/api/v1/cart \
-  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+kubectl get pods -n public --context k3d-sck-workshop
+kubectl get pods -n monitoring --context k3d-sck-monitoring
 ```
 
-Then open **Grafana** at http://localhost:3000 (admin / workshop):
-- **Explore > Tempo** — see traces from store-service and point-service
-- **Explore > Prometheus** — query `traces_spanmetrics_latency_count` for RED metrics
-- **Explore > Pyroscope** — CPU profiles from store-service (try login endpoint for bcrypt-heavy spans)
+Expected: All pods `Running` or `Completed` (seed/migration jobs). Key pods on app cluster:
+- `store-service-deployment` (2 replicas)
+- `point-service-deployment`
+- `thirdparty-deployment` (2/2 — includes Beyla sidecar)
+- `mysql` (2/2 — includes OTel Collector sidecar)
+- `otel-gateway-opentelemetry-collector` — **this is the new gateway**
+- `node-exporter`, `kube-state-metrics`
+
+#### Step 2: Verify endpoints point to local gateway (not remote collector)
+
+```bash
+# All should show: http://otel-gateway-opentelemetry-collector.public:4317
+kubectl exec -n public --context k3d-sck-workshop deployment/store-service-deployment \
+  -- printenv OTEL_EXPORTER_OTLP_ENDPOINT
+
+kubectl exec -n public --context k3d-sck-workshop deployment/point-service-deployment \
+  -- printenv OTEL_EXPORTER_OTLP_ENDPOINT
+
+# Pyroscope should point directly to monitoring cluster (not via gateway)
+kubectl exec -n public --context k3d-sck-workshop deployment/store-service-deployment \
+  -- printenv PYROSCOPE_URL
+# Expected: http://k3d-sck-monitoring-serverlb:4040
+```
+
+#### Step 3: Generate traffic
+
+```bash
+# Hit various endpoints to generate traces, logs, and metrics
+for i in $(seq 1 10); do
+  curl -s -o /dev/null http://localhost/api/v1/product
+  curl -s -o /dev/null -X POST http://localhost/api/v1/login \
+    -H 'Content-Type: application/json' -d '{"email":"test@test.com","password":"test"}'
+done
+
+# Wait for telemetry pipeline to flush
+sleep 20
+```
+
+#### Step 4: Verify traces in Tempo
+
+```bash
+kubectl port-forward -n monitoring --context k3d-sck-monitoring svc/tempo 3100:3100 &
+sleep 2
+
+# Should show traces from store-service, point-service, thirdparty-gateway
+curl -s 'http://localhost:3100/api/search?q=%7B%7D&limit=20' | python3 -c "
+import sys, json
+traces = json.load(sys.stdin).get('traces',[])
+services = {}
+for t in traces:
+    svc = t.get('rootServiceName','?')
+    services[svc] = services.get(svc, 0) + 1
+print(f'Total traces: {len(traces)}')
+for svc, cnt in sorted(services.items()):
+    print(f'  {svc}: {cnt} traces')
+"
+
+kill %1 2>/dev/null
+```
+
+#### Step 5: Verify logs in Loki (with trace correlation)
+
+```bash
+kubectl port-forward -n monitoring --context k3d-sck-monitoring svc/loki 3100:3100 &
+sleep 2
+
+# Should show logs with trace_id and span_id labels
+START=$(date -v-30M +%s)
+END=$(date +%s)
+curl -s "http://localhost:3100/loki/api/v1/query_range?query=%7Bservice_name%3D%22store-service%22%7D&limit=3&start=${START}000000000&end=${END}000000000" \
+  | python3 -c "
+import sys, json
+results = json.load(sys.stdin).get('data',{}).get('result',[])
+for r in results[:3]:
+    labels = r.get('stream',{})
+    print(f'trace_id={\"trace_id\" in labels} span_id={\"span_id\" in labels} log={r.get(\"values\",[[\"\"]])[0][1][:80]}')
+"
+
+kill %1 2>/dev/null
+```
+
+#### Step 6: Verify spanmetrics in Prometheus
+
+```bash
+kubectl port-forward -n monitoring --context k3d-sck-monitoring svc/prometheus-server 9090:80 &
+sleep 2
+
+# Should show spanmetric series for all 3 services
+curl -s 'http://localhost:9090/api/v1/query?query=duration_milliseconds_count' | python3 -c "
+import sys, json
+results = json.load(sys.stdin).get('data',{}).get('result',[])
+services = {}
+for r in results:
+    svc = r.get('metric',{}).get('service_name','?')
+    services[svc] = services.get(svc, 0) + 1
+print(f'Spanmetric series: {len(results)}')
+for svc, cnt in sorted(services.items()):
+    print(f'  {svc}: {cnt} series')
+"
+
+kill %1 2>/dev/null
+```
+
+#### Step 7: Verify profile correlation
+
+```bash
+kubectl port-forward -n monitoring --context k3d-sck-monitoring svc/tempo 3100:3100 &
+sleep 2
+
+# Get a store-service trace and check for pyroscope.profile.id
+TRACE_ID=$(curl -s 'http://localhost:3100/api/search?q=%7Bresource.service.name%3D%22store-service%22%7D&limit=1' \
+  | python3 -c "import sys,json; t=json.load(sys.stdin).get('traces',[]); print(t[0]['traceID'] if t else '')")
+
+curl -s "http://localhost:3100/api/traces/$TRACE_ID" | python3 -c "
+import sys, json
+for batch in json.load(sys.stdin).get('batches',[]):
+    for ss in batch.get('scopeSpans',[]):
+        for span in ss.get('spans',[]):
+            attrs = {a['key']: a.get('value',{}).get('stringValue','') for a in span.get('attributes',[])}
+            pid = attrs.get('pyroscope.profile.id','NOT PRESENT')
+            if pid != 'NOT PRESENT':
+                print(f'span={span[\"name\"]} pyroscope.profile.id={pid}')
+"
+
+kill %1 2>/dev/null
+```
+
+#### Step 8: Verify via Grafana UI
+
+Open **Grafana** at http://localhost:3000 (admin / workshop):
+- **Explore > Tempo** — see traces from store-service, point-service, thirdparty-gateway
+- **Explore > Loki** — query `{service_name="store-service"}` — click trace_id to jump to Tempo
+- **Explore > Prometheus** — query `duration_milliseconds_count` for spanmetrics (RED metrics)
+- **Explore > Pyroscope** — select `store-service` → `process_cpu` → see CPU flame graph
+- On a trace span: click **"Logs for this span"** → should show correlated logs
+- On a CPU-heavy span (e.g. login/bcrypt): click **"Profiles for this span"** → should show profile
 
 Test users: `user_1` through `user_50`, all with password `P@ssw0rd`.
 
@@ -181,16 +296,24 @@ helm upgrade --install ingress-nginx ingress-nginx \
 
 This script also installs nginx-ingress on the monitoring cluster with TCP passthrough for OTel (4317/4318) and Pyroscope (4040).
 
-#### Deploy app with monitoring
+#### Deploy app with monitoring (agent-gateway pattern)
 
 ```bash
-# Deploy app and auto-patch ConfigMap with monitoring endpoints
+# Deploy app + OTel Gateway + monitoring agents
+# OTEL_ENDPOINT tells the gateway where to forward (monitoring cluster)
+# Services send to the local gateway, NOT directly to the monitoring cluster
 OTEL_ENDPOINT=http://k3d-sck-monitoring-serverlb:4317 \
 PYROSCOPE_ENDPOINT=http://k3d-sck-monitoring-serverlb:4040 \
 ./deploy/k8s/k3d-deploy.sh
 ```
 
 Or use the Makefile shortcut: `make k3d_connect`
+
+This deploys:
+- All app services (store-service, point-service, store-web, thirdparty, mysql)
+- **OTel Gateway** (Helm release `otel-gateway`) — receives OTLP from all local services + scrapes node-exporter/kube-state-metrics, forwards everything to monitoring cluster with buffering/retry
+- Beyla sidecar on thirdparty, OTel Collector sidecar on MySQL — both send to the local gateway
+- monitoring-endpoints ConfigMap pointing services to the local gateway (not remote collector)
 
 #### Deploy app without monitoring
 
