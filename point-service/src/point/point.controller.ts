@@ -13,6 +13,17 @@ export class PointController {
 
   @Get()
   async getPoint() {
+    this.logger.log('GET /point request received');
+    otelLogger.emit({
+      severityNumber: SeverityNumber.INFO,
+      severityText: 'INFO',
+      body: 'Get points request received',
+      attributes: {
+        'log_type': 'business',
+        'event': 'get_points_request',
+        'entity_type': 'point',
+      },
+    });
     try {
       return await this.pointService.getPoint();
     } catch (error) {
@@ -29,6 +40,22 @@ export class PointController {
 
   @Post()
   async createPoint(@Body() body: CreatePointDto) {
+    this.logger.log(
+      `POST /point request received: userId=${body.userId}, orgId=${body.orgId}, amount=${body.amount}`,
+    );
+    otelLogger.emit({
+      severityNumber: SeverityNumber.INFO,
+      severityText: 'INFO',
+      body: 'Deduct points request received',
+      attributes: {
+        'log_type': 'business',
+        'event': 'deduct_points_request',
+        'entity_type': 'point',
+        'actor_id': body.userId,
+        'org_id': body.orgId,
+        'amount': body.amount,
+      },
+    });
     try {
       return await this.pointService.deductPoint(body);
     } catch (error) {
