@@ -4,6 +4,8 @@ Two-cluster architecture: **app cluster** (runs the application) + **monitoring 
 
 ## Architecture Overview
 
+Uses an **agent-gateway pattern**: all telemetry flows through a local OTel Gateway on the app cluster, which forwards to the monitoring cluster via a single buffered connection.
+
 ```
 ┌──────────────────────────────────────┐
 │  App Cluster (sck-workshop)          │
@@ -16,8 +18,11 @@ Two-cluster architecture: **app cluster** (runs the application) + **monitoring 
 │  └─ mysql + liquibase                │
 │                                      │
 │  store-service ──┐                   │
-│  point-service ──┼── gRPC/4317 ──────┼──┐
-│  thirdparty ─────┘   (OTel SDK)     │  │
+│  point-service ──┤                   │
+│  Beyla sidecar ──┼► OTel Gateway ────┼──┐  OTLP gRPC
+│  MySQL sidecar ──┤   (forwarder)    │  │  (batch + retry)
+│  node-exporter ──┤   :4317/:4318    │  │
+│  kube-state-m  ──┘                   │  │
 └──────────────────────────────────────┘  │
                                           │  Cross-cluster network
 ┌──────────────────────────────────────┐  │
@@ -29,16 +34,18 @@ Two-cluster architecture: **app cluster** (runs the application) + **monitoring 
 │  ├─► Prometheus (metrics)           │
 │  └─► spanmetrics + servicegraph     │
 │                                      │
-│  Pyroscope :4040  ←──────────────────┼── (profiling SDK)
+│  Pyroscope :4040  ←──────────────────┼── (direct from services, not via gateway)
 │  Grafana :80 (admin/workshop)        │
 │  └─ datasources: Tempo, Loki,       │
 │     Prometheus, Pyroscope            │
 └──────────────────────────────────────┘
 ```
 
+**Key design:** No processing duplication. The gateway is a lightweight forwarder. All connectors (spanmetrics, servicegraph) and backend routing stay in the monitoring cluster. Signal correlations (trace↔log, trace↔profile, metric→trace exemplars) are preserved — the gateway forwards full OTLP payloads without stripping attributes.
+
 Cross-cluster connectivity:
-- **k3d**: Shared Docker network (`k3d-shared`), containers talk via `k3d-sck-monitoring-serverlb`
-- **EKS**: VPC Peering + internal NLB on monitoring cluster, apps use NLB DNS hostname
+- **k3d**: Shared Docker network (`k3d-shared`), gateway forwards via `k3d-sck-monitoring-serverlb`
+- **EKS**: VPC Peering + internal NLB on monitoring cluster, gateway uses NLB DNS hostname
 
 ---
 

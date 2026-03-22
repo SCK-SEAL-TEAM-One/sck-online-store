@@ -1,9 +1,13 @@
 # Observability Configuration Guide
 
-> **Last updated:** 2026-03-21
+> **Last updated:** 2026-03-22
 > This document explains every observability configuration in the project line by line, what each setting controls, and what breaks when it changes or is removed.
 
 ## Overview: How Signals Flow
+
+### Docker Compose (local dev)
+
+In Docker Compose, all services send directly to `lgtm` (grafana/otel-lgtm all-in-one container):
 
 ```
   store-service (Go)         point-service (Node.js)       thirdparty (Node.js)
@@ -35,6 +39,38 @@
     │  MySQL metrics ──→ Prometheus (via lgtm:4317)
     │  MySQL slow logs ──→ Loki (via lgtm:4317)
 ```
+
+### k3d / EKS (Agent-Gateway Pattern)
+
+In the two-cluster setup, all telemetry flows through a local **OTel Gateway** on the app cluster before being forwarded to the monitoring cluster. This provides buffering, retry, and a single cross-cluster connection.
+
+```
+APP CLUSTER (sck-workshop)                    MONITORING CLUSTER (sck-monitoring)
+┌───────────────────────────────────┐         ┌─────────────────────────────────────┐
+│ store-service ──┐                 │         │                                     │
+│ point-service ──┤                 │  OTLP   │ OTel Collector                      │
+│ Beyla sidecar ──┼► OTel Gateway ─┼──gRPC──►│ ► spanmetrics/servicegraph          │
+│ MySQL sidecar ──┤  (forwarder)   │         │ ► export to Tempo, Loki, Prometheus │
+│ node-exporter ──┤  batch/retry   │         │                                     │
+│ kube-state-m  ──┘                │         │ Pyroscope ◄── direct from services  │
+└───────────────────────────────────┘         │ Grafana                             │
+                                              └─────────────────────────────────────┘
+```
+
+**Key design:** No processing duplication. The app cluster gateway is a lightweight forwarder (OTLP recv + batch + retry). All connectors (spanmetrics, servicegraph) and backend routing stay in the monitoring cluster's OTel Collector.
+
+**Pyroscope** is accessed directly (not through the gateway) because it uses its own push API, not OTLP.
+
+### Signal Correlation Across the Gateway
+
+All signal correlations are preserved through the gateway — it forwards full OTLP payloads without stripping attributes:
+
+| Correlation | How it works | Key attribute |
+|---|---|---|
+| Trace → Log | Logs carry `trace_id` + `span_id` via OTLP. Grafana Tempo `tracesToLogsV2` links to Loki | `trace_id`, `span_id` in log labels |
+| Trace → Profile | `otel-profiling-go` injects `pyroscope.profile.id` into spans. Grafana `tracesToProfiles` links to Pyroscope | `pyroscope.profile.id` span attribute |
+| Metric → Trace | `spanmetrics` connector generates exemplars with `trace_id`. Grafana Prometheus `exemplarTraceIdDestinations` links to Tempo | `trace_id` in exemplar |
+| Log → Trace | Loki logs have `trace_id` label, enabling reverse lookup | `trace_id` in log labels |
 
 ---
 
