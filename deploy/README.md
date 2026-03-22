@@ -43,7 +43,19 @@ Uses an **agent-gateway pattern**: all telemetry flows through a local OTel Gate
 
 **Key design:** No processing duplication. The gateway is a lightweight forwarder. All connectors (spanmetrics, servicegraph) and backend routing stay in the monitoring cluster. Signal correlations (trace↔log, trace↔profile, metric→trace exemplars) are preserved — the gateway forwards full OTLP payloads without stripping attributes.
 
-**Why Pyroscope is direct (not via gateway):** The `pyroscope-go` SDK uses Pyroscope's native HTTP push API (port 4040), not OTLP. The OTel Collector has no Pyroscope exporter — there is no way to route profiles through the OTel pipeline. Trace↔profile correlation still works because `otel-profiling-go` injects `pyroscope.profile.id` into spans (which travel through the gateway to Tempo), while profiles are pushed directly to Pyroscope. Grafana's `tracesToProfiles` datasource config links them together.
+**Why Pyroscope is direct (not via gateway):** The `pyroscope-go` SDK uses Pyroscope's native HTTP push API (port 4040), not OTLP. Trace↔profile correlation still works because `otel-profiling-go` injects `pyroscope.profile.id` into spans (which travel through the gateway to Tempo), while profiles are pushed directly to Pyroscope. Grafana's `tracesToProfiles` datasource config links them together.
+
+> **Future: OTLP Profiling (alpha as of 2026-03-18)**
+>
+> OpenTelemetry declared profiling an **alpha signal** on 2026-03-18 ([opentelemetry-proto#775](https://github.com/open-telemetry/opentelemetry-proto/pull/775)). The OTel Collector core now supports profiles in the OTLP receiver/exporter ([collector#14817](https://github.com/open-telemetry/opentelemetry-collector/pull/14817), merged 2026-03-20). Pyroscope already accepts OTLP profiles on ports 4317/4318 natively — **no dedicated Pyroscope exporter needed** in otel-collector-contrib.
+>
+> This means the architecture _could_ evolve to: `SDK → OTel Gateway (profiles via OTLP) → Pyroscope (OTLP endpoint)`. However, this path is **not yet viable** for this project because:
+> 1. The `pyroscope-go` SDK still only pushes via native API — no OTLP profile export yet
+> 2. The OTLP profiling proto is still evolving (breaking changes expected, package paths still use `v1development`)
+> 3. Span-level linking (`pyroscope.profile.id`) requires `otel-profiling-go` which wraps the native SDK, not OTLP
+> 4. Stable/GA is estimated **6-12 months away** — the proto format has open design issues ([#577](https://github.com/open-telemetry/opentelemetry-proto/issues/577), [#766](https://github.com/open-telemetry/opentelemetry-proto/issues/766))
+>
+> **When to revisit:** When `pyroscope-go` adds OTLP export support, or when a Go OTel SDK profiling API reaches beta. Track progress at [sig-profiling roadmap](https://github.com/open-telemetry/sig-profiling/issues/64).
 
 Cross-cluster connectivity:
 - **k3d**: Shared Docker network (`k3d-shared`), gateway forwards via `k3d-sck-monitoring-serverlb`
