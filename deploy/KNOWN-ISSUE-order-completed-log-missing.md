@@ -34,7 +34,7 @@ The HTTP response returns 200 with a valid order_number, proving both log lines 
 ### 1. Switch protocol to HTTP (env-only change, no code change)
 The local LGTM uses gRPC directly. EKS also uses gRPC but through an NLB. Try HTTP to rule out gRPC-specific issues.
 ```yaml
-# In deploy/k8s/store-service/service.yml
+# In deploy/k8s/app/store-service/service.yml
 - name: OTEL_EXPORTER_OTLP_PROTOCOL
   value: http/protobuf
 - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -69,5 +69,5 @@ lp := otellog.NewLoggerProvider(
 - `store-service/internal/order/order.go:181-198` — "Order completed" log (broken on EKS)
 - `store-service/cmd/api/order.go:79-92` — "Order created" log (works on EKS)
 - `store-service/internal/otel/otel.go` — OTel init with BatchProcessor
-- `deploy/k8s/store-service/service.yml` — K8s deployment manifest
-- `deploy/terraform/lgtm-stack.tf` — Loki + OTel collector config
+- `deploy/k8s/app/store-service/service.yml` — K8s deployment manifest
+- `deploy/terraform/monitoring-lgtm-stack.tf` — Loki + OTel collector config

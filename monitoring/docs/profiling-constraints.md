@@ -93,7 +93,7 @@ Keep `customQuery: false` with `profileTypeId: "process_cpu:cpu:nanoseconds:cpu:
 - `point-service/src/trace.ts` — Node.js OTel + Pyroscope setup (no bridge)
 - `point-service/package.json` — `@pyroscope/nodejs` dependency + `p-limit` override
 - `monitoring/grafana/provisioning/datasources.yml` — `tracesToProfiles` config with `customQuery: false`
-- `deploy/terraform/lgtm-stack.tf` — Same config for EKS deployment
+- `deploy/terraform/monitoring-lgtm-stack.tf` — Same config for EKS deployment
 
 ## References
 

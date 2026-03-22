@@ -444,7 +444,7 @@ Spans ที่ใช้ CPU มาก (เช่น login กับ bcrypt) ส
 | `store-service/internal/otel/otel.go` | OTel TracerProvider setup |
 | `monitoring/grafana/provisioning/datasources.yml` | Tempo → Pyroscope linking |
 | `docker-compose.yml` | Service env vars, PYROSCOPE_URL |
-| `deploy/terraform/lgtm-stack.tf` | EKS Tempo → Pyroscope config |
+| `deploy/terraform/monitoring-lgtm-stack.tf` | EKS Tempo → Pyroscope config |
 
 ## สรุป
 

@@ -110,7 +110,14 @@ make eks_build_all
 
 **Docker Hub repo:** `siamchamnankit/store-service`, `siamchamnankit/point-service`
 
-**K8s manifests:** `deploy/k8s/store-service/service.yml`, `deploy/k8s/point-service/service.yml`
+**K8s manifests:** `deploy/k8s/app/store-service/service.yml`, `deploy/k8s/app/point-service/service.yml`
+
+### Deploy App + Monitoring (EKS)
+```bash
+make eks_deploy_app            # Deploy all app manifests (standalone, no monitoring)
+make eks_deploy_monitoring     # Deploy monitoring overlays (OTel sidecar, Beyla)
+make eks_deploy_full           # Both: app + monitoring
+```
 
 **Cluster contexts:**
 - App cluster: `arn:aws:eks:ap-southeast-7:517425940836:cluster/sck-workshop`

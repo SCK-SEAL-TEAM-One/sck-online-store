@@ -317,6 +317,8 @@ resource "helm_release" "grafana" {
                 datasourceUid          = "loki"
                 spanStartTimeShift     = "-1m"
                 spanEndTimeShift       = "1m"
+                filterByTraceID        = true
+                filterBySpanID         = false
               }
               tracesToProfiles = {
                 datasourceUid = "pyroscope"

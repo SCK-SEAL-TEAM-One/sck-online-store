@@ -451,4 +451,4 @@ A **CPU sampling gap**: the Go CPU profiler samples at 100Hz (every 10ms). Spans
 | `store-service/internal/otel/otel.go` | OTel TracerProvider setup |
 | `monitoring/grafana/provisioning/datasources.yml` | Tempo → Pyroscope linking |
 | `docker-compose.yml` | Service env vars, PYROSCOPE_URL |
-| `deploy/terraform/lgtm-stack.tf` | EKS Tempo → Pyroscope config |
+| `deploy/terraform/monitoring-lgtm-stack.tf` | EKS Tempo → Pyroscope config |

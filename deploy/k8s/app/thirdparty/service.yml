@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thirdparty-deployment
+  namespace: public
+  labels:
+    app: thirdparty
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thirdparty
+  template:
+    metadata:
+      labels:
+        app: thirdparty
+    spec:
+      containers:
+        - name: thirdparty
+          image: siamchamnankit/store-shipping-gateway:0.0.1
+          ports:
+            - containerPort: 8882
+            - containerPort: 8883
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 2525
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 2525
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thirdparty-service
+  namespace: public
+spec:
+  type: ClusterIP
+  selector:
+    app: thirdparty
+  ports:
+    - name: bank
+      protocol: TCP
+      port: 8882
+      targetPort: 8882
+    - name: shipping
+      protocol: TCP
+      port: 8883
+      targetPort: 8883

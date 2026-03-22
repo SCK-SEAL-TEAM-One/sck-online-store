@@ -32,7 +32,7 @@ make down && make start_all
 # EKS: reset MySQL pod and re-run Liquibase migration
 kubectl -n public delete pod -l app=mysql
 kubectl -n public delete job liquibase-migration-latest
-kubectl -n public apply -f deploy/k8s/liquibase/job.yml
+kubectl -n public apply -f deploy/k8s/app/liquibase/job.yml
 kubectl -n public rollout restart deployment store-service-deployment point-service-deployment
 ```
 

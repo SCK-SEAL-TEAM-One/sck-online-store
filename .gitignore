@@ -44,7 +44,7 @@ atdd/api/newman
 mb*.log
 
 # secrets
-deploy/k8s/secrets.yml
+deploy/k8s/app/secrets.yml
 
 # terraform
 deploy/terraform/.terraform/

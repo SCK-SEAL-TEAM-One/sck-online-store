@@ -231,15 +231,96 @@ eks_push_point: eks_build_point
 eks_push_all: eks_push_store eks_push_point
 
 eks_deploy_store: eks_push_store
-	sed -i '' 's|image: $(DOCKER_REPO)/store-service:.*|image: $(DOCKER_REPO)/store-service:$(EKS_TAG)|' deploy/k8s/store-service/service.yml
-	kubectl apply -f deploy/k8s/store-service/service.yml
+	sed -i '' 's|image: $(DOCKER_REPO)/store-service:.*|image: $(DOCKER_REPO)/store-service:$(EKS_TAG)|' deploy/k8s/app/store-service/service.yml
+	kubectl apply -f deploy/k8s/app/monitoring-endpoints.yml
+	kubectl apply -f deploy/k8s/app/store-service/service.yml
 	kubectl rollout status deployment/store-service-deployment --timeout=120s
 	@echo "Deployed store-service:$(EKS_TAG)"
 
 eks_deploy_point: eks_push_point
-	sed -i '' 's|image: $(DOCKER_REPO)/point-service:.*|image: $(DOCKER_REPO)/point-service:$(EKS_TAG)|' deploy/k8s/point-service/service.yml
-	kubectl apply -f deploy/k8s/point-service/service.yml
+	sed -i '' 's|image: $(DOCKER_REPO)/point-service:.*|image: $(DOCKER_REPO)/point-service:$(EKS_TAG)|' deploy/k8s/app/point-service/service.yml
+	kubectl apply -f deploy/k8s/app/monitoring-endpoints.yml
+	kubectl apply -f deploy/k8s/app/point-service/service.yml
 	kubectl rollout status deployment/point-service-deployment --timeout=120s
 	@echo "Deployed point-service:$(EKS_TAG)"
 
 eks_deploy_all: eks_deploy_store eks_deploy_point
+
+eks_deploy_app:
+	kubectl apply -f deploy/k8s/app/monitoring-endpoints.yml
+	kubectl apply -f deploy/k8s/app/store-database/service.yml
+	kubectl apply -f deploy/k8s/app/store-service/service.yml
+	kubectl apply -f deploy/k8s/app/point-service/service.yml
+	kubectl apply -f deploy/k8s/app/store-web/service.yml
+	kubectl apply -f deploy/k8s/app/liquibase/job.yml
+	kubectl apply -f deploy/k8s/app/ingress.yml
+	@echo "Deployed all app manifests"
+
+eks_deploy_monitoring:
+	kubectl apply -f deploy/k8s/monitoring/store-database-with-otel.yml
+	kubectl apply -f deploy/k8s/monitoring/thirdparty-with-beyla.yml
+	@echo "Deployed monitoring overlays"
+
+eks_deploy_full: eks_deploy_app eks_deploy_monitoring
+
+# --- k3d Local Cluster ---
+K3D_NETWORK := k3d-shared
+K3D_APP_CLUSTER := sck-workshop
+K3D_MON_CLUSTER := sck-monitoring
+K3D_APP_CONTEXT := k3d-$(K3D_APP_CLUSTER)
+K3D_MON_CONTEXT := k3d-$(K3D_MON_CLUSTER)
+
+k3d_deploy:
+	./deploy/k8s/k3d-deploy.sh
+
+k3d_create_all:
+	@echo "=== Creating shared Docker network ==="
+	docker network create $(K3D_NETWORK) 2>/dev/null || true
+	@echo ""
+	@echo "=== Creating app cluster: $(K3D_APP_CLUSTER) ==="
+	k3d cluster create $(K3D_APP_CLUSTER) \
+		--network $(K3D_NETWORK) \
+		--port "80:80@loadbalancer" \
+		--port "443:443@loadbalancer" \
+		--k3s-arg "--disable=traefik@server:0" \
+		--agents 1 --wait
+	@echo ""
+	@echo "=== Creating monitoring cluster: $(K3D_MON_CLUSTER) ==="
+	k3d cluster create $(K3D_MON_CLUSTER) \
+		--network $(K3D_NETWORK) \
+		--port "3000:80@loadbalancer" \
+		--port "4317:4317@loadbalancer" \
+		--port "4318:4318@loadbalancer" \
+		--port "4040:4040@loadbalancer" \
+		--k3s-arg "--disable=traefik@server:0" \
+		--agents 0 --wait
+	@echo ""
+	@echo "=== Installing nginx-ingress on app cluster ==="
+	helm upgrade --install ingress-nginx ingress-nginx \
+		--repo https://kubernetes.github.io/ingress-nginx \
+		--namespace ingress-nginx --create-namespace \
+		--kube-context $(K3D_APP_CONTEXT) \
+		--set controller.ingressClassResource.name=public \
+		--set controller.service.type=LoadBalancer \
+		--wait --timeout 120s
+	@echo ""
+	@echo "Both clusters created on network '$(K3D_NETWORK)'"
+	@echo "App cluster context:        $(K3D_APP_CONTEXT)"
+	@echo "Monitoring cluster context:  $(K3D_MON_CONTEXT)"
+
+k3d_deploy_monitoring:
+	./deploy/k8s/k3d-monitoring.sh
+
+k3d_connect:
+	@echo "=== Connecting app cluster to monitoring cluster ==="
+	OTEL_ENDPOINT=http://k3d-$(K3D_MON_CLUSTER)-serverlb:4317 \
+	PYROSCOPE_ENDPOINT=http://k3d-$(K3D_MON_CLUSTER)-serverlb:4040 \
+	K8S_CONTEXT=$(K3D_APP_CONTEXT) \
+	./deploy/k8s/k3d-deploy.sh
+
+k3d_delete_all:
+	@echo "=== Deleting clusters ==="
+	k3d cluster delete $(K3D_MON_CLUSTER) 2>/dev/null || true
+	k3d cluster delete $(K3D_APP_CLUSTER) 2>/dev/null || true
+	docker network rm $(K3D_NETWORK) 2>/dev/null || true
+	@echo "Done"

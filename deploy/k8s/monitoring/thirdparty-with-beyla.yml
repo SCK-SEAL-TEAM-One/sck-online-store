@@ -42,7 +42,7 @@ spec:
             - name: BEYLA_OPEN_PORT
               value: "8882,8883"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: http://ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4317
+              value: http://REPLACE_OTEL_ENDPOINT:4317
             - name: OTEL_EXPORTER_OTLP_PROTOCOL
               value: grpc
             - name: OTEL_SERVICE_NAME

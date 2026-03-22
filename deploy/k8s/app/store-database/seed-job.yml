@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-seed
+  labels:
+    app: mysql-seed
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: mysql-seed
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for MySQL to be ready..."
+              for i in $(seq 1 60); do
+                if nc -z mysql 3306 2>/dev/null; then
+                  echo "MySQL is ready!"
+                  exit 0
+                fi
+                echo "Attempt $i: Waiting for MySQL..."
+                sleep 2
+              done
+              echo "MySQL did not become ready in time"
+              exit 1
+      containers:
+        - name: seed
+          image: sck/mysql-seed:k3d
+          imagePullPolicy: Never
+          command:
+            - sh
+            - -c
+            - |
+              echo "Running grandall.sql..."
+              mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD < /seed/grandall.sql
+              echo "Running store seed..."
+              mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD < /seed/store/init.sql
+              echo "Running point seed..."
+              mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD < /seed/point/init.sql
+              echo "Seed complete!"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: mysql-root-password

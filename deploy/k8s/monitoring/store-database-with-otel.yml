@@ -14,6 +14,17 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: mysql-init-db
+data:
+  init-databases.sql: |
+    CREATE DATABASE IF NOT EXISTS store CHARACTER SET utf8 COLLATE utf8_general_ci;
+    CREATE DATABASE IF NOT EXISTS point CHARACTER SET utf8 COLLATE utf8_general_ci;
+    GRANT ALL ON *.* TO 'user'@'%' WITH GRANT OPTION;
+    FLUSH PRIVILEGES;
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: mysql-otel-collector-config
 data:
   config.yaml: |
@@ -62,7 +73,7 @@ data:
             action: upsert
     exporters:
       otlphttp:
-        endpoint: http://ac8a0688b9ef54de99cb38abcfd35beb-04cd7576ff4c204e.elb.ap-southeast-7.amazonaws.com:4318
+        endpoint: http://REPLACE_OTEL_ENDPOINT:4318
     service:
       pipelines:
         metrics:
@@ -126,6 +137,9 @@ spec:
               mountPath: /etc/mysql/conf.d/slow-query.cnf
               subPath: slow-query.cnf
               readOnly: true
+            - name: mysql-init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
             - name: mysql-logs
               mountPath: /var/log/mysql
           livenessProbe:
@@ -182,6 +196,9 @@ spec:
         - name: mysql-config
           configMap:
             name: mysql-slow-query-config
+        - name: mysql-init
+          configMap:
+            name: mysql-init-db
         - name: otel-config
           configMap:
             name: mysql-otel-collector-config
