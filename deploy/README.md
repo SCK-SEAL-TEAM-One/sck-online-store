@@ -43,6 +43,8 @@ Uses an **agent-gateway pattern**: all telemetry flows through a local OTel Gate
 
 **Key design:** No processing duplication. The gateway is a lightweight forwarder. All connectors (spanmetrics, servicegraph) and backend routing stay in the monitoring cluster. Signal correlations (trace↔log, trace↔profile, metric→trace exemplars) are preserved — the gateway forwards full OTLP payloads without stripping attributes.
 
+**Why Pyroscope is direct (not via gateway):** The `pyroscope-go` SDK uses Pyroscope's native HTTP push API (port 4040), not OTLP. The OTel Collector has no Pyroscope exporter — there is no way to route profiles through the OTel pipeline. Trace↔profile correlation still works because `otel-profiling-go` injects `pyroscope.profile.id` into spans (which travel through the gateway to Tempo), while profiles are pushed directly to Pyroscope. Grafana's `tracesToProfiles` datasource config links them together.
+
 Cross-cluster connectivity:
 - **k3d**: Shared Docker network (`k3d-shared`), gateway forwards via `k3d-sck-monitoring-serverlb`
 - **EKS**: VPC Peering + internal NLB on monitoring cluster, gateway uses NLB DNS hostname

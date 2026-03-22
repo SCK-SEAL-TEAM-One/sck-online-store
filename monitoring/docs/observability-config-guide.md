@@ -59,7 +59,7 @@ APP CLUSTER (sck-workshop)                    MONITORING CLUSTER (sck-monitoring
 
 **Key design:** No processing duplication. The app cluster gateway is a lightweight forwarder (OTLP recv + batch + retry). All connectors (spanmetrics, servicegraph) and backend routing stay in the monitoring cluster's OTel Collector.
 
-**Pyroscope** is accessed directly (not through the gateway) because it uses its own push API, not OTLP.
+**Why Pyroscope is direct (not via gateway):** The `pyroscope-go` SDK uses Pyroscope's native HTTP push API (port 4040), not OTLP. The OTel Collector has no Pyroscope exporter — profiles cannot be routed through the OTel pipeline. Trace↔profile correlation works because `otel-profiling-go` injects `pyroscope.profile.id` into spans (which travel via the gateway to Tempo), while profiles are pushed directly to Pyroscope.
 
 ### Signal Correlation Across the Gateway
 
